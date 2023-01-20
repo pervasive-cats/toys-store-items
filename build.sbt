@@ -18,7 +18,7 @@ lazy val root = project
   .in(file("."))
   .enablePlugins(AutomateHeaderPlugin)
   .settings(
-    name := "toys-store-bc-template",
+    name := "toys-store-items",
     scalacOptions ++= Seq(
       "-deprecation",
       "-Xfatal-warnings"
