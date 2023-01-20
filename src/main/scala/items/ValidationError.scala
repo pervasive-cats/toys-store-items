@@ -7,6 +7,11 @@
 package io.github.pervasivecats
 package items
 
+import eu.timepit.refined.api.Refined
+import eu.timepit.refined.numeric.NonNegative
+
+type IdNumber = Long Refined NonNegative
+
 type Validated[A] = Either[ValidationError, A]
 
 trait ValidationError {

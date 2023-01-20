@@ -7,12 +7,9 @@
 package io.github.pervasivecats
 package items.catalogitem.valueobjects
 
-import eu.timepit.refined.api.Refined
-import eu.timepit.refined.numeric.NonNegative
-
-type StoreIdLong = Long Refined NonNegative
+import items.IdNumber
 
 trait Store {
 
-  val value: StoreIdLong
+  val id: IdNumber
 }
