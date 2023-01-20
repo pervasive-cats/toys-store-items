@@ -14,5 +14,4 @@ trait ItemCategory {
   val id: ItemCategory
   val name: Name
   val description: Description
-
 }

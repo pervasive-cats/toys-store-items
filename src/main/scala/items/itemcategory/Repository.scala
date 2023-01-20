@@ -20,5 +20,4 @@ trait Repository {
   def update(itemCategory: ItemCategory, name: Name, description: Description): Validated[Unit]
 
   def remove(itemCategory: ItemCategory): Validated[Unit]
-
 }

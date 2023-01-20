@@ -12,5 +12,4 @@ import items.itemcategory.valueobjects.*
 trait ItemCategoryOps[A <: ItemCategory] {
 
   def updated(name: Name, description: Description): A
-
 }
