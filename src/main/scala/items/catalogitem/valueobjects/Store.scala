@@ -5,6 +5,6 @@
  */
 
 package io.github.pervasivecats
+package items.catalogitem.valueobjects
 
-@main
-def main(): Unit = println("Hello world!")
+trait Store {}
