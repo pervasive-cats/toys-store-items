@@ -11,5 +11,5 @@ import items.IdNumber
 
 trait ItemCategoryId {
 
-  val id: IdNumber
+  val value: IdNumber
 }
