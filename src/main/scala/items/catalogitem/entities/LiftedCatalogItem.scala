@@ -5,6 +5,8 @@
  */
 
 package io.github.pervasivecats
+package items.catalogitem.entities
 
-@main
-def main(): Unit = println("Hello world!")
+trait LiftedCatalogItem extends CatalogItem {
+
+}
