@@ -7,4 +7,4 @@
 package io.github.pervasivecats
 package items.item.entities
 
-trait ReturnedItem {}
+trait ReturnedItem

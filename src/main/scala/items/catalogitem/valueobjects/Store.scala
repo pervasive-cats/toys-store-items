@@ -7,4 +7,4 @@
 package io.github.pervasivecats
 package items.catalogitem.valueobjects
 
-trait Store {}
+trait Store

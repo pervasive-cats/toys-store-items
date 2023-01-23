@@ -7,9 +7,9 @@
 package io.github.pervasivecats
 package items.item.valueobjects
 
-import items.IdNumber
+import items.Id
 
 trait ItemId {
 
-  val value: IdNumber
+  val value: Id
 }
