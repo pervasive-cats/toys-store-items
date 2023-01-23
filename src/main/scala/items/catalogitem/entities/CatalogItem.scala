@@ -7,13 +7,16 @@
 package io.github.pervasivecats
 package items.catalogitem.entities
 
-import items.catalogitem.valueobjects.*
 import items.itemcategory.valueobjects.ItemCategoryId
+import items.catalogitem.valueobjects.{CatalogItemId, Price, Store}
 
 trait CatalogItem {
 
   val id: CatalogItemId
+
   val category: ItemCategoryId
+
   val store: Store
+
   val price: Price
 }

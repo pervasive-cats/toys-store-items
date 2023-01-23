@@ -7,8 +7,8 @@
 package io.github.pervasivecats
 package items.catalogitem
 
-import items.catalogitem.valueobjects.{CatalogItemId, Price, Store}
 import items.Validated
+import items.catalogitem.valueobjects.{CatalogItemId, Price, Store}
 import items.catalogitem.entities.{CatalogItem, LiftedCatalogItem}
 
 trait Repository {

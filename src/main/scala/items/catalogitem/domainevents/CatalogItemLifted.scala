@@ -12,5 +12,6 @@ import items.catalogitem.valueobjects.{CatalogItemId, Store}
 trait CatalogItemLifted {
 
   val catalogItemId: CatalogItemId
+
   val store: Store
 }
