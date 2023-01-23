@@ -7,4 +7,4 @@
 package io.github.pervasivecats
 package items.catalogitem.entities
 
-trait InPlaceCatalogItem extends CatalogItem {}
+trait InPlaceCatalogItem extends CatalogItem
