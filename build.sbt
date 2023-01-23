@@ -31,7 +31,7 @@ lazy val root = project
       refined
     ),
     wartremoverErrors ++= Warts.allBut(Wart.ImplicitParameter),
-    version := "0.0.0",
+    version := "1.0.0-beta.2",
     coverageEnabled := true,
     coverageMinimumStmtTotal := 80,
     coverageMinimumBranchTotal := 80,
