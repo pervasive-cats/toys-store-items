@@ -7,7 +7,7 @@
 package io.github.pervasivecats
 package items.catalogitem.services
 
-import items.catalogitem.events.{CatalogItemLifted, CatalogItemPutInPlace}
+import items.catalogitem.domainevents.{CatalogItemLifted, CatalogItemPutInPlace}
 
 trait CatalogItemStateHandlers {
 
