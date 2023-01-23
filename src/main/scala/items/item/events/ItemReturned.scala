@@ -13,6 +13,8 @@ import items.item.valueobjects.ItemId
 trait ItemReturned {
 
   val catalogItemId: CatalogItemId
+
   val store: Store
+
   val itemId: ItemId
 }

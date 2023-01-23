@@ -13,6 +13,8 @@ import items.item.valueobjects.ItemId
 trait ItemPutInPlace {
 
   val catalogItemId: CatalogItemId
+
   val store: Store
+
   val itemId: ItemId
 }

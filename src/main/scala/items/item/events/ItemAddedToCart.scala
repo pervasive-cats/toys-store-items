@@ -13,7 +13,10 @@ import items.item.valueobjects.{Customer, ItemId}
 trait ItemAddedToCart {
 
   val catalogItemId: CatalogItemId
+
   val store: Store
+
   val itemId: ItemId
+
   val customer: Customer
 }
