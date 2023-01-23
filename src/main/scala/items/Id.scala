@@ -10,4 +10,4 @@ package items
 import eu.timepit.refined.api.Refined
 import eu.timepit.refined.numeric.NonNegative
 
-type IdNumber = Long Refined NonNegative
+type Id = Long Refined NonNegative
