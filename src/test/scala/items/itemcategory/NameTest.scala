@@ -1,15 +1,15 @@
 package io.github.pervasivecats
 package items.itemcategory
 
-import scala.language.postfixOps
-
-import io.github.pervasivecats.items.ValidationError
-import io.github.pervasivecats.items.itemcategory.valueobjects.Name
-import io.github.pervasivecats.items.itemcategory.valueobjects.Name.WrongNameFormat
+import items.ValidationError
+import items.itemcategory.valueobjects.Name
+import items.itemcategory.valueobjects.Name.WrongNameFormat
 
 import eu.timepit.refined.auto.autoUnwrap
 import org.scalatest.funspec.AnyFunSpec
 import org.scalatest.matchers.should.Matchers.shouldBe
+
+import scala.language.postfixOps
 
 class NameTest extends AnyFunSpec {
 

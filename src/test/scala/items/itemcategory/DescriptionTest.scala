@@ -1,15 +1,15 @@
 package io.github.pervasivecats
 package items.itemcategory
 
-import scala.language.postfixOps
-
-import io.github.pervasivecats.items.ValidationError
-import io.github.pervasivecats.items.itemcategory.valueobjects.Description
-import io.github.pervasivecats.items.itemcategory.valueobjects.Description.WrongDescriptionFormat
+import items.ValidationError
+import items.itemcategory.valueobjects.Description
+import items.itemcategory.valueobjects.Description.WrongDescriptionFormat
 
 import eu.timepit.refined.auto.autoUnwrap
 import org.scalatest.funspec.AnyFunSpec
 import org.scalatest.matchers.should.Matchers.shouldBe
+
+import scala.language.postfixOps
 
 class DescriptionTest extends AnyFunSpec {
 

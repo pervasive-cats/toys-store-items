@@ -7,8 +7,7 @@
 package io.github.pervasivecats
 package items.itemcategory.valueobjects
 
-import io.github.pervasivecats.items.Validated
-import io.github.pervasivecats.items.ValidationError
+import items.{Validated, ValidationError}
 
 import eu.timepit.refined.api.RefType.applyRef
 import eu.timepit.refined.api.Refined

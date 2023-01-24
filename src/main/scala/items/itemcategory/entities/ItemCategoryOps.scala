@@ -7,8 +7,7 @@
 package io.github.pervasivecats
 package items.itemcategory.entities
 
-import io.github.pervasivecats.items.Id
-
+import items.Id
 import items.itemcategory.valueobjects.*
 
 trait ItemCategoryOps[A <: ItemCategory] {

@@ -1,16 +1,14 @@
 package io.github.pervasivecats
 package items.itemcategory
 
-import scala.language.postfixOps
-
-import io.github.pervasivecats.items.itemcategory.entities.ItemCategory
-import io.github.pervasivecats.items.itemcategory.entities.ItemCategoryOps.updated
-import io.github.pervasivecats.items.itemcategory.valueobjects.Description
-import io.github.pervasivecats.items.itemcategory.valueobjects.ItemCategoryId
-import io.github.pervasivecats.items.itemcategory.valueobjects.Name
+import items.itemcategory.entities.ItemCategory
+import items.itemcategory.entities.ItemCategoryOps.updated
+import items.itemcategory.valueobjects.{Description, ItemCategoryId, Name}
 
 import org.scalatest.funspec.AnyFunSpec
 import org.scalatest.matchers.should.Matchers.shouldBe
+
+import scala.language.postfixOps
 
 class ItemCategoryTest extends AnyFunSpec {
 
