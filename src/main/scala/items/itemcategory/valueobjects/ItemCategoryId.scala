@@ -23,7 +23,7 @@ object ItemCategoryId {
 
   case object WrongStoreIdFormat extends ValidationError {
 
-    override val message: String = "The ItemCategory id is a negative value"
+    override val message: String = "The item category id is a negative value"
   }
 
   def apply(value: Long): Validated[ItemCategoryId] = applyRef[Id](value) match {
