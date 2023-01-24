@@ -1,16 +1,18 @@
 package io.github.pervasivecats
 package items.itemcategory
 
-import io.github.pervasivecats.items.{Id, ValidationError}
+import scala.language.postfixOps
+
+import io.github.pervasivecats.items.Id
+import io.github.pervasivecats.items.ValidationError
 import io.github.pervasivecats.items.itemcategory.valueobjects.ItemCategoryId
+import io.github.pervasivecats.items.itemcategory.valueobjects.ItemCategoryId.WrongStoreIdFormat
+
+import eu.timepit.refined.auto.autoUnwrap
 import org.scalatest.funspec.AnyFunSpec
 import org.scalatest.matchers.should.Matchers.*
 
-import scala.language.postfixOps
-import eu.timepit.refined.auto.autoUnwrap
-import io.github.pervasivecats.items.itemcategory.valueobjects.ItemCategoryId.WrongStoreIdFormat
-
-class ItemCategoryIdTest extends AnyFunSpec{
+class ItemCategoryIdTest extends AnyFunSpec {
 
   val value: Long = 9000
   val negativeValue: Long = -9000
@@ -19,13 +21,13 @@ class ItemCategoryIdTest extends AnyFunSpec{
   describe("An ItemCategoryId") {
     describe("when created with a positive value") {
       it("should be valid") {
-        (ItemCategoryId(value).getOrElse(fail()).value : Long) shouldBe value
+        (ItemCategoryId(value).getOrElse(fail()).value: Long) shouldBe value
       }
     }
 
     describe("when created with value 0") {
       it("should be valid") {
-        (ItemCategoryId(zeroValue).getOrElse(fail()).value : Long) shouldBe zeroValue
+        (ItemCategoryId(zeroValue).getOrElse(fail()).value: Long) shouldBe zeroValue
       }
     }
 

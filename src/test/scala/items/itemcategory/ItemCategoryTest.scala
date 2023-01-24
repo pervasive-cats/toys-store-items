@@ -1,22 +1,28 @@
 package io.github.pervasivecats
 package items.itemcategory
 
-import io.github.pervasivecats.items.itemcategory.entities.ItemCategory
-import io.github.pervasivecats.items.itemcategory.valueobjects.{Description, ItemCategoryId, Name}
-import org.scalatest.funspec.AnyFunSpec
-import org.scalatest.matchers.should.Matchers.shouldBe
-import io.github.pervasivecats.items.itemcategory.entities.ItemCategoryOps.updated
-
 import scala.language.postfixOps
 
-class ItemCategoryTest extends AnyFunSpec{
+import io.github.pervasivecats.items.itemcategory.entities.ItemCategory
+import io.github.pervasivecats.items.itemcategory.entities.ItemCategoryOps.updated
+import io.github.pervasivecats.items.itemcategory.valueobjects.Description
+import io.github.pervasivecats.items.itemcategory.valueobjects.ItemCategoryId
+import io.github.pervasivecats.items.itemcategory.valueobjects.Name
+
+import org.scalatest.funspec.AnyFunSpec
+import org.scalatest.matchers.should.Matchers.shouldBe
+
+class ItemCategoryTest extends AnyFunSpec {
 
   val itemCategoryId: ItemCategoryId = ItemCategoryId(9000).getOrElse(fail())
   val name: Name = Name("Lego Bat Mobile").getOrElse(fail())
-  val description: Description = Description("The model includes 2 light bricks – 1 red and 1 yellow. The red light " +
+
+  val description: Description = Description(
+    "The model includes 2 light bricks – 1 red and 1 yellow. The red light " +
     "adds an awesome glow to the transparent toy engine at the back, while the yellow brick lights up the front grille. " +
-    "Other cool features include steering on the front wheels, differential on the rear wheels, a spinning ").getOrElse(fail())
-  val itemCategory: ItemCategory = ItemCategory(itemCategoryId,name,description)
+    "Other cool features include steering on the front wheels, differential on the rear wheels, a spinning "
+  ).getOrElse(fail())
+  val itemCategory: ItemCategory = ItemCategory(itemCategoryId, name, description)
 
   describe("An ItemCategory") {
     describe("when created with a item category id, name and description") {

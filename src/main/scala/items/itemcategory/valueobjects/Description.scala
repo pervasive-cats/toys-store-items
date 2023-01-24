@@ -7,10 +7,12 @@
 package io.github.pervasivecats
 package items.itemcategory.valueobjects
 
+import io.github.pervasivecats.items.Validated
+import io.github.pervasivecats.items.ValidationError
+
 import eu.timepit.refined.api.RefType.applyRef
 import eu.timepit.refined.api.Refined
 import eu.timepit.refined.string.MatchesRegex
-import io.github.pervasivecats.items.{Validated, ValidationError}
 
 type DescriptionString = String Refined MatchesRegex["^[a-zA-Z0-9\\W]{1,300}$"]
 

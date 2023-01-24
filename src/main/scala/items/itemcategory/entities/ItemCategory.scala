@@ -23,9 +23,10 @@ object ItemCategory {
   private case class ItemCategoryImpl(id: ItemCategoryId, name: Name, description: Description) extends ItemCategory
 
   given ItemCategoryOps[ItemCategory] with {
+
     override def updated(itemCategory: ItemCategory, name: Name, description: Description): ItemCategory =
       ItemCategoryImpl(itemCategory.id, name, description)
   }
 
-  def apply(id: ItemCategoryId, name: Name, description: Description): ItemCategory = ItemCategoryImpl(id,name,description)
+  def apply(id: ItemCategoryId, name: Name, description: Description): ItemCategory = ItemCategoryImpl(id, name, description)
 }
