@@ -21,8 +21,8 @@ object ItemCategoryOps {
 
     @SuppressWarnings(Array("org.wartremover.warts.DefaultArguments", "scalafix:DisableSyntax.defaultArgs"))
     def updated(
-                 name: Name = itemCategory.name,
-                 description: Description = itemCategory.description
+      name: Name = itemCategory.name,
+      description: Description = itemCategory.description
     ): A =
       implicitly[ItemCategoryOps[A]].updated(itemCategory, name, description)
   }

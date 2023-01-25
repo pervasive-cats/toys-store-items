@@ -18,6 +18,8 @@ import io.github.pervasivecats.items.itemcategory.valueobjects.Name
 import com.dimafeng.testcontainers.JdbcDatabaseContainer.CommonParams
 import com.dimafeng.testcontainers.PostgreSQLContainer
 import com.dimafeng.testcontainers.scalatest.TestContainerForAll
+import com.typesafe.config.ConfigFactory
+import com.typesafe.config.ConfigValueFactory
 import org.scalatest.EitherValues.given
 import org.scalatest.funspec.AnyFunSpec
 import org.scalatest.matchers.should.Matchers.*
@@ -39,7 +41,14 @@ class RepositoryTest extends AnyFunSpec with TestContainerForAll {
   private var repository: Option[Repository] = None
 
   override def afterContainersStart(containers: Containers): Unit =
-    repository = Some(Repository.withPort(containers.container.getFirstMappedPort.intValue()))
+    repository = Some(
+      Repository(
+        ConfigFactory
+          .load()
+          .getConfig("ctx")
+          .withValue("dataSource.portNumber", ConfigValueFactory.fromAnyRef(containers.container.getFirstMappedPort.intValue()))
+      )
+    )
 
   describe("An Item Category") {
     describe("after being registered") {
@@ -73,6 +82,17 @@ class RepositoryTest extends AnyFunSpec with TestContainerForAll {
         db.add(name, description).getOrElse(fail())
         db.remove(itemCategory).getOrElse(fail())
         db.findById(id).left.value shouldBe ItemCategoryNotFound
+      }
+    }
+
+    describe("after being removed but they were never registered in the first place") {
+      it("should not be allowed") {
+        val db: Repository = repository.getOrElse(fail())
+        val id: ItemCategoryId = ItemCategoryId(2).getOrElse(fail())
+        val name: Name = Name("Terraforming Mars").getOrElse(fail())
+        val description: Description = Description("Boardgame produced by BraditGamesStudio").getOrElse(fail())
+        val itemCategory: ItemCategory = ItemCategory(id, name, description)
+        db.remove(itemCategory).left.value shouldBe OperationFailed
       }
     }
 
