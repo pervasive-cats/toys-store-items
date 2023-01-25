@@ -14,6 +14,7 @@ import items.itemcategory.valueobjects.*
 import com.typesafe.config.{ConfigFactory, ConfigValueFactory}
 import io.getquill.*
 import AnyOps.{!==, ===}
+
 import io.getquill.autoQuote
 import eu.timepit.refined.auto.given
 
@@ -25,9 +26,7 @@ trait Repository {
 
   def update(itemCategory: ItemCategory, name: Name, description: Description): Validated[Unit]
 
-  // def remove(itemCategory: ItemCategory): Validated[Unit]
-
-  def selectAll(): List[Long]
+  def remove(itemCategory: ItemCategory): Validated[Unit]
 }
 
 object Repository {
@@ -50,12 +49,11 @@ object Repository {
 
     private case class ItemCategoriesWithoutId(name: String, description: String)
 
-    private def queryById(id: ItemCategoryId) = quote {
-      query[ItemCategories].filter(_.id === lift[Long](id.value))
-    }
     override def findById(id: ItemCategoryId): Validated[ItemCategory] = {
       ctx
-        .run(queryById(id))
+        .run(quote {
+          query[ItemCategories].filter(_.id === lift[Long](id.value))
+        })
         .map(item =>
           for {
             id <- ItemCategoryId(item.id)
@@ -92,24 +90,25 @@ object Repository {
           .run(
             query[ItemCategories]
               .filter(_.id === lift[Long](itemCategory.id.value))
-              .updateValue(lift(ItemCategories(9002, name.name, description.description)))
+              .updateValue(lift(ItemCategories(itemCategory.id.value, name.name, description.description)))
           ) !== 1L
       ) Left[ValidationError, Unit](OperationFailed)
       else
         Right[ValidationError, Unit](())
     }
 
-
-
-    override def selectAll(): List[Long] = {
-      ctx
-        .run(query[ItemCategories])
-        .map(elem => elem.id)
+    override def remove(itemCategory: ItemCategory): Validated[Unit] = {
+      if(
+        ctx
+          .run(query[ItemCategories]
+            .filter(_.id === lift[Long](itemCategory.id.value))
+            .delete
+          ) !== 1L
+      ) Left[ValidationError, Unit](OperationFailed)
+      else
+        Right[ValidationError, Unit](())
     }
-
   }
-
-
 
   def apply: Repository = PostgresRepository(PostgresJdbcContext[SnakeCase](SnakeCase, "ctx"))
 

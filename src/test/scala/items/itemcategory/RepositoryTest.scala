@@ -38,18 +38,62 @@ class RepositoryTest extends AnyFunSpec with TestContainerForAll {
   describe("An Item Category") {
     describe("after being registered") {
       it("should be present in database") {
-        val name: Name = Name("Lego Bat Mobile").getOrElse(fail())
-        val description: Description = Description("Random Description").getOrElse(fail())
-        repository.getOrElse(fail()).add(name,description).getOrElse(fail())
+        val db: Repository = repository.getOrElse(fail())
         val id: ItemCategoryId = ItemCategoryId(1).getOrElse(fail())
-        repository.getOrElse(fail()).findById(id).getOrElse(fail()).id shouldBe id
+        val name: Name = Name("Terraforming Mars").getOrElse(fail())
+        val description: Description = Description("Boardgame produced by BraditGamesStudio").getOrElse(fail())
+        val itemCategory: ItemCategory = ItemCategory(id, name, description)
+        db.add(name,description).getOrElse(fail())
+        db.findById(id).getOrElse(fail()).id shouldBe id
+        db.remove(itemCategory).getOrElse(fail())
       }
     }
 
-    describe("when asked to retrieve the item category corresponding to a non existent id") {
-      it("should return item category not found") {
+    describe("if never registered") {
+      it("should not be present") {
+        val db: Repository = repository.getOrElse(fail())
         val id: ItemCategoryId = ItemCategoryId(9000).getOrElse(fail())
-        repository.getOrElse(fail()).findById(id).left.value shouldBe ItemCategoryNotFound
+        db.findById(id).left.value shouldBe ItemCategoryNotFound
+      }
+    }
+
+    describe("after being registered and then deleted") {
+      it("should not be present in database") {
+        val db: Repository = repository.getOrElse(fail())
+        val id: ItemCategoryId = ItemCategoryId(2).getOrElse(fail())
+        val name: Name = Name("Terraforming Mars").getOrElse(fail())
+        val description: Description = Description("Boardgame produced by BraditGamesStudio").getOrElse(fail())
+        val itemCategory: ItemCategory = ItemCategory(id, name, description)
+        db.add(name,description).getOrElse(fail())
+        db.remove(itemCategory).getOrElse(fail())
+        db.findById(id).left.value shouldBe ItemCategoryNotFound
+      }
+    }
+
+    describe("after being registered and then their data gets updated") {
+      it("should show the update") {
+        val db: Repository = repository.getOrElse(fail())
+        val id: ItemCategoryId = ItemCategoryId(3).getOrElse(fail())
+        val name: Name = Name("Terraforming Mars").getOrElse(fail())
+        val description: Description = Description("Boardgame produced by BraditGamesStudio").getOrElse(fail())
+        db.add(name,description).getOrElse(fail())
+        val updatedName: Name = Name("7 Wonders").getOrElse(fail())
+        val updatedDescription: Description = Description("Boardgame produced by REPOS production").getOrElse(fail())
+        val updatedItemCategory: ItemCategory = ItemCategory(id, updatedName, updatedDescription)
+        db.update(updatedItemCategory,updatedName,updatedDescription)
+        db.findById(id).getOrElse(fail()).name shouldBe updatedName
+        db.findById(id).getOrElse(fail()).description shouldBe updatedDescription
+      }
+    }
+
+    describe("when their data gets updated but they were never registered in the first place") {
+      it("should not be allowed") {
+        val db: Repository = repository.getOrElse(fail())
+        val id: ItemCategoryId = ItemCategoryId(9000).getOrElse(fail())
+        val name: Name = Name("Throw Throw Burrito").getOrElse(fail())
+        val description: Description = Description("What you get when you cross a card game with dodgeball").getOrElse(fail())
+        val itemCategory: ItemCategory = ItemCategory(id, name, description)
+        db.update(itemCategory, name, description).left.value shouldBe OperationFailed
       }
     }
   }
