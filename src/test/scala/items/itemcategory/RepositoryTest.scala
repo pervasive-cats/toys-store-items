@@ -1,21 +1,27 @@
 package io.github.pervasivecats
 package items.itemcategory
 
+import java.nio.file.attribute.UserPrincipalNotFoundException
+
+import scala.concurrent.duration.DurationInt
+import scala.concurrent.duration.FiniteDuration
+import scala.language.postfixOps
+
+import io.github.pervasivecats.items.ValidationError
+import io.github.pervasivecats.items.itemcategory.Repository.ItemCategoryNotFound
+import io.github.pervasivecats.items.itemcategory.Repository.OperationFailed
+import io.github.pervasivecats.items.itemcategory.entities.ItemCategory
+import io.github.pervasivecats.items.itemcategory.valueobjects.Description
+import io.github.pervasivecats.items.itemcategory.valueobjects.ItemCategoryId
+import io.github.pervasivecats.items.itemcategory.valueobjects.Name
+
 import com.dimafeng.testcontainers.JdbcDatabaseContainer.CommonParams
 import com.dimafeng.testcontainers.PostgreSQLContainer
 import com.dimafeng.testcontainers.scalatest.TestContainerForAll
-import io.github.pervasivecats.items.ValidationError
-import io.github.pervasivecats.items.itemcategory.Repository.{ItemCategoryNotFound, OperationFailed}
-import io.github.pervasivecats.items.itemcategory.entities.ItemCategory
-import io.github.pervasivecats.items.itemcategory.valueobjects.{Description, ItemCategoryId, Name}
 import org.scalatest.EitherValues.given
 import org.scalatest.funspec.AnyFunSpec
 import org.scalatest.matchers.should.Matchers.*
 import org.testcontainers.utility.DockerImageName
-
-import java.nio.file.attribute.UserPrincipalNotFoundException
-import scala.concurrent.duration.{DurationInt, FiniteDuration}
-import scala.language.postfixOps
 
 class RepositoryTest extends AnyFunSpec with TestContainerForAll {
 
@@ -43,7 +49,7 @@ class RepositoryTest extends AnyFunSpec with TestContainerForAll {
         val name: Name = Name("Terraforming Mars").getOrElse(fail())
         val description: Description = Description("Boardgame produced by BraditGamesStudio").getOrElse(fail())
         val itemCategory: ItemCategory = ItemCategory(id, name, description)
-        db.add(name,description).getOrElse(fail())
+        db.add(name, description).getOrElse(fail())
         db.findById(id).getOrElse(fail()).id shouldBe id
         db.remove(itemCategory).getOrElse(fail())
       }
@@ -64,7 +70,7 @@ class RepositoryTest extends AnyFunSpec with TestContainerForAll {
         val name: Name = Name("Terraforming Mars").getOrElse(fail())
         val description: Description = Description("Boardgame produced by BraditGamesStudio").getOrElse(fail())
         val itemCategory: ItemCategory = ItemCategory(id, name, description)
-        db.add(name,description).getOrElse(fail())
+        db.add(name, description).getOrElse(fail())
         db.remove(itemCategory).getOrElse(fail())
         db.findById(id).left.value shouldBe ItemCategoryNotFound
       }
@@ -76,11 +82,11 @@ class RepositoryTest extends AnyFunSpec with TestContainerForAll {
         val id: ItemCategoryId = ItemCategoryId(3).getOrElse(fail())
         val name: Name = Name("Terraforming Mars").getOrElse(fail())
         val description: Description = Description("Boardgame produced by BraditGamesStudio").getOrElse(fail())
-        db.add(name,description).getOrElse(fail())
+        db.add(name, description).getOrElse(fail())
         val updatedName: Name = Name("7 Wonders").getOrElse(fail())
         val updatedDescription: Description = Description("Boardgame produced by REPOS production").getOrElse(fail())
         val updatedItemCategory: ItemCategory = ItemCategory(id, updatedName, updatedDescription)
-        db.update(updatedItemCategory,updatedName,updatedDescription)
+        db.update(updatedItemCategory, updatedName, updatedDescription)
         db.findById(id).getOrElse(fail()).name shouldBe updatedName
         db.findById(id).getOrElse(fail()).description shouldBe updatedDescription
       }

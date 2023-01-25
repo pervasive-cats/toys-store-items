@@ -7,11 +7,11 @@
 package io.github.pervasivecats
 package items.itemcategory.valueobjects
 
-import items.{Id, Validated, ValidationError}
-
 import eu.timepit.refined.api.RefType.applyRef
 import eu.timepit.refined.api.Refined
 import eu.timepit.refined.numeric.NonNegative
+
+import items.{Id, Validated, ValidationError}
 
 trait ItemCategoryId {
 

@@ -7,16 +7,16 @@
 package io.github.pervasivecats
 package items.itemcategory
 
+import com.typesafe.config.ConfigFactory
+import com.typesafe.config.ConfigValueFactory
+import eu.timepit.refined.auto.given
+import io.getquill.*
+import io.getquill.autoQuote
+
 import items.{Validated, ValidationError}
 import items.itemcategory.entities.ItemCategory
 import items.itemcategory.valueobjects.*
-
-import com.typesafe.config.{ConfigFactory, ConfigValueFactory}
-import io.getquill.*
 import AnyOps.{!==, ===}
-
-import io.getquill.autoQuote
-import eu.timepit.refined.auto.given
 
 trait Repository {
 
@@ -59,7 +59,8 @@ object Repository {
             id <- ItemCategoryId(item.id)
             name <- Name(item.name)
             description <- Description(item.description)
-          } yield ItemCategory(id, name, description))
+          } yield ItemCategory(id, name, description)
+        )
         .headOption
         .getOrElse(Left[ValidationError, ItemCategory](ItemCategoryNotFound))
     }
@@ -67,30 +68,39 @@ object Repository {
     override def add(name: Name, description: Description): Validated[Unit] = {
       if (
         ctx
-          .run(querySchema[ItemCategoriesWithoutId](entity = "item_categories")
-            .insertValue(
-              lift(
-                ItemCategoriesWithoutId(
-                  name.name,
-                  description.description
+          .run(
+            querySchema[ItemCategoriesWithoutId](entity = "item_categories")
+              .insertValue(
+                lift(
+                  ItemCategoriesWithoutId(
+                    name.name,
+                    description.description
+                  )
                 )
               )
-            )
           )
-          !==
-          1L
+        !==
+        1L
       ) Left[ValidationError, Unit](OperationFailed)
       else
         Right[ValidationError, Unit](())
     }
 
     override def update(itemCategory: ItemCategory, name: Name, description: Description): Validated[Unit] = {
-      if(
+      if (
         ctx
           .run(
             query[ItemCategories]
               .filter(_.id === lift[Long](itemCategory.id.value))
-              .updateValue(lift(ItemCategories(itemCategory.id.value, name.name, description.description)))
+              .updateValue(
+                lift(
+                  ItemCategories(
+                    itemCategory.id.value,
+                    name.name,
+                    description.description
+                  )
+                )
+              )
           ) !== 1L
       ) Left[ValidationError, Unit](OperationFailed)
       else
@@ -98,11 +108,12 @@ object Repository {
     }
 
     override def remove(itemCategory: ItemCategory): Validated[Unit] = {
-      if(
+      if (
         ctx
-          .run(query[ItemCategories]
-            .filter(_.id === lift[Long](itemCategory.id.value))
-            .delete
+          .run(
+            query[ItemCategories]
+              .filter(_.id === lift[Long](itemCategory.id.value))
+              .delete
           ) !== 1L
       ) Left[ValidationError, Unit](OperationFailed)
       else
