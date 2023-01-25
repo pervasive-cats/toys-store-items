@@ -89,6 +89,7 @@ class RepositoryTest extends AnyFunSpec with TestContainerForAll {
         db.update(updatedItemCategory, updatedName, updatedDescription)
         db.findById(id).getOrElse(fail()).name shouldBe updatedName
         db.findById(id).getOrElse(fail()).description shouldBe updatedDescription
+        db.remove(updatedItemCategory).getOrElse(fail())
       }
     }
 

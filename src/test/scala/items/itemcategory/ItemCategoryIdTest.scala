@@ -9,7 +9,7 @@ import org.scalatest.matchers.should.Matchers.*
 
 import items.{Id, ValidationError}
 import items.itemcategory.valueobjects.ItemCategoryId
-import items.itemcategory.valueobjects.ItemCategoryId.WrongStoreIdFormat
+import items.itemcategory.valueobjects.ItemCategoryId.WrongItemCategoryIdFormat
 
 class ItemCategoryIdTest extends AnyFunSpec {
 
@@ -32,7 +32,7 @@ class ItemCategoryIdTest extends AnyFunSpec {
 
     describe("when created with a negative value") {
       it("should not be valid") {
-        ItemCategoryId(negativeValue) shouldBe Left[ValidationError, ItemCategoryId](WrongStoreIdFormat)
+        ItemCategoryId(negativeValue) shouldBe Left[ValidationError, ItemCategoryId](WrongItemCategoryIdFormat)
       }
     }
   }

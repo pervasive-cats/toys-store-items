@@ -17,13 +17,12 @@ trait ItemCategoryOps[A <: ItemCategory] {
 
 object ItemCategoryOps {
 
-  extension [A <: ItemCategory: ItemCategoryOps](item: A) {
+  extension [A <: ItemCategory: ItemCategoryOps](itemCategory: A) {
 
     @SuppressWarnings(Array("org.wartremover.warts.DefaultArguments", "scalafix:DisableSyntax.defaultArgs"))
     def updated(
-      itemCategory: ItemCategory = item,
-      name: Name = item.name,
-      description: Description = item.description
+                 name: Name = itemCategory.name,
+                 description: Description = itemCategory.description
     ): A =
       implicitly[ItemCategoryOps[A]].updated(itemCategory, name, description)
   }

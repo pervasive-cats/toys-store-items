@@ -73,8 +73,8 @@ object Repository {
               .insertValue(
                 lift(
                   ItemCategoriesWithoutId(
-                    name.name,
-                    description.description
+                    name.value,
+                    description.value
                   )
                 )
               )
@@ -96,8 +96,8 @@ object Repository {
                 lift(
                   ItemCategories(
                     itemCategory.id.value,
-                    name.name,
-                    description.description
+                    name.value,
+                    description.value
                   )
                 )
               )

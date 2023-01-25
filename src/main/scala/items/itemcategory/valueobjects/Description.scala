@@ -17,12 +17,12 @@ type DescriptionString = String Refined MatchesRegex["^[a-zA-Z0-9\\W]{1,300}$"]
 
 trait Description {
 
-  val description: DescriptionString
+  val value: DescriptionString
 }
 
 object Description {
 
-  final private case class DescriptionImpl(description: DescriptionString) extends Description
+  final private case class DescriptionImpl(value: DescriptionString) extends Description
 
   case object WrongDescriptionFormat extends ValidationError {
 

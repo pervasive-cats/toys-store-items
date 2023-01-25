@@ -22,13 +22,13 @@ object ItemCategoryId {
 
   final private case class ItemCategoryIdImpl(value: Id) extends ItemCategoryId
 
-  case object WrongStoreIdFormat extends ValidationError {
+  case object WrongItemCategoryIdFormat extends ValidationError {
 
     override val message: String = "The item category id is a negative value"
   }
 
   def apply(value: Long): Validated[ItemCategoryId] = applyRef[Id](value) match {
-    case Left(_) => Left[ValidationError, ItemCategoryId](WrongStoreIdFormat)
+    case Left(_) => Left[ValidationError, ItemCategoryId](WrongItemCategoryIdFormat)
     case Right(value) => Right[ValidationError, ItemCategoryId](ItemCategoryIdImpl(value))
   }
 }

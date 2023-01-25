@@ -17,12 +17,12 @@ type NameString = String Refined MatchesRegex["^[\\w\\*\\$][\\w\\s\\-\\$]*(\\(\\
 
 trait Name {
 
-  val name: NameString
+  val value: NameString
 }
 
 object Name {
 
-  final private case class NameImpl(name: NameString) extends Name
+  final private case class NameImpl(value: NameString) extends Name
 
   case object WrongNameFormat extends ValidationError {
 
