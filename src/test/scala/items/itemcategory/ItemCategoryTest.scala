@@ -16,11 +16,14 @@ class ItemCategoryTest extends AnyFunSpec {
   val name: Name = Name("Lego Bat Mobile").getOrElse(fail())
 
   val description: Description =
-    Description("""
-                  |The model includes 2 light bricks – 1 red and 1 yellow. The red light adds an awesome glow to the
-                  |transparent toy engine at the back, while the yellow brick lights up the front grille. Other cool features
-                  |include steering on the front wheels, differential on the rear wheels, a spinning
-                  |""".stripMargin).getOrElse(fail())
+    Description(
+      """
+        |The model includes 2 light bricks – 1 red and 1 yellow. The red light adds an awesome glow to the transparent
+        |toy engine at the back, while the yellow brick lights up the front grille. Other cool features include steering
+        |on the front wheels, differential on the rear wheels, a spinning
+        |""".stripMargin
+    )
+      .getOrElse(fail())
   val itemCategory: ItemCategory = ItemCategory(itemCategoryId, name, description)
 
   describe("An ItemCategory") {

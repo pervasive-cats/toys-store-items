@@ -52,9 +52,7 @@ object Repository {
 
     override def findById(id: ItemCategoryId): Validated[ItemCategory] = {
       ctx
-        .run(quote {
-          query[ItemCategories].filter(_.id === lift[Long](id.value))
-        })
+        .run(query[ItemCategories].filter(_.id === lift[Long](id.value)))
         .map(item =>
           for {
             id <- ItemCategoryId(item.id)
@@ -102,7 +100,9 @@ object Repository {
                   )
                 )
               )
-          ) !== 1L
+          )
+        !==
+        1L
       ) Left[ValidationError, Unit](OperationFailed)
       else
         Right[ValidationError, Unit](())
@@ -115,7 +115,9 @@ object Repository {
             query[ItemCategories]
               .filter(_.id === lift[Long](itemCategory.id.value))
               .delete
-          ) !== 1L
+          )
+        !==
+        1L
       ) Left[ValidationError, Unit](OperationFailed)
       else
         Right[ValidationError, Unit](())
