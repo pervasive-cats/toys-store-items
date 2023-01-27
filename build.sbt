@@ -29,14 +29,11 @@ lazy val root = project
       scalactic,
       scalatest,
       refined,
-<<<<<<< HEAD
-      enumeratum
-=======
+      enumeratum,
       quill,
       postgresql,
       testContainers,
       testContainersPostgresql
->>>>>>> beta
     ),
     wartremoverErrors ++= Warts.allBut(Wart.ImplicitParameter),
     version := "1.0.0-beta.4",
