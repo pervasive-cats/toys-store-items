@@ -3,6 +3,7 @@ package items.catalogitem
 
 import scala.language.postfixOps
 
+import io.github.pervasivecats.items.ValidationError
 import io.github.pervasivecats.items.catalogitem.valueobjects.Amount
 import io.github.pervasivecats.items.catalogitem.valueobjects.Amount.WrongAmountFormat
 
@@ -25,13 +26,13 @@ class AmountTest extends AnyFunSpec {
 
     describe("when created with a negative value") {
       it("should not be valid") {
-        Amount(negativeAmount) shouldBe WrongAmountFormat
+        Amount(negativeAmount) shouldBe Left[ValidationError, Amount](WrongAmountFormat)
       }
     }
 
     describe("when created with a value of 0") {
-      it("should be valid") {
-        (Amount(zeroAmount).getOrElse(fail()).value: Double) shouldBe zeroAmount
+      it("should not be valid") {
+        Amount(zeroAmount) shouldBe Left[ValidationError, Amount](WrongAmountFormat)
       }
     }
   }
