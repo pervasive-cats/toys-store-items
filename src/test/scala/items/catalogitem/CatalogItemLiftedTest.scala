@@ -2,7 +2,9 @@ package io.github.pervasivecats
 package items.catalogitem
 
 import io.github.pervasivecats.items.catalogitem.domainevents.CatalogItemLifted
-import io.github.pervasivecats.items.catalogitem.valueobjects.{CatalogItemId, Store}
+import io.github.pervasivecats.items.catalogitem.valueobjects.CatalogItemId
+import io.github.pervasivecats.items.catalogitem.valueobjects.Store
+
 import org.scalatest.funspec.AnyFunSpec
 import org.scalatest.matchers.should.Matchers.shouldBe
 
