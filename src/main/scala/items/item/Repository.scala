@@ -7,10 +7,10 @@
 package io.github.pervasivecats
 package items.item
 
-import items.catalogitem.valueobjects.{CatalogItemId, Store}
-import items.item.valueobjects.ItemId
 import items.Validated
+import items.catalogitem.valueobjects.{CatalogItemId, Store}
 import items.item.entities.{Item, ReturnedItem}
+import items.item.valueobjects.ItemId
 
 trait Repository {
 

@@ -7,8 +7,8 @@
 package io.github.pervasivecats
 package items.item.entities
 
-import items.item.valueobjects.ItemId
 import items.catalogitem.entities.CatalogItem
+import items.item.valueobjects.ItemId
 
 trait Item {
 
