@@ -7,4 +7,28 @@
 package io.github.pervasivecats
 package items.catalogitem.entities
 
+import io.github.pervasivecats.items.Validated
+import io.github.pervasivecats.items.itemcategory.valueobjects.ItemCategoryId
+
+import items.catalogitem.valueobjects.{CatalogItemId, Price, Store}
+
 trait LiftedCatalogItem extends CatalogItem
+
+object LiftedCatalogItem {
+
+  private case class LiftedCatalogItemImpl(id: CatalogItemId, category: ItemCategoryId, store: Store, price: Price)
+    extends LiftedCatalogItem
+
+  given LiftedCatalogItemOps[LiftedCatalogItem] with {
+
+    override def putInPlace(liftedCatalogItem: LiftedCatalogItem): InPlaceCatalogItem = InPlaceCatalogItem(
+      liftedCatalogItem.id,
+      liftedCatalogItem.category,
+      liftedCatalogItem.store,
+      liftedCatalogItem.price
+    )
+  }
+
+  def apply(id: CatalogItemId, category: ItemCategoryId, store: Store, price: Price): LiftedCatalogItem =
+    LiftedCatalogItemImpl(id, category, store, price)
+}

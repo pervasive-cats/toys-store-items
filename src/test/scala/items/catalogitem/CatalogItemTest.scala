@@ -1,14 +1,16 @@
 package io.github.pervasivecats
 package items.catalogitem
 
-import io.github.pervasivecats.items.catalogitem.entities.CatalogItem
+import io.github.pervasivecats.items.catalogitem.entities.{CatalogItem, InPlaceCatalogItem, LiftedCatalogItem}
 import io.github.pervasivecats.items.catalogitem.valueobjects.{Amount, CatalogItemId, Currency, Price, Store}
 import io.github.pervasivecats.items.itemcategory.valueobjects.ItemCategoryId
 import org.scalatest.funspec.AnyFunSpec
 import io.github.pervasivecats.items.catalogitem.entities.CatalogItemOps.updated
 import org.scalatest.matchers.should.Matchers.shouldBe
+import io.github.pervasivecats.items.catalogitem.entities.InPlaceCatalogItemOps.lift
+import io.github.pervasivecats.items.catalogitem.entities.LiftedCatalogItemOps.putInPlace
 
-class CatalogItemTest extends AnyFunSpec{
+class CatalogItemTest extends AnyFunSpec {
 
   private val id: CatalogItemId = CatalogItemId(9000).getOrElse(fail())
   private val category: ItemCategoryId = ItemCategoryId(35).getOrElse(fail())
@@ -58,6 +60,28 @@ class CatalogItemTest extends AnyFunSpec{
         val newPrice: Price = Price(Amount(42.50).getOrElse(fail()), Currency.withName("USD"))
         val newCatalogItem: CatalogItem = CatalogItem(id, newCategory, newStore, newPrice)
         catalogItem.hashCode shouldBe newCatalogItem.hashCode
+      }
+    }
+
+    describe("when is in on the shelf and then its lifted") {
+      it("should contain the same values") {
+        val inPlaceCatalogItem: InPlaceCatalogItem = InPlaceCatalogItem(id, category, store, price)
+        val liftedCatalogItem: LiftedCatalogItem = inPlaceCatalogItem.lift
+        liftedCatalogItem.id shouldBe inPlaceCatalogItem.id
+        liftedCatalogItem.category shouldBe inPlaceCatalogItem.category
+        liftedCatalogItem.store shouldBe inPlaceCatalogItem.store
+        liftedCatalogItem.price shouldBe inPlaceCatalogItem.price
+      }
+    }
+
+    describe("when it is lifted and then placed on the shelf") {
+      it("should contain the same values") {
+        val liftedCatalogItem: LiftedCatalogItem = LiftedCatalogItem(id, category, store, price)
+        val inPlaceCatalogItem: InPlaceCatalogItem = liftedCatalogItem.putInPlace
+        inPlaceCatalogItem.id shouldBe liftedCatalogItem.id
+        inPlaceCatalogItem.category shouldBe liftedCatalogItem.category
+        inPlaceCatalogItem.store shouldBe liftedCatalogItem.store
+        inPlaceCatalogItem.price shouldBe liftedCatalogItem.price
       }
     }
   }
