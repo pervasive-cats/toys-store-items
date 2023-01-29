@@ -10,11 +10,13 @@ package items.catalogitem
 import io.github.pervasivecats.items.itemcategory.Repository
 import io.github.pervasivecats.items.itemcategory.Repository.OperationFailed
 import io.github.pervasivecats.items.itemcategory.valueobjects.ItemCategoryId
+
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
 import com.typesafe.config.ConfigValueFactory
 import eu.timepit.refined.auto.autoUnwrap
 import io.getquill.*
+
 import items.{Validated, ValidationError}
 import items.catalogitem.entities.{CatalogItem, LiftedCatalogItem}
 import items.catalogitem.valueobjects.{Amount, CatalogItemId, Currency, Price, Store}
@@ -86,14 +88,14 @@ object Repository {
                 )
               )
           )
-          !==
-          1L
+        !==
+        1L
       ) Left[ValidationError, Unit](OperationFailed)
       else
         Right[ValidationError, Unit](())
 
     override def update(catalogItem: CatalogItem, price: Price): Validated[Unit] =
-      if(
+      if (
         ctx
           .run(
             query[CatalogItems]
@@ -112,20 +114,20 @@ object Repository {
               )
           )
         !==
-          1L
+        1L
       ) Left[ValidationError, Unit](OperationFailed)
       else
         Right[ValidationError, Unit](())
 
     override def remove(catalogItem: CatalogItem): Validated[Unit] =
-      if(
+      if (
         ctx.run(
           query[CatalogItems]
             .filter(_.id === lift[Long](catalogItem.id.value))
             .delete
         )
-          !==
-          1L
+        !==
+        1L
       ) Left[ValidationError, Unit](OperationFailed)
       else
         Right[ValidationError, Unit](())
