@@ -32,7 +32,7 @@ trait Repository {
 
   // def update(catalogItem: CatalogItem, price: Price): Validated[Unit]
 
-  // def remove(catalogItem: CatalogItem): Validated[Unit]
+  def remove(catalogItem: CatalogItem): Validated[Unit]
 }
 
 object Repository {
@@ -87,7 +87,22 @@ object Repository {
                   )
                 )
               )
-          ) !== 1L
+          ) 
+          !== 
+          1L
+      ) Left[ValidationError, Unit](OperationFailed)
+      else
+        Right[ValidationError, Unit](())
+
+    override def remove(catalogItem: CatalogItem): Validated[Unit] =
+      if(
+        ctx.run(
+          query[CatalogItems]
+            .filter(_.id === lift[Long](catalogItem.id.value))
+            .delete
+        ) 
+          !== 
+          1L
       ) Left[ValidationError, Unit](OperationFailed)
       else
         Right[ValidationError, Unit](())
