@@ -99,6 +99,34 @@ class RepositoryTest extends AnyFunSpec with TestContainerForAll {
         db.remove(catalogItem).left.value shouldBe OperationFailed
       }
     }
-    
+
+    describe("after being registered and then their data gets updated") {
+      it("should show the update") {
+        val db: Repository = repository.getOrElse(fail())
+        val id: CatalogItemId = CatalogItemId(3).getOrElse(fail())
+        val category: ItemCategoryId = ItemCategoryId(35).getOrElse(fail())
+        val store: Store = Store(3).getOrElse(fail())
+        val price: Price = Price(Amount(19.99).getOrElse(fail()), Currency.withName("EUR"))
+        val catalogItem: CatalogItem = CatalogItem(id, category, store, price)
+        db.add(catalogItem).getOrElse(fail())
+        val newPrice = Price(Amount(14.99).getOrElse(fail()), Currency.withName("USD"))
+        db.update(catalogItem, newPrice).getOrElse(fail())
+        db.findById(id, store).getOrElse(fail()).price shouldBe newPrice
+        db.remove(catalogItem).getOrElse(fail())
+      }
+    }
+
+    describe("when their data gets updated but they were never registered in the first place") {
+      it("should not be allowed") {
+        val db: Repository = repository.getOrElse(fail())
+        val id: CatalogItemId = CatalogItemId(3).getOrElse(fail())
+        val category: ItemCategoryId = ItemCategoryId(35).getOrElse(fail())
+        val store: Store = Store(3).getOrElse(fail())
+        val price: Price = Price(Amount(19.99).getOrElse(fail()), Currency.withName("EUR"))
+        val catalogItem: CatalogItem = CatalogItem(id, category, store, price)
+        db.update(catalogItem, price).left.value shouldBe OperationFailed
+      }
+    }
+
   }
 }

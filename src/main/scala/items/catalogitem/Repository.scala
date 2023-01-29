@@ -10,13 +10,11 @@ package items.catalogitem
 import io.github.pervasivecats.items.itemcategory.Repository
 import io.github.pervasivecats.items.itemcategory.Repository.OperationFailed
 import io.github.pervasivecats.items.itemcategory.valueobjects.ItemCategoryId
-
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
 import com.typesafe.config.ConfigValueFactory
 import eu.timepit.refined.auto.autoUnwrap
 import io.getquill.*
-
 import items.{Validated, ValidationError}
 import items.catalogitem.entities.{CatalogItem, LiftedCatalogItem}
 import items.catalogitem.valueobjects.{Amount, CatalogItemId, Currency, Price, Store}
@@ -30,7 +28,7 @@ trait Repository {
 
   def add(catalogItem: CatalogItem): Validated[Unit]
 
-  // def update(catalogItem: CatalogItem, price: Price): Validated[Unit]
+  def update(catalogItem: CatalogItem, price: Price): Validated[Unit]
 
   def remove(catalogItem: CatalogItem): Validated[Unit]
 }
@@ -87,8 +85,33 @@ object Repository {
                   )
                 )
               )
-          ) 
-          !== 
+          )
+          !==
+          1L
+      ) Left[ValidationError, Unit](OperationFailed)
+      else
+        Right[ValidationError, Unit](())
+
+    override def update(catalogItem: CatalogItem, price: Price): Validated[Unit] =
+      if(
+        ctx
+          .run(
+            query[CatalogItems]
+              .filter(_.id === lift[Long](catalogItem.id.value))
+              .filter(_.store === lift[Long](catalogItem.store.id))
+              .updateValue(
+                lift[CatalogItems](
+                  CatalogItems(
+                    catalogItem.id.value,
+                    catalogItem.category.value,
+                    catalogItem.store.id,
+                    price.amount.value,
+                    String.valueOf(price.currency)
+                  )
+                )
+              )
+          )
+        !==
           1L
       ) Left[ValidationError, Unit](OperationFailed)
       else
@@ -100,8 +123,8 @@ object Repository {
           query[CatalogItems]
             .filter(_.id === lift[Long](catalogItem.id.value))
             .delete
-        ) 
-          !== 
+        )
+          !==
           1L
       ) Left[ValidationError, Unit](OperationFailed)
       else
