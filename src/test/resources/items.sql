@@ -8,9 +8,10 @@ CREATE TABLE IF NOT EXISTS public.item_categories
 
 CREATE TABLE IF NOT EXISTS public.catalog_items
 (
-    id serial NOT NULL DEFAULT,
+    id serial NOT NULL,
     category integer NOT NULL,
-    store integer NOT NULL,
-    price money NOT NULL,
-    CONSTRAINT catalog_items_pkey PRIMARY KEY (id)
+    store serial NOT NULL,
+    amount numeric(6,2) NOT NULL,
+    currency character varying(3) NOT NULL,
+    CONSTRAINT catalog_items_pkey PRIMARY KEY (id, store)
 );
