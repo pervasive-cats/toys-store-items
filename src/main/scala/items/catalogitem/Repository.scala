@@ -22,6 +22,7 @@ import items.catalogitem.valueobjects.{Amount, CatalogItemId, Currency, Price, S
 import AnyOps.*
 
 import scala.language.postfixOps
+import scala.tools.nsc.Reporting.MessageFilter.Category
 
 trait Repository {
 
@@ -29,7 +30,7 @@ trait Repository {
 
   //def findAllLifted(): List[Either[ValidationError, LiftedCatalogItem]]
 
-  def add(catalogItem: InPlaceCatalogItem): Validated[Unit]
+  def add(category: ItemCategoryId, store: Store, price: Price): Validated[InPlaceCatalogItem]
 
   def update(catalogItem: CatalogItem, price: Price): Validated[Unit]
 
@@ -95,26 +96,21 @@ object Repository {
           } yield LiftedCatalogItem(id, category, store, price)
         )*/
 
-    override def add(catalogItem: InPlaceCatalogItem): Validated[Unit] =
-      if (
-        ctx
-          .run(
-            querySchema[CatalogItemsWithoutKeys](entity = "catalog_items")
-              .insertValue(
-                lift(
-                  CatalogItemsWithoutKeys(
-                    catalogItem.category.value,
-                    catalogItem.price.amount.value,
-                    String.valueOf(catalogItem.price.currency)
-                  )
-                )
+    override def add(category: ItemCategoryId, store: Store, price: Price): Validated[InPlaceCatalogItem] =
+      CatalogItemId(
+        ctx.run(
+          quote(
+            query[CatalogItems]
+              .insert(
+                _.category -> lift[Long](category.value),
+                _.store -> lift[Long](store.id.value),
+                _.amount -> lift[Double](price.amount.value),
+                _.currency -> lift[String](String.valueOf(price.currency))
               )
+              .returningGenerated(_.id)
           )
-        !==
-        1L
-      ) Left[ValidationError, Unit](OperationFailed)
-      else
-        Right[ValidationError, Unit](())
+        )
+      ).map(InPlaceCatalogItem(_,category,store, price))
 
     override def update(catalogItem: CatalogItem, price: Price): Validated[Unit] =
       val isLifted: Boolean = catalogItem match {

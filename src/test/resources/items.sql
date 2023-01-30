@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS public.catalog_items
 (
     id serial NOT NULL,
     category integer NOT NULL,
-    store serial NOT NULL,
+    store integer NOT NULL,
     amount numeric(6,2) NOT NULL,
     currency character varying(3) NOT NULL,
     is_lifted boolean NOT NULL DEFAULT false,

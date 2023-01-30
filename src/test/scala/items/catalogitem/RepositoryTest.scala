@@ -55,18 +55,16 @@ class RepositoryTest extends AnyFunSpec with TestContainerForAll {
     describe("after being registrated") {
       it("should be present in database") {
         val db: Repository = repository.getOrElse(fail())
-        val id: CatalogItemId = CatalogItemId(1).getOrElse(fail())
         val category: ItemCategoryId = ItemCategoryId(35).getOrElse(fail())
         val store: Store = Store(1).getOrElse(fail())
         val price: Price = Price(Amount(19.99).getOrElse(fail()), Currency.withName("EUR"))
-        val inPlaceCatalogItem: InPlaceCatalogItem = InPlaceCatalogItem(id, category, store, price)
-        db.add(inPlaceCatalogItem).getOrElse(fail())
-        db.findById(id, store).getOrElse(fail()) shouldBe inPlaceCatalogItem
+        val inPlaceCatalogItem: InPlaceCatalogItem = db.add(category, store, price).getOrElse(fail())
+        db.findById(inPlaceCatalogItem.id, store).getOrElse(fail()) shouldBe inPlaceCatalogItem
         db.remove(inPlaceCatalogItem).getOrElse(fail())
       }
     }
 
-    /*describe("if never registered") {
+    describe("if never registered") {
       it("should not be present") {
         val db: Repository = repository.getOrElse(fail())
         val id: CatalogItemId = CatalogItemId(1).getOrElse(fail())
@@ -78,14 +76,12 @@ class RepositoryTest extends AnyFunSpec with TestContainerForAll {
     describe("after being registered and then deleted") {
       it("should not be present in database") {
         val db: Repository = repository.getOrElse(fail())
-        val id: CatalogItemId = CatalogItemId(2).getOrElse(fail())
         val category: ItemCategoryId = ItemCategoryId(35).getOrElse(fail())
         val store: Store = Store(2).getOrElse(fail())
         val price: Price = Price(Amount(19.99).getOrElse(fail()), Currency.withName("EUR"))
-        val catalogItem: InPlaceCatalogItem = InPlaceCatalogItem(id, category, store, price)
-        db.add(catalogItem).getOrElse(fail())
-        db.remove(catalogItem).getOrElse(fail())
-        db.findById(id, store).left.value shouldBe CatalogItemNotFound
+        val inPlaceCatalogItem: InPlaceCatalogItem = db.add(category, store, price).getOrElse(fail())
+        db.remove(inPlaceCatalogItem).getOrElse(fail())
+        db.findById(inPlaceCatalogItem.id, store).left.value shouldBe CatalogItemNotFound
       }
     }
 
@@ -96,23 +92,21 @@ class RepositoryTest extends AnyFunSpec with TestContainerForAll {
         val category: ItemCategoryId = ItemCategoryId(35).getOrElse(fail())
         val store: Store = Store(2).getOrElse(fail())
         val price: Price = Price(Amount(19.99).getOrElse(fail()), Currency.withName("EUR"))
-        val catalogItem: CatalogItem = CatalogItem(id, category, store, price)
-        db.remove(catalogItem).left.value shouldBe OperationFailed
+        val inPlaceCatalogItem: InPlaceCatalogItem = InPlaceCatalogItem(id, category, store, price)
+        db.remove(inPlaceCatalogItem).left.value shouldBe OperationFailed
       }
     }
 
     describe("after being registered and then their data gets updated") {
       it("should show the update") {
         val db: Repository = repository.getOrElse(fail())
-        val id: CatalogItemId = CatalogItemId(3).getOrElse(fail())
         val category: ItemCategoryId = ItemCategoryId(35).getOrElse(fail())
         val store: Store = Store(3).getOrElse(fail())
         val price: Price = Price(Amount(19.99).getOrElse(fail()), Currency.withName("EUR"))
-        val catalogItem: InPlaceCatalogItem = InPlaceCatalogItem(id, category, store, price)
-        db.add(catalogItem).getOrElse(fail())
+        val catalogItem: InPlaceCatalogItem = db.add(category, store, price).getOrElse(fail())
         val newPrice = Price(Amount(14.99).getOrElse(fail()), Currency.withName("USD"))
         db.update(catalogItem, newPrice).getOrElse(fail())
-        db.findById(id, store).getOrElse(fail()).price shouldBe newPrice
+        db.findById(catalogItem.id, store).getOrElse(fail()).price shouldBe newPrice
         db.remove(catalogItem).getOrElse(fail())
       }
     }
@@ -124,10 +118,10 @@ class RepositoryTest extends AnyFunSpec with TestContainerForAll {
         val category: ItemCategoryId = ItemCategoryId(35).getOrElse(fail())
         val store: Store = Store(3).getOrElse(fail())
         val price: Price = Price(Amount(19.99).getOrElse(fail()), Currency.withName("EUR"))
-        val catalogItem: CatalogItem = CatalogItem(id, category, store, price)
+        val catalogItem: InPlaceCatalogItem = InPlaceCatalogItem(id, category, store, price)
         db.update(catalogItem, price).left.value shouldBe OperationFailed
       }
-    }*/
+    }
 
     /*describe("when created lifted catalog items") {
       it("should be registered") {
