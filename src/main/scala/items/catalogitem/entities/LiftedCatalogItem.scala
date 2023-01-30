@@ -9,6 +9,7 @@ package items.catalogitem.entities
 
 import io.github.pervasivecats.items.Validated
 import io.github.pervasivecats.items.itemcategory.valueobjects.ItemCategoryId
+
 import AnyOps.*
 import items.catalogitem.valueobjects.{CatalogItemId, Price, Store}
 
@@ -40,9 +41,9 @@ object LiftedCatalogItem {
   given CatalogItemOps[LiftedCatalogItem] with {
 
     override def updated(
-                          catalogItem: LiftedCatalogItem,
-                          price: Price
-                        ): LiftedCatalogItem = LiftedCatalogItemImpl(catalogItem.id, catalogItem.category, catalogItem.store, price)
+      catalogItem: LiftedCatalogItem,
+      price: Price
+    ): LiftedCatalogItem = LiftedCatalogItemImpl(catalogItem.id, catalogItem.category, catalogItem.store, price)
   }
 
   def apply(id: CatalogItemId, category: ItemCategoryId, store: Store, price: Price): LiftedCatalogItem =

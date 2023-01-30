@@ -10,9 +10,10 @@ package items.catalogitem.entities
 import io.github.pervasivecats.items.Validated
 import io.github.pervasivecats.items.ValidationError
 import io.github.pervasivecats.items.itemcategory.valueobjects.ItemCategoryId
-import AnyOps.*
+
 import eu.timepit.refined.api.RefType.applyRef
 
+import AnyOps.*
 import items.catalogitem.valueobjects.{CatalogItemId, Price, Store}
 
 trait InPlaceCatalogItem extends CatalogItem
@@ -43,9 +44,9 @@ object InPlaceCatalogItem {
   given CatalogItemOps[InPlaceCatalogItem] with {
 
     override def updated(
-                          catalogItem: InPlaceCatalogItem,
-                          price: Price
-                        ): InPlaceCatalogItem = InPlaceCatalogItemImpl(catalogItem.id, catalogItem.category, catalogItem.store, price)
+      catalogItem: InPlaceCatalogItem,
+      price: Price
+    ): InPlaceCatalogItem = InPlaceCatalogItemImpl(catalogItem.id, catalogItem.category, catalogItem.store, price)
   }
 
   def apply(itemId: CatalogItemId, id: ItemCategoryId, store: Store, price: Price): InPlaceCatalogItem =

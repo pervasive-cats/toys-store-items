@@ -1,10 +1,12 @@
 package io.github.pervasivecats
 package items.catalogitem
 
-import io.github.pervasivecats.items.catalogitem.entities.{CatalogItem, InPlaceCatalogItem, LiftedCatalogItem}
+import io.github.pervasivecats.items.catalogitem.entities.CatalogItem
 import io.github.pervasivecats.items.catalogitem.entities.CatalogItemOps.updated
+import io.github.pervasivecats.items.catalogitem.entities.InPlaceCatalogItem
 import io.github.pervasivecats.items.catalogitem.entities.InPlaceCatalogItem.*
 import io.github.pervasivecats.items.catalogitem.entities.InPlaceCatalogItemOps.lift
+import io.github.pervasivecats.items.catalogitem.entities.LiftedCatalogItem
 import io.github.pervasivecats.items.catalogitem.entities.LiftedCatalogItemOps.putInPlace
 import io.github.pervasivecats.items.catalogitem.valueobjects.Amount
 import io.github.pervasivecats.items.catalogitem.valueobjects.CatalogItemId
@@ -12,6 +14,7 @@ import io.github.pervasivecats.items.catalogitem.valueobjects.Currency
 import io.github.pervasivecats.items.catalogitem.valueobjects.Price
 import io.github.pervasivecats.items.catalogitem.valueobjects.Store
 import io.github.pervasivecats.items.itemcategory.valueobjects.ItemCategoryId
+
 import org.scalatest.funspec.AnyFunSpec
 import org.scalatest.matchers.should.Matchers.shouldBe
 

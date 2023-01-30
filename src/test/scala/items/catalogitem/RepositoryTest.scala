@@ -3,23 +3,27 @@ package items.catalogitem
 
 import scala.concurrent.duration.FiniteDuration
 import scala.language.postfixOps
+
+import io.github.pervasivecats.items.Validated
 import io.github.pervasivecats.items.catalogitem.Repository.CatalogItemNotFound
 import io.github.pervasivecats.items.catalogitem.Repository.OperationFailed
-import io.github.pervasivecats.items.catalogitem.entities.{CatalogItem, InPlaceCatalogItem, LiftedCatalogItem}
-import io.github.pervasivecats.items.catalogitem.valueobjects.Amount
+import io.github.pervasivecats.items.catalogitem.entities.CatalogItem
+import io.github.pervasivecats.items.catalogitem.entities.InPlaceCatalogItem
 import io.github.pervasivecats.items.catalogitem.entities.InPlaceCatalogItemOps.lift
+import io.github.pervasivecats.items.catalogitem.entities.LiftedCatalogItem
+import io.github.pervasivecats.items.catalogitem.valueobjects.Amount
 import io.github.pervasivecats.items.catalogitem.valueobjects.CatalogItemId
 import io.github.pervasivecats.items.catalogitem.valueobjects.Currency
 import io.github.pervasivecats.items.catalogitem.valueobjects.Price
 import io.github.pervasivecats.items.catalogitem.valueobjects.Store
 import io.github.pervasivecats.items.itemcategory.valueobjects.ItemCategoryId
+
 import com.dimafeng.testcontainers.JdbcDatabaseContainer.CommonParams
 import com.dimafeng.testcontainers.PostgreSQLContainer
 import com.dimafeng.testcontainers.scalatest.TestContainerForAll
 import com.typesafe.config.ConfigFactory
 import com.typesafe.config.ConfigValueFactory
 import io.getquill.autoQuote
-import io.github.pervasivecats.items.Validated
 import org.scalatest.EitherValues.given
 import org.scalatest.funspec.AnyFunSpec
 import org.scalatest.matchers.should.Matchers.*

@@ -7,9 +7,9 @@
 package io.github.pervasivecats
 package items.itemcategory.entities
 
-import items.itemcategory.valueobjects.*
-
 import io.github.pervasivecats.AnyOps.===
+
+import items.itemcategory.valueobjects.*
 
 trait ItemCategory {
 

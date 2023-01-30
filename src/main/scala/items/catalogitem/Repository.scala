@@ -7,23 +7,25 @@
 package io.github.pervasivecats
 package items.catalogitem
 
+import scala.language.postfixOps
+import scala.tools.nsc.Reporting.MessageFilter.Category
+import scala.util.Try
+
 import io.github.pervasivecats.items.itemcategory.Repository
 import io.github.pervasivecats.items.itemcategory.Repository.OperationFailed
 import io.github.pervasivecats.items.itemcategory.valueobjects.ItemCategoryId
+
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
 import com.typesafe.config.ConfigValueFactory
 import eu.timepit.refined.auto.autoUnwrap
 import io.getquill.*
 import io.getquill.autoQuote
+
 import items.{Validated, ValidationError}
 import items.catalogitem.entities.{CatalogItem, InPlaceCatalogItem, LiftedCatalogItem}
 import items.catalogitem.valueobjects.{Amount, CatalogItemId, Currency, Price, Store}
 import AnyOps.*
-
-import scala.language.postfixOps
-import scala.tools.nsc.Reporting.MessageFilter.Category
-import scala.util.Try
 
 trait Repository {
 
@@ -79,7 +81,7 @@ object Repository {
         .getOrElse(Left[ValidationError, CatalogItem](CatalogItemNotFound))
 
     override def findAllLifted(): Validated[Set[Validated[LiftedCatalogItem]]] =
-      Try (
+      Try(
         ctx
           .run(
             query[CatalogItems]
@@ -114,7 +116,7 @@ object Repository {
               .returningGenerated(_.id)
           )
         )
-      ).map(InPlaceCatalogItem(_,category,store, price))
+      ).map(InPlaceCatalogItem(_, category, store, price))
 
     override def update(catalogItem: CatalogItem, price: Price): Validated[Unit] =
       val isLifted: Boolean = catalogItem match {

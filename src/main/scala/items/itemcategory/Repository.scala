@@ -75,7 +75,7 @@ object Repository {
               )
               .returningGenerated(_.id)
           )
-      ).map(ItemCategory(_,name,description))
+      ).map(ItemCategory(_, name, description))
 
     override def update(itemCategory: ItemCategory, name: Name, description: Description): Validated[Unit] = {
       if (
