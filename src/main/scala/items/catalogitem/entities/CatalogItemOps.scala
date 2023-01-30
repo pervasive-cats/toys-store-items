@@ -13,7 +13,7 @@ import items.catalogitem.valueobjects.Price
 
 trait CatalogItemOps[A <: CatalogItem] {
 
-  def updated(catalogItem: CatalogItem, price: Price): A
+  def updated(catalogItem: A, price: Price): A
 }
 
 object CatalogItemOps {

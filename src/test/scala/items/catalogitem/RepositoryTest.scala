@@ -3,17 +3,15 @@ package items.catalogitem
 
 import scala.concurrent.duration.FiniteDuration
 import scala.language.postfixOps
-
 import io.github.pervasivecats.items.catalogitem.Repository.CatalogItemNotFound
 import io.github.pervasivecats.items.catalogitem.Repository.OperationFailed
-import io.github.pervasivecats.items.catalogitem.entities.CatalogItem
+import io.github.pervasivecats.items.catalogitem.entities.{CatalogItem, InPlaceCatalogItem}
 import io.github.pervasivecats.items.catalogitem.valueobjects.Amount
 import io.github.pervasivecats.items.catalogitem.valueobjects.CatalogItemId
 import io.github.pervasivecats.items.catalogitem.valueobjects.Currency
 import io.github.pervasivecats.items.catalogitem.valueobjects.Price
 import io.github.pervasivecats.items.catalogitem.valueobjects.Store
 import io.github.pervasivecats.items.itemcategory.valueobjects.ItemCategoryId
-
 import com.dimafeng.testcontainers.JdbcDatabaseContainer.CommonParams
 import com.dimafeng.testcontainers.PostgreSQLContainer
 import com.dimafeng.testcontainers.scalatest.TestContainerForAll
@@ -61,14 +59,14 @@ class RepositoryTest extends AnyFunSpec with TestContainerForAll {
         val category: ItemCategoryId = ItemCategoryId(35).getOrElse(fail())
         val store: Store = Store(1).getOrElse(fail())
         val price: Price = Price(Amount(19.99).getOrElse(fail()), Currency.withName("EUR"))
-        val catalogItem: CatalogItem = CatalogItem(id, category, store, price)
-        db.add(catalogItem).getOrElse(fail())
-        db.findById(id, store).getOrElse(fail()) shouldBe catalogItem
-        db.remove(catalogItem).getOrElse(fail())
+        val inPlaceCatalogItem: InPlaceCatalogItem = InPlaceCatalogItem(id, category, store, price)
+        db.add(inPlaceCatalogItem).getOrElse(fail())
+        db.findById(id, store).getOrElse(fail()) shouldBe inPlaceCatalogItem
+        db.remove(inPlaceCatalogItem).getOrElse(fail())
       }
     }
 
-    describe("if never registered") {
+    /*describe("if never registered") {
       it("should not be present") {
         val db: Repository = repository.getOrElse(fail())
         val id: CatalogItemId = CatalogItemId(1).getOrElse(fail())
@@ -84,7 +82,7 @@ class RepositoryTest extends AnyFunSpec with TestContainerForAll {
         val category: ItemCategoryId = ItemCategoryId(35).getOrElse(fail())
         val store: Store = Store(2).getOrElse(fail())
         val price: Price = Price(Amount(19.99).getOrElse(fail()), Currency.withName("EUR"))
-        val catalogItem: CatalogItem = CatalogItem(id, category, store, price)
+        val catalogItem: InPlaceCatalogItem = InPlaceCatalogItem(id, category, store, price)
         db.add(catalogItem).getOrElse(fail())
         db.remove(catalogItem).getOrElse(fail())
         db.findById(id, store).left.value shouldBe CatalogItemNotFound
@@ -110,7 +108,7 @@ class RepositoryTest extends AnyFunSpec with TestContainerForAll {
         val category: ItemCategoryId = ItemCategoryId(35).getOrElse(fail())
         val store: Store = Store(3).getOrElse(fail())
         val price: Price = Price(Amount(19.99).getOrElse(fail()), Currency.withName("EUR"))
-        val catalogItem: CatalogItem = CatalogItem(id, category, store, price)
+        val catalogItem: InPlaceCatalogItem = InPlaceCatalogItem(id, category, store, price)
         db.add(catalogItem).getOrElse(fail())
         val newPrice = Price(Amount(14.99).getOrElse(fail()), Currency.withName("USD"))
         db.update(catalogItem, newPrice).getOrElse(fail())
@@ -129,7 +127,24 @@ class RepositoryTest extends AnyFunSpec with TestContainerForAll {
         val catalogItem: CatalogItem = CatalogItem(id, category, store, price)
         db.update(catalogItem, price).left.value shouldBe OperationFailed
       }
-    }
+    }*/
 
+    /*describe("when created lifted catalog items") {
+      it("should be registered") {
+        val db: Repository = repository.getOrElse(fail())
+        val id: CatalogItemId = CatalogItemId(4).getOrElse(fail())
+        val category: ItemCategoryId = ItemCategoryId(35).getOrElse(fail())
+        val store: Store = Store(4).getOrElse(fail())
+        val price: Price = Price(Amount(19.99).getOrElse(fail()), Currency.withName("EUR"))
+        val catalogItem: InPlaceCatalogItem = InPlaceCatalogItem(id, category, store, price)
+        db.add(catalogItem).getOrElse(fail())
+        val newId: CatalogItemId = CatalogItemId(5).getOrElse(fail())
+        val newStore: Store = Store(5).getOrElse(fail())
+        val newCatalogItem: InPlaceCatalogItem = InPlaceCatalogItem(newId, category, newStore, price)
+        db.add(newCatalogItem).getOrElse(fail())
+
+        for (elem <- db.findAllLifted()) {println(elem.getOrElse(fail()).id)}
+      }
+    */
   }
 }

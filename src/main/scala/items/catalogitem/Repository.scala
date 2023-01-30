@@ -10,25 +10,26 @@ package items.catalogitem
 import io.github.pervasivecats.items.itemcategory.Repository
 import io.github.pervasivecats.items.itemcategory.Repository.OperationFailed
 import io.github.pervasivecats.items.itemcategory.valueobjects.ItemCategoryId
-
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
 import com.typesafe.config.ConfigValueFactory
 import eu.timepit.refined.auto.autoUnwrap
 import io.getquill.*
-
+import io.getquill.autoQuote
 import items.{Validated, ValidationError}
-import items.catalogitem.entities.{CatalogItem, LiftedCatalogItem}
+import items.catalogitem.entities.{CatalogItem, InPlaceCatalogItem, LiftedCatalogItem}
 import items.catalogitem.valueobjects.{Amount, CatalogItemId, Currency, Price, Store}
 import AnyOps.*
+
+import scala.language.postfixOps
 
 trait Repository {
 
   def findById(catalogItemId: CatalogItemId, store: Store): Validated[CatalogItem]
 
-  // def findAllLifted(): Validated[Set[LiftedCatalogItem]]
+  //def findAllLifted(): List[Either[ValidationError, LiftedCatalogItem]]
 
-  def add(catalogItem: CatalogItem): Validated[Unit]
+  def add(catalogItem: InPlaceCatalogItem): Validated[Unit]
 
   def update(catalogItem: CatalogItem, price: Price): Validated[Unit]
 
@@ -51,7 +52,7 @@ object Repository {
 
     import ctx.*
 
-    private case class CatalogItems(id: Long, category: Long, store: Long, amount: Double, currency: String)
+    private case class CatalogItems(id: Long, category: Long, store: Long, amount: Double, currency: String, is_lifted: Boolean)
 
     private case class CatalogItemsWithoutKeys(category: Long, amount: Double, currency: String)
 
@@ -68,12 +69,33 @@ object Repository {
           for {
             category <- ItemCategoryId(c.category)
             amount <- Amount(c.amount)
-          } yield CatalogItem(catalogItemId, category, store, Price(amount, Currency.withName(String.valueOf(c.currency))))
+          } yield
+            if (c.is_lifted)
+              LiftedCatalogItem(catalogItemId, category, store, Price(amount, Currency.withName(String.valueOf(c.currency))))
+            else
+              InPlaceCatalogItem(catalogItemId, category, store, Price(amount, Currency.withName(String.valueOf(c.currency))))
         )
         .headOption
         .getOrElse(Left[ValidationError, CatalogItem](CatalogItemNotFound))
 
-    override def add(catalogItem: CatalogItem): Validated[Unit] =
+    /*override def findAllLifted(): List[Either[ValidationError, LiftedCatalogItem]] =
+      ctx
+        .run(
+          query[CatalogItems]
+            .filter(_.is_lifted === true)CatalogItem
+        )
+        .map(c =>
+          for {
+            id <- CatalogItemId(c.id)
+            category <- ItemCategoryId(c.category)
+            store <- Store(c.store)
+            price <- for {
+              amount <- Amount(c.amount)
+            } yield Price(amount, Currency.withName(c.currency))
+          } yield LiftedCatalogItem(id, category, store, price)
+        )*/
+
+    override def add(catalogItem: InPlaceCatalogItem): Validated[Unit] =
       if (
         ctx
           .run(
@@ -95,6 +117,10 @@ object Repository {
         Right[ValidationError, Unit](())
 
     override def update(catalogItem: CatalogItem, price: Price): Validated[Unit] =
+      val isLifted: Boolean = catalogItem match {
+        case _: InPlaceCatalogItem => false
+        case _: LiftedCatalogItem => true
+      }
       if (
         ctx
           .run(
@@ -108,7 +134,8 @@ object Repository {
                     catalogItem.category.value,
                     catalogItem.store.id,
                     price.amount.value,
-                    String.valueOf(price.currency)
+                    String.valueOf(price.currency),
+                    isLifted
                   )
                 )
               )

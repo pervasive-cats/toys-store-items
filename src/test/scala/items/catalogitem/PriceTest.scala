@@ -8,7 +8,7 @@ import io.github.pervasivecats.items.catalogitem.valueobjects.Price
 import org.scalatest.funspec.AnyFunSpec
 import org.scalatest.matchers.should.Matchers.shouldBe
 
-class PriceImpl extends AnyFunSpec {
+class PriceTest extends AnyFunSpec {
 
   describe("A Price") {
     describe("when created with an amount and a price") {
