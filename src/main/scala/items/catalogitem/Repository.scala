@@ -23,12 +23,13 @@ import AnyOps.*
 
 import scala.language.postfixOps
 import scala.tools.nsc.Reporting.MessageFilter.Category
+import scala.util.Try
 
 trait Repository {
 
   def findById(catalogItemId: CatalogItemId, store: Store): Validated[CatalogItem]
 
-  //def findAllLifted(): List[Either[ValidationError, LiftedCatalogItem]]
+  def findAllLifted(): Validated[Set[Validated[LiftedCatalogItem]]]
 
   def add(category: ItemCategoryId, store: Store, price: Price): Validated[InPlaceCatalogItem]
 
@@ -55,8 +56,6 @@ object Repository {
 
     private case class CatalogItems(id: Long, category: Long, store: Long, amount: Double, currency: String, is_lifted: Boolean)
 
-    private case class CatalogItemsWithoutKeys(category: Long, amount: Double, currency: String)
-
     override def findById(catalogItemId: CatalogItemId, store: Store): Validated[CatalogItem] =
       ctx
         .run(
@@ -79,22 +78,27 @@ object Repository {
         .headOption
         .getOrElse(Left[ValidationError, CatalogItem](CatalogItemNotFound))
 
-    /*override def findAllLifted(): List[Either[ValidationError, LiftedCatalogItem]] =
-      ctx
-        .run(
-          query[CatalogItems]
-            .filter(_.is_lifted === true)CatalogItem
-        )
-        .map(c =>
-          for {
-            id <- CatalogItemId(c.id)
-            category <- ItemCategoryId(c.category)
-            store <- Store(c.store)
-            price <- for {
-              amount <- Amount(c.amount)
-            } yield Price(amount, Currency.withName(c.currency))
-          } yield LiftedCatalogItem(id, category, store, price)
-        )*/
+    override def findAllLifted(): Validated[Set[Validated[LiftedCatalogItem]]] =
+      Try (
+        ctx
+          .run(
+            query[CatalogItems]
+              .filter(_.is_lifted === true)
+          )
+          .map(c =>
+            for {
+              id <- CatalogItemId(c.id)
+              category <- ItemCategoryId(c.category)
+              store <- Store(c.store)
+              price <- for {
+                amount <- Amount(c.amount)
+              } yield Price(amount, Currency.withName(c.currency))
+            } yield LiftedCatalogItem(id, category, store, price)
+          )
+          .toSet
+      ).toEither
+        .map(Right[ValidationError, Set[Validated[LiftedCatalogItem]]])
+        .getOrElse(Left[ValidationError, Set[Validated[LiftedCatalogItem]]](OperationFailed))
 
     override def add(category: ItemCategoryId, store: Store, price: Price): Validated[InPlaceCatalogItem] =
       CatalogItemId(

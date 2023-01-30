@@ -5,8 +5,9 @@ import scala.concurrent.duration.FiniteDuration
 import scala.language.postfixOps
 import io.github.pervasivecats.items.catalogitem.Repository.CatalogItemNotFound
 import io.github.pervasivecats.items.catalogitem.Repository.OperationFailed
-import io.github.pervasivecats.items.catalogitem.entities.{CatalogItem, InPlaceCatalogItem}
+import io.github.pervasivecats.items.catalogitem.entities.{CatalogItem, InPlaceCatalogItem, LiftedCatalogItem}
 import io.github.pervasivecats.items.catalogitem.valueobjects.Amount
+import io.github.pervasivecats.items.catalogitem.entities.InPlaceCatalogItemOps.lift
 import io.github.pervasivecats.items.catalogitem.valueobjects.CatalogItemId
 import io.github.pervasivecats.items.catalogitem.valueobjects.Currency
 import io.github.pervasivecats.items.catalogitem.valueobjects.Price
@@ -18,6 +19,7 @@ import com.dimafeng.testcontainers.scalatest.TestContainerForAll
 import com.typesafe.config.ConfigFactory
 import com.typesafe.config.ConfigValueFactory
 import io.getquill.autoQuote
+import io.github.pervasivecats.items.Validated
 import org.scalatest.EitherValues.given
 import org.scalatest.funspec.AnyFunSpec
 import org.scalatest.matchers.should.Matchers.*
@@ -123,22 +125,31 @@ class RepositoryTest extends AnyFunSpec with TestContainerForAll {
       }
     }
 
-    /*describe("when created lifted catalog items") {
+    describe("after ") {
       it("should be registered") {
         val db: Repository = repository.getOrElse(fail())
-        val id: CatalogItemId = CatalogItemId(4).getOrElse(fail())
+        val empty: Int = 0
+        db.findAllLifted().getOrElse(fail()).size shouldBe empty
+      }
+    }
+
+    describe("after") {
+      it("should be") {
+        val db: Repository = repository.getOrElse(fail())
+        val empty: Int = 0
+        val size: Int = 2
         val category: ItemCategoryId = ItemCategoryId(35).getOrElse(fail())
         val store: Store = Store(4).getOrElse(fail())
         val price: Price = Price(Amount(19.99).getOrElse(fail()), Currency.withName("EUR"))
-        val catalogItem: InPlaceCatalogItem = InPlaceCatalogItem(id, category, store, price)
-        db.add(catalogItem).getOrElse(fail())
-        val newId: CatalogItemId = CatalogItemId(5).getOrElse(fail())
-        val newStore: Store = Store(5).getOrElse(fail())
-        val newCatalogItem: InPlaceCatalogItem = InPlaceCatalogItem(newId, category, newStore, price)
-        db.add(newCatalogItem).getOrElse(fail())
-
-        for (elem <- db.findAllLifted()) {println(elem.getOrElse(fail()).id)}
+        val inPlaceCatalogItemA: InPlaceCatalogItem = db.add(category, store, price).getOrElse(fail())
+        db.update(inPlaceCatalogItemA.lift, price)
+        val inPlaceCatalogItemB: InPlaceCatalogItem = db.add(category, store, price).getOrElse(fail())
+        db.update(inPlaceCatalogItemB.lift, price)
+        db.findAllLifted().getOrElse(fail()).size shouldBe size
+        db.remove(inPlaceCatalogItemA.lift)
+        db.remove(inPlaceCatalogItemB.lift)
+        db.findAllLifted().getOrElse(fail()).size shouldBe empty
       }
-    */
+    }
   }
 }
