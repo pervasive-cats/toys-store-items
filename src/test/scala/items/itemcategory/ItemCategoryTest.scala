@@ -48,5 +48,39 @@ class ItemCategoryTest extends AnyFunSpec {
         itemCategory.updated(description = newDescription).description shouldBe newDescription
       }
     }
+
+    describe("when compared with a object that got the same id and different parameters") {
+      it("should be true") {
+        val name: Name = Name("7 Wonders").getOrElse(fail())
+        val description: Description = Description("Boardgame produced by REPOS production").getOrElse(fail())
+        val newItemCategory: ItemCategory = ItemCategory(itemCategoryId, name, description)
+        itemCategory === newItemCategory shouldBe true
+      }
+    }
+
+    describe("when compared with a object that got a different id and the same parameters") {
+      it("should be false") {
+        val newId: ItemCategoryId = ItemCategoryId(5437).getOrElse(fail())
+        val newItemCategory: ItemCategory = ItemCategory(newId, name, description)
+        itemCategory === newItemCategory shouldBe false
+      }
+    }
+
+    describe("when compared with an object with the same hashcode") {
+      it("should be true") {
+        val name: Name = Name("7 Wonders").getOrElse(fail())
+        val description: Description = Description("Boardgame produced by REPOS production").getOrElse(fail())
+        val newItemCategory: ItemCategory = ItemCategory(itemCategoryId, name, description)
+        itemCategory.hashCode shouldBe newItemCategory.hashCode
+      }
+    }
+
+    describe("when compared with an object with a different hashcode") {
+      it("should be false") {
+        val newId: ItemCategoryId = ItemCategoryId(5437).getOrElse(fail())
+        val newItemCategory: ItemCategory = ItemCategory(newId, name, description)
+        itemCategory.hashCode === newItemCategory.hashCode shouldBe false
+      }
+    }
   }
 }

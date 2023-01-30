@@ -68,6 +68,14 @@ class LiftedCatalogItemTest extends AnyFunSpec {
       }
     }
 
+    describe("when compared with an object with a different hashcode") {
+      it("should be true") {
+        val newId: CatalogItemId = CatalogItemId(14142).getOrElse(fail())
+        val newCatalogItem: LiftedCatalogItem = LiftedCatalogItem(newId, category, store, price)
+        liftedCatalogItem.hashCode === newCatalogItem.hashCode shouldBe false
+      }
+    }
+
     describe("when it is placed on the shelf") {
       it("should contain the same values") {
         val inPlaceCatalogItem: InPlaceCatalogItem = liftedCatalogItem.putInPlace

@@ -9,6 +9,8 @@ package items.itemcategory.entities
 
 import items.itemcategory.valueobjects.*
 
+import io.github.pervasivecats.AnyOps.===
+
 trait ItemCategory {
 
   val id: ItemCategoryId
@@ -20,7 +22,15 @@ trait ItemCategory {
 
 object ItemCategory {
 
-  private case class ItemCategoryImpl(id: ItemCategoryId, name: Name, description: Description) extends ItemCategory
+  private case class ItemCategoryImpl(id: ItemCategoryId, name: Name, description: Description) extends ItemCategory {
+
+    override def equals(obj: Any): Boolean = obj match {
+      case itemCategory: ItemCategory => itemCategory.id === id
+      case _ => false
+    }
+
+    override def hashCode(): Int = id.hashCode()
+  }
 
   given ItemCategoryOps[ItemCategory] with {
 
