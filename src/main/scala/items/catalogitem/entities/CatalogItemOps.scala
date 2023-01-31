@@ -7,9 +7,8 @@
 package io.github.pervasivecats
 package items.catalogitem.entities
 
-import io.github.pervasivecats.items.itemcategory.entities.ItemCategoryOps
-
 import items.catalogitem.valueobjects.Price
+import items.itemcategory.entities.ItemCategoryOps
 
 trait CatalogItemOps[A <: CatalogItem] {
 

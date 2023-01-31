@@ -27,7 +27,7 @@ class InPlaceCatalogItemTest extends AnyFunSpec {
   val inPlaceCatalogItem: InPlaceCatalogItem = InPlaceCatalogItem(id, category, store, price)
 
   describe("An in place catalog item") {
-    describe("when created with a id, a category, a store and a price") {
+    describe("when created with an id, a category, a store and a price") {
       it("should contain them") {
         inPlaceCatalogItem.id shouldBe id
         inPlaceCatalogItem.category shouldBe category

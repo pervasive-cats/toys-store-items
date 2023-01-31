@@ -28,7 +28,7 @@ object InPlaceCatalogItem {
       case _ => false
     }
 
-    override def hashCode(): Int = id.hashCode()
+    override def hashCode(): Int = id.##
   }
 
   given InPlaceCatalogItemOps[InPlaceCatalogItem] with {

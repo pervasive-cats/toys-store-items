@@ -8,9 +8,9 @@ CREATE TABLE IF NOT EXISTS public.item_categories
 
 CREATE TABLE IF NOT EXISTS public.catalog_items
 (
-    id bigserial NOT NULL,
+    id bigint NOT NULL,
     category integer NOT NULL,
-    store integer NOT NULL,
+    store bigint NOT NULL,
     amount numeric(6,2) NOT NULL,
     currency character varying(3) NOT NULL,
     is_lifted boolean NOT NULL DEFAULT false,

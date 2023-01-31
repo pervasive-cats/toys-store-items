@@ -1,36 +1,25 @@
 package io.github.pervasivecats
 package items.catalogitem
 
-import scala.concurrent.duration.FiniteDuration
-import scala.language.postfixOps
-
-import io.github.pervasivecats.items.Validated
-import io.github.pervasivecats.items.catalogitem.Repository.CatalogItemNotFound
-import io.github.pervasivecats.items.catalogitem.Repository.OperationFailed
-import io.github.pervasivecats.items.catalogitem.entities.CatalogItem
-import io.github.pervasivecats.items.catalogitem.entities.InPlaceCatalogItem
-import io.github.pervasivecats.items.catalogitem.entities.InPlaceCatalogItemOps.lift
-import io.github.pervasivecats.items.catalogitem.entities.LiftedCatalogItem
-import io.github.pervasivecats.items.catalogitem.valueobjects.Amount
-import io.github.pervasivecats.items.catalogitem.valueobjects.CatalogItemId
-import io.github.pervasivecats.items.catalogitem.valueobjects.Currency
-import io.github.pervasivecats.items.catalogitem.valueobjects.Price
-import io.github.pervasivecats.items.catalogitem.valueobjects.Store
-import io.github.pervasivecats.items.itemcategory.valueobjects.ItemCategoryId
+import items.Validated
+import items.catalogitem.Repository.{CatalogItemNotFound, OperationFailed}
+import items.catalogitem.entities.InPlaceCatalogItemOps.lift
+import items.catalogitem.entities.{CatalogItem, InPlaceCatalogItem, LiftedCatalogItem}
+import items.catalogitem.valueobjects.*
+import items.itemcategory.valueobjects.ItemCategoryId
 
 import com.dimafeng.testcontainers.JdbcDatabaseContainer.CommonParams
 import com.dimafeng.testcontainers.PostgreSQLContainer
 import com.dimafeng.testcontainers.scalatest.TestContainerForAll
-import com.typesafe.config.ConfigFactory
-import com.typesafe.config.ConfigValueFactory
+import com.typesafe.config.{ConfigFactory, ConfigValueFactory}
 import io.getquill.autoQuote
 import org.scalatest.EitherValues.given
 import org.scalatest.funspec.AnyFunSpec
 import org.scalatest.matchers.should.Matchers.*
-import org.scalatest.matchers.should.Matchers.shouldBe
 import org.testcontainers.utility.DockerImageName
 
-import concurrent.duration.DurationInt
+import scala.concurrent.duration.{DurationInt, FiniteDuration}
+import scala.language.postfixOps
 
 class RepositoryTest extends AnyFunSpec with TestContainerForAll {
 
@@ -58,7 +47,7 @@ class RepositoryTest extends AnyFunSpec with TestContainerForAll {
     )
 
   describe("An Item Category") {
-    describe("after being registrated") {
+    describe("after being added") {
       it("should be present in database") {
         val db: Repository = repository.getOrElse(fail())
         val category: ItemCategoryId = ItemCategoryId(35).getOrElse(fail())
@@ -70,7 +59,7 @@ class RepositoryTest extends AnyFunSpec with TestContainerForAll {
       }
     }
 
-    describe("if never registered") {
+    describe("if never added") {
       it("should not be present") {
         val db: Repository = repository.getOrElse(fail())
         val id: CatalogItemId = CatalogItemId(1).getOrElse(fail())
@@ -79,7 +68,7 @@ class RepositoryTest extends AnyFunSpec with TestContainerForAll {
       }
     }
 
-    describe("after being registered and then deleted") {
+    describe("after being added and then deleted") {
       it("should not be present in database") {
         val db: Repository = repository.getOrElse(fail())
         val category: ItemCategoryId = ItemCategoryId(35).getOrElse(fail())
@@ -91,7 +80,7 @@ class RepositoryTest extends AnyFunSpec with TestContainerForAll {
       }
     }
 
-    describe("after being removed but they were never registered in the first place") {
+    describe("after being removed but it were never added in the first place") {
       it("should not be allowed") {
         val db: Repository = repository.getOrElse(fail())
         val id: CatalogItemId = CatalogItemId(2).getOrElse(fail())
@@ -103,7 +92,7 @@ class RepositoryTest extends AnyFunSpec with TestContainerForAll {
       }
     }
 
-    describe("after being registered and then their data gets updated") {
+    describe("after being added and then it data gets updated") {
       it("should show the update") {
         val db: Repository = repository.getOrElse(fail())
         val category: ItemCategoryId = ItemCategoryId(35).getOrElse(fail())
@@ -117,7 +106,7 @@ class RepositoryTest extends AnyFunSpec with TestContainerForAll {
       }
     }
 
-    describe("when their data gets updated but they were never registered in the first place") {
+    describe("when it data gets updated but they were never added in the first place") {
       it("should not be allowed") {
         val db: Repository = repository.getOrElse(fail())
         val id: CatalogItemId = CatalogItemId(3).getOrElse(fail())
@@ -129,7 +118,7 @@ class RepositoryTest extends AnyFunSpec with TestContainerForAll {
       }
     }
 
-    describe("if never registered and then searched for all lifted catalog items") {
+    describe("if never registered, while searching for all lifted catalog items") {
       it("should not be in the database") {
         val db: Repository = repository.getOrElse(fail())
         val empty: Int = 0
@@ -137,8 +126,8 @@ class RepositoryTest extends AnyFunSpec with TestContainerForAll {
       }
     }
 
-    describe("if it is registered two times and then searched for all lifted catalog items") {
-      it("should be in the database") {
+    describe("if added twice, while searching for all lifted catalog items") {
+      it("should be in the database along with the other") {
         val db: Repository = repository.getOrElse(fail())
         val empty: Int = 0
         val size: Int = 2

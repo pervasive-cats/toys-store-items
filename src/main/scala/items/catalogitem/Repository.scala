@@ -56,7 +56,7 @@ object Repository {
 
     import ctx.*
 
-    private case class CatalogItems(id: Long, category: Long, store: Long, amount: Double, currency: String, is_lifted: Boolean)
+    private case class CatalogItems(id: Long, category: Long, store: Long, amount: Double, currency: String, isLifted: Boolean)
 
     override def findById(catalogItemId: CatalogItemId, store: Store): Validated[CatalogItem] =
       ctx
@@ -72,10 +72,10 @@ object Repository {
             category <- ItemCategoryId(c.category)
             amount <- Amount(c.amount)
           } yield
-            if (c.is_lifted)
-              LiftedCatalogItem(catalogItemId, category, store, Price(amount, Currency.withName(String.valueOf(c.currency))))
+            if (c.isLifted)
+              LiftedCatalogItem(catalogItemId, category, store, Price(amount, Currency.withName(c.currency)))
             else
-              InPlaceCatalogItem(catalogItemId, category, store, Price(amount, Currency.withName(String.valueOf(c.currency))))
+              InPlaceCatalogItem(catalogItemId, category, store, Price(amount, Currency.withName(c.currency)))
         )
         .headOption
         .getOrElse(Left[ValidationError, CatalogItem](CatalogItemNotFound))
@@ -85,20 +85,21 @@ object Repository {
         ctx
           .run(
             query[CatalogItems]
-              .filter(_.is_lifted === true)
+              .filter(_.isLifted)
           )
           .map(c =>
             for {
               id <- CatalogItemId(c.id)
               category <- ItemCategoryId(c.category)
               store <- Store(c.store)
-              price <- for {
+              price <- /*Amount(c.amount).map(_ => Price(_, Currency.withName(c.currency)))*/for {
                 amount <- Amount(c.amount)
               } yield Price(amount, Currency.withName(c.currency))
             } yield LiftedCatalogItem(id, category, store, price)
           )
           .toSet
-      ).toEither
+      )
+        .toEither
         .map(Right[ValidationError, Set[Validated[LiftedCatalogItem]]])
         .getOrElse(Left[ValidationError, Set[Validated[LiftedCatalogItem]]](OperationFailed))
 
@@ -129,17 +130,10 @@ object Repository {
             query[CatalogItems]
               .filter(_.id === lift[Long](catalogItem.id.value))
               .filter(_.store === lift[Long](catalogItem.store.id))
-              .updateValue(
-                lift[CatalogItems](
-                  CatalogItems(
-                    catalogItem.id.value,
-                    catalogItem.category.value,
-                    catalogItem.store.id,
-                    price.amount.value,
-                    String.valueOf(price.currency),
-                    isLifted
-                  )
-                )
+              .update(
+                _.amount -> lift[Double](price.amount.value),
+                _.currency -> lift[String](String.valueOf(price.currency)),
+                _.isLifted -> lift[Boolean](isLifted)
               )
           )
         !==
@@ -153,6 +147,7 @@ object Repository {
         ctx.run(
           query[CatalogItems]
             .filter(_.id === lift[Long](catalogItem.id.value))
+            .filter(_.store === lift[Long](catalogItem.store.id))
             .delete
         )
         !==
