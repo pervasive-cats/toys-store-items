@@ -1,10 +1,10 @@
 package io.github.pervasivecats
 package items.catalogitem.valueobjects
 
-import items.catalogitem.valueobjects.{Amount, Currency, Price}
-
 import org.scalatest.funspec.AnyFunSpec
 import org.scalatest.matchers.should.Matchers.shouldBe
+
+import items.catalogitem.valueobjects.{Amount, Currency, Price}
 
 class PriceTest extends AnyFunSpec {
 

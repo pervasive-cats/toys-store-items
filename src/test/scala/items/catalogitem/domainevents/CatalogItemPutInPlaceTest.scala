@@ -1,11 +1,11 @@
 package io.github.pervasivecats
 package items.catalogitem.domainevents
 
-import items.catalogitem.domainevents.CatalogItemPutInPlace
-import items.catalogitem.valueobjects.{CatalogItemId, Store}
-
 import org.scalatest.funspec.AnyFunSpec
 import org.scalatest.matchers.should.Matchers.shouldBe
+
+import items.catalogitem.domainevents.CatalogItemPutInPlace
+import items.catalogitem.valueobjects.{CatalogItemId, Store}
 
 class CatalogItemPutInPlaceTest extends AnyFunSpec {
 

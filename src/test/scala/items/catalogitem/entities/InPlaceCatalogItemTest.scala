@@ -1,6 +1,9 @@
 package io.github.pervasivecats
 package items.catalogitem.entities
 
+import org.scalatest.funspec.AnyFunSpec
+import org.scalatest.matchers.should.Matchers.*
+
 import items.catalogitem.entities.CatalogItemOps.updated
 import items.catalogitem.entities.InPlaceCatalogItem.*
 import items.catalogitem.entities.InPlaceCatalogItemOps.lift
@@ -8,9 +11,6 @@ import items.catalogitem.entities.{CatalogItem, InPlaceCatalogItem, LiftedCatalo
 import items.catalogitem.entities.LiftedCatalogItemOps.putInPlace
 import items.catalogitem.valueobjects.*
 import items.itemcategory.valueobjects.ItemCategoryId
-
-import org.scalatest.funspec.AnyFunSpec
-import org.scalatest.matchers.should.Matchers.*
 
 class InPlaceCatalogItemTest extends AnyFunSpec {
 

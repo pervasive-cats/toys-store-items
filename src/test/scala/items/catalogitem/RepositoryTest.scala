@@ -1,25 +1,27 @@
 package io.github.pervasivecats
 package items.catalogitem
 
-import items.Validated
-import items.catalogitem.Repository.{CatalogItemNotFound, OperationFailed}
-import items.catalogitem.entities.InPlaceCatalogItemOps.lift
-import items.catalogitem.entities.{CatalogItem, InPlaceCatalogItem, LiftedCatalogItem}
-import items.catalogitem.valueobjects.*
-import items.itemcategory.valueobjects.ItemCategoryId
+import scala.concurrent.duration.DurationInt
+import scala.concurrent.duration.FiniteDuration
+import scala.language.postfixOps
 
 import com.dimafeng.testcontainers.JdbcDatabaseContainer.CommonParams
 import com.dimafeng.testcontainers.PostgreSQLContainer
 import com.dimafeng.testcontainers.scalatest.TestContainerForAll
-import com.typesafe.config.{ConfigFactory, ConfigValueFactory}
+import com.typesafe.config.ConfigFactory
+import com.typesafe.config.ConfigValueFactory
 import io.getquill.autoQuote
 import org.scalatest.EitherValues.given
 import org.scalatest.funspec.AnyFunSpec
 import org.scalatest.matchers.should.Matchers.*
 import org.testcontainers.utility.DockerImageName
 
-import scala.concurrent.duration.{DurationInt, FiniteDuration}
-import scala.language.postfixOps
+import items.Validated
+import items.catalogitem.Repository.{CatalogItemNotFound, OperationFailed}
+import items.catalogitem.entities.InPlaceCatalogItemOps.lift
+import items.catalogitem.entities.{CatalogItem, InPlaceCatalogItem, LiftedCatalogItem}
+import items.catalogitem.valueobjects.*
+import items.itemcategory.valueobjects.ItemCategoryId
 
 class RepositoryTest extends AnyFunSpec with TestContainerForAll {
 
