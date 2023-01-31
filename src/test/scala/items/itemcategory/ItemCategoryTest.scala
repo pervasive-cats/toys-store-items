@@ -4,7 +4,7 @@ package items.itemcategory
 import scala.language.postfixOps
 
 import org.scalatest.funspec.AnyFunSpec
-import org.scalatest.matchers.should.Matchers.shouldBe
+import org.scalatest.matchers.should.Matchers.*
 
 import items.itemcategory.entities.ItemCategory
 import items.itemcategory.entities.ItemCategoryOps.updated
@@ -49,37 +49,33 @@ class ItemCategoryTest extends AnyFunSpec {
       }
     }
 
-    describe("when compared with a object that got the same id and different parameters") {
-      it("should be true") {
-        val name: Name = Name("7 Wonders").getOrElse(fail())
-        val description: Description = Description("Boardgame produced by REPOS production").getOrElse(fail())
-        val newItemCategory: ItemCategory = ItemCategory(itemCategoryId, name, description)
-        itemCategory === newItemCategory shouldBe true
+    val secondItemCategory: ItemCategory = ItemCategory(itemCategoryId, name, description)
+    val thirdItemCategory: ItemCategory = ItemCategory(itemCategoryId, name, description)
+
+    describe("when compared with another identical catalog item") {
+      it("should be equal following the symmetrical property") {
+        itemCategory shouldEqual secondItemCategory
+        secondItemCategory shouldEqual itemCategory
+      }
+
+      it("should be equal following the transitive property") {
+        itemCategory shouldEqual secondItemCategory
+        secondItemCategory shouldEqual thirdItemCategory
+        itemCategory shouldEqual thirdItemCategory
+      }
+
+      it("should be equal following the reflexive property") {
+        itemCategory shouldEqual itemCategory
+      }
+
+      it("should have the same hash code as the other") {
+        itemCategory.## shouldEqual secondItemCategory.##
       }
     }
 
-    describe("when compared with a object that got a different id and the same parameters") {
-      it("should be false") {
-        val newId: ItemCategoryId = ItemCategoryId(5437).getOrElse(fail())
-        val newItemCategory: ItemCategory = ItemCategory(newId, name, description)
-        itemCategory === newItemCategory shouldBe false
-      }
-    }
-
-    describe("when compared with an object with the same hashcode") {
-      it("should be true") {
-        val name: Name = Name("7 Wonders").getOrElse(fail())
-        val description: Description = Description("Boardgame produced by REPOS production").getOrElse(fail())
-        val newItemCategory: ItemCategory = ItemCategory(itemCategoryId, name, description)
-        itemCategory.hashCode shouldBe newItemCategory.hashCode
-      }
-    }
-
-    describe("when compared with an object with a different hashcode") {
-      it("should be false") {
-        val newId: ItemCategoryId = ItemCategoryId(5437).getOrElse(fail())
-        val newItemCategory: ItemCategory = ItemCategory(newId, name, description)
-        itemCategory.hashCode === newItemCategory.hashCode shouldBe false
+    describe("when compared with anything else") {
+      it("should not be equal") {
+        itemCategory should not equal 1.0
       }
     }
   }
