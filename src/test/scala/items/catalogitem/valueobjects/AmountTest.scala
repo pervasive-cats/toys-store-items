@@ -1,15 +1,15 @@
 package io.github.pervasivecats
-package items.catalogitem
+package items.catalogitem.valueobjects
 
-import scala.language.postfixOps
-
-import io.github.pervasivecats.items.ValidationError
-import io.github.pervasivecats.items.catalogitem.valueobjects.Amount
-import io.github.pervasivecats.items.catalogitem.valueobjects.Amount.WrongAmountFormat
+import items.ValidationError
+import items.catalogitem.valueobjects.Amount
+import items.catalogitem.valueobjects.Amount.WrongAmountFormat
 
 import eu.timepit.refined.auto.autoUnwrap
 import org.scalatest.funspec.AnyFunSpec
 import org.scalatest.matchers.should.Matchers.shouldBe
+
+import scala.language.postfixOps
 
 class AmountTest extends AnyFunSpec {
 

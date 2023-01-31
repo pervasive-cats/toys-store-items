@@ -1,9 +1,8 @@
 package io.github.pervasivecats
-package items.catalogitem
+package items.catalogitem.domainevents
 
-import io.github.pervasivecats.items.catalogitem.domainevents.CatalogItemLifted
-import io.github.pervasivecats.items.catalogitem.valueobjects.CatalogItemId
-import io.github.pervasivecats.items.catalogitem.valueobjects.Store
+import items.catalogitem.domainevents.CatalogItemLifted
+import items.catalogitem.valueobjects.{CatalogItemId, Store}
 
 import org.scalatest.funspec.AnyFunSpec
 import org.scalatest.matchers.should.Matchers.shouldBe

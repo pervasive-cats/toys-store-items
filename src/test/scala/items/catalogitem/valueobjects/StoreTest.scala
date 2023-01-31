@@ -1,9 +1,9 @@
 package io.github.pervasivecats
-package items.catalogitem
+package items.catalogitem.valueobjects
 
-import io.github.pervasivecats.items.ValidationError
-import io.github.pervasivecats.items.catalogitem.valueobjects.Store
-import io.github.pervasivecats.items.catalogitem.valueobjects.Store.WrongStoreFormat
+import items.ValidationError
+import items.catalogitem.valueobjects.Store
+import items.catalogitem.valueobjects.Store.WrongStoreFormat
 
 import eu.timepit.refined.auto.given
 import org.scalatest.EitherValues.given

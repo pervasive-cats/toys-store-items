@@ -1,9 +1,7 @@
 package io.github.pervasivecats
-package items.catalogitem
+package items.catalogitem.valueobjects
 
-import io.github.pervasivecats.items.catalogitem.valueobjects.Amount
-import io.github.pervasivecats.items.catalogitem.valueobjects.Currency
-import io.github.pervasivecats.items.catalogitem.valueobjects.Price
+import items.catalogitem.valueobjects.{Amount, Currency, Price}
 
 import org.scalatest.funspec.AnyFunSpec
 import org.scalatest.matchers.should.Matchers.shouldBe

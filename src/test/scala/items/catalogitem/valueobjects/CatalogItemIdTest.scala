@@ -1,10 +1,10 @@
 package io.github.pervasivecats
-package items.catalogitem
+package items.catalogitem.valueobjects
 
-import io.github.pervasivecats.items.ValidationError
-import io.github.pervasivecats.items.catalogitem.valueobjects.CatalogItemId
-import io.github.pervasivecats.items.catalogitem.valueobjects.CatalogItemId.WrongCatalogItemIdFormat
-import io.github.pervasivecats.items.itemcategory.valueobjects.ItemCategoryId
+import items.ValidationError
+import items.catalogitem.valueobjects.CatalogItemId
+import items.catalogitem.valueobjects.CatalogItemId.WrongCatalogItemIdFormat
+import items.itemcategory.valueobjects.ItemCategoryId
 
 import eu.timepit.refined.auto.autoUnwrap
 import org.scalatest.funspec.AnyFunSpec
