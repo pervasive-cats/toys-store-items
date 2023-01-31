@@ -7,25 +7,20 @@
 package io.github.pervasivecats
 package items.catalogitem
 
-import scala.language.postfixOps
-import scala.tools.nsc.Reporting.MessageFilter.Category
-import scala.util.Try
+import AnyOps.*
+import items.catalogitem.entities.{CatalogItem, InPlaceCatalogItem, LiftedCatalogItem}
+import items.catalogitem.valueobjects.*
+import items.itemcategory.Repository
+import items.itemcategory.Repository.OperationFailed
+import items.itemcategory.valueobjects.ItemCategoryId
+import items.{Validated, ValidationError}
 
-import io.github.pervasivecats.items.itemcategory.Repository
-import io.github.pervasivecats.items.itemcategory.Repository.OperationFailed
-import io.github.pervasivecats.items.itemcategory.valueobjects.ItemCategoryId
-
-import com.typesafe.config.Config
-import com.typesafe.config.ConfigFactory
-import com.typesafe.config.ConfigValueFactory
+import com.typesafe.config.{Config, ConfigFactory, ConfigValueFactory}
 import eu.timepit.refined.auto.autoUnwrap
 import io.getquill.*
-import io.getquill.autoQuote
 
-import items.{Validated, ValidationError}
-import items.catalogitem.entities.{CatalogItem, InPlaceCatalogItem, LiftedCatalogItem}
-import items.catalogitem.valueobjects.{Amount, CatalogItemId, Currency, Price, Store}
-import AnyOps.*
+import scala.language.postfixOps
+import scala.util.Try
 
 trait Repository {
 
@@ -92,9 +87,7 @@ object Repository {
               id <- CatalogItemId(c.id)
               category <- ItemCategoryId(c.category)
               store <- Store(c.store)
-              price <- /*Amount(c.amount).map(_ => Price(_, Currency.withName(c.currency)))*/for {
-                amount <- Amount(c.amount)
-              } yield Price(amount, Currency.withName(c.currency))
+              price <- Amount(c.amount).map(Price(_, Currency.withName(c.currency)))
             } yield LiftedCatalogItem(id, category, store, price)
           )
           .toSet
@@ -104,20 +97,33 @@ object Repository {
         .getOrElse(Left[ValidationError, Set[Validated[LiftedCatalogItem]]](OperationFailed))
 
     override def add(category: ItemCategoryId, store: Store, price: Price): Validated[InPlaceCatalogItem] =
-      CatalogItemId(
-        ctx.run(
-          quote(
-            query[CatalogItems]
-              .insert(
-                _.category -> lift[Long](category.value),
-                _.store -> lift[Long](store.id.value),
-                _.amount -> lift[Double](price.amount.value),
-                _.currency -> lift[String](String.valueOf(price.currency))
-              )
-              .returningGenerated(_.id)
+      ctx.transaction {
+        val nextId: Long = ctx
+            .run(
+              query[CatalogItems]
+                .filter(_.store === lift[Long](store.id))
+                .map(_.id)
+                .max
+            )
+            .fold(0L)(_ + 1)
+          if (
+            ctx.run(
+              query[CatalogItems]
+                .insert(
+                  _.id -> lift[Long](nextId),
+                  _.category -> lift[Long](category.value),
+                  _.store -> lift[Long](store.id.value),
+                  _.amount -> lift[Double](price.amount.value),
+                  _.currency -> lift[String](String.valueOf(price.currency))
+                )
+            )
+              !==
+              1L
           )
-        )
-      ).map(InPlaceCatalogItem(_, category, store, price))
+            Left[ValidationError, InPlaceCatalogItem](OperationFailed)
+          else
+            CatalogItemId(nextId).map(InPlaceCatalogItem(_, category, store, price))
+      }
 
     override def update(catalogItem: CatalogItem, price: Price): Validated[Unit] =
       val isLifted: Boolean = catalogItem match {

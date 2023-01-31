@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS public.item_categories
 CREATE TABLE IF NOT EXISTS public.catalog_items
 (
     id bigint NOT NULL,
-    category integer NOT NULL,
+    category bigint NOT NULL,
     store bigint NOT NULL,
     amount numeric(6,2) NOT NULL,
     currency character varying(3) NOT NULL,
