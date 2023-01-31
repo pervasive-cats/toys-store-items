@@ -129,16 +129,16 @@ class RepositoryTest extends AnyFunSpec with TestContainerForAll {
       }
     }
 
-    describe("after ") {
-      it("should be registered") {
+    describe("if never registered and then searched for all lifted catalog items") {
+      it("should not be in the database") {
         val db: Repository = repository.getOrElse(fail())
         val empty: Int = 0
         db.findAllLifted().getOrElse(fail()).size shouldBe empty
       }
     }
 
-    describe("after") {
-      it("should be") {
+    describe("if it is registered two times and then searched for all lifted catalog items") {
+      it("should be in the database") {
         val db: Repository = repository.getOrElse(fail())
         val empty: Int = 0
         val size: Int = 2

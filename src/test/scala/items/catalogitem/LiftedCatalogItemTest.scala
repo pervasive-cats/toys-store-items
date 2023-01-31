@@ -16,7 +16,7 @@ import io.github.pervasivecats.items.catalogitem.valueobjects.Store
 import io.github.pervasivecats.items.itemcategory.valueobjects.ItemCategoryId
 
 import org.scalatest.funspec.AnyFunSpec
-import org.scalatest.matchers.should.Matchers.shouldBe
+import org.scalatest.matchers.should.Matchers.*
 
 class LiftedCatalogItemTest extends AnyFunSpec {
 
@@ -43,39 +43,33 @@ class LiftedCatalogItemTest extends AnyFunSpec {
       }
     }
 
-    describe("when compared with a object that got the same id and different parameters") {
-      it("should be true") {
-        val newCategory: ItemCategoryId = ItemCategoryId(11).getOrElse(fail())
-        val newStore: Store = Store(6).getOrElse(fail())
-        val newPrice: Price = Price(Amount(42.50).getOrElse(fail()), Currency.withName("USD"))
-        val newCatalogItem: LiftedCatalogItem = LiftedCatalogItem(id, newCategory, newStore, newPrice)
-        liftedCatalogItem === newCatalogItem shouldBe true
+    val secondCatalogItem: LiftedCatalogItem = LiftedCatalogItem(id, category, store, price)
+    val thirdCatalogItem: LiftedCatalogItem = LiftedCatalogItem(id, category, store, price)
+
+    describe("when compared with another identical catalog item") {
+      it("should be equal following the symmetrical property") {
+        liftedCatalogItem shouldEqual secondCatalogItem
+        secondCatalogItem shouldEqual liftedCatalogItem
+      }
+
+      it("should be equal following the transitive property") {
+        liftedCatalogItem shouldEqual secondCatalogItem
+        secondCatalogItem shouldEqual thirdCatalogItem
+        liftedCatalogItem shouldEqual thirdCatalogItem
+      }
+
+      it("should be equal following the reflexive property") {
+        liftedCatalogItem shouldEqual liftedCatalogItem
+      }
+
+      it("should have the same hash code as the other") {
+        liftedCatalogItem.## shouldEqual secondCatalogItem.##
       }
     }
 
-    describe("when compared with a object that got a different id and the same parameters") {
-      it("should be false") {
-        val newId: CatalogItemId = CatalogItemId(5437).getOrElse(fail())
-        val newCatalogItem: LiftedCatalogItem = LiftedCatalogItem(newId, category, store, price)
-        liftedCatalogItem === newCatalogItem shouldBe false
-      }
-    }
-
-    describe("when compared with an object with the same hashcode") {
-      it("should be true") {
-        val newCategory: ItemCategoryId = ItemCategoryId(11).getOrElse(fail())
-        val newStore: Store = Store(6).getOrElse(fail())
-        val newPrice: Price = Price(Amount(42.50).getOrElse(fail()), Currency.withName("USD"))
-        val newCatalogItem: LiftedCatalogItem = LiftedCatalogItem(id, newCategory, newStore, newPrice)
-        liftedCatalogItem.hashCode shouldBe newCatalogItem.hashCode
-      }
-    }
-
-    describe("when compared with an object with a different hashcode") {
-      it("should be true") {
-        val newId: CatalogItemId = CatalogItemId(14142).getOrElse(fail())
-        val newCatalogItem: LiftedCatalogItem = LiftedCatalogItem(newId, category, store, price)
-        liftedCatalogItem.hashCode === newCatalogItem.hashCode shouldBe false
+    describe("when compared with anything else") {
+      it("should not be equal") {
+        liftedCatalogItem should not equal 1.0
       }
     }
 
