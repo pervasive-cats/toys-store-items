@@ -99,36 +99,34 @@ object Repository {
         .getOrElse(Left[ValidationError, Set[Validated[LiftedCatalogItem]]](OperationFailed))
 
     override def add(category: ItemCategoryId, store: Store, price: Price): Validated[InPlaceCatalogItem] =
-      ctx
-        .transaction {
-          val nextId: Long =
-            ctx
-              .run(
-                query[CatalogItems]
-                  .filter(_.store === lift[Long](store.id))
-                  .map(_.id)
-                  .max
+      ctx.transaction {
+        val nextId: Long =
+          ctx
+            .run(
+              query[CatalogItems]
+                .filter(_.store === lift[Long](store.id))
+                .map(_.id)
+                .max
+            )
+            .fold(0L)(_ + 1)
+        if (
+          ctx.run(
+            query[CatalogItems]
+              .insert(
+                _.id -> lift[Long](nextId),
+                _.category -> lift[Long](category.value),
+                _.store -> lift[Long](store.id.value),
+                _.amount -> lift[Double](price.amount.value),
+                _.currency -> lift[String](String.valueOf(price.currency))
               )
-              .fold(0L)(_ + 1)
-          if (
-            ctx
-              .run(
-                query[CatalogItems]
-                  .insert(
-                    _.id -> lift[Long](nextId),
-                    _.category -> lift[Long](category.value),
-                    _.store -> lift[Long](store.id.value),
-                    _.amount -> lift[Double](price.amount.value),
-                    _.currency -> lift[String](String.valueOf(price.currency))
-                  )
-              )
-            !==
-            1L
           )
-            Left[ValidationError, InPlaceCatalogItem](OperationFailed)
-          else
-            CatalogItemId(nextId).map(InPlaceCatalogItem(_, category, store, price))
-        }
+          !==
+          1L
+        )
+          Left[ValidationError, InPlaceCatalogItem](OperationFailed)
+        else
+          CatalogItemId(nextId).map(InPlaceCatalogItem(_, category, store, price))
+      }
 
     override def update(catalogItem: CatalogItem, price: Price): Validated[Unit] =
       val isLifted: Boolean = catalogItem match {
@@ -136,17 +134,16 @@ object Repository {
         case _: LiftedCatalogItem => true
       }
       if (
-        ctx
-          .run(
-            query[CatalogItems]
-              .filter(_.id === lift[Long](catalogItem.id.value))
-              .filter(_.store === lift[Long](catalogItem.store.id))
-              .update(
-                _.amount -> lift[Double](price.amount.value),
-                _.currency -> lift[String](String.valueOf(price.currency)),
-                _.isLifted -> lift[Boolean](isLifted)
-              )
-          )
+        ctx.run(
+          query[CatalogItems]
+            .filter(_.id === lift[Long](catalogItem.id.value))
+            .filter(_.store === lift[Long](catalogItem.store.id))
+            .update(
+              _.amount -> lift[Double](price.amount.value),
+              _.currency -> lift[String](String.valueOf(price.currency)),
+              _.isLifted -> lift[Boolean](isLifted)
+            )
+        )
         !==
         1L
       ) Left[ValidationError, Unit](OperationFailed)
