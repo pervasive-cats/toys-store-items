@@ -122,8 +122,8 @@ object Repository {
                     _.currency -> lift[String](String.valueOf(price.currency))
                   )
               )
-              !==
-              1L
+            !==
+            1L
           )
             Left[ValidationError, InPlaceCatalogItem](OperationFailed)
           else
