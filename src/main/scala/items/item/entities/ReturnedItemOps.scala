@@ -7,9 +7,15 @@
 package io.github.pervasivecats
 package items.item.entities
 
-import items.Validated
-
 trait ReturnedItemOps[A <: ReturnedItem] {
 
-  def putInPlace(): Validated[InPlaceItem]
+  def putInPlace(returnedItem: ReturnedItem): InPlaceItem
+}
+
+object ReturnedItemOps {
+
+  extension [A <: ReturnedItem: ReturnedItemOps](returnedItem: A) {
+
+    def putInPlace: InPlaceItem = implicitly[ReturnedItemOps[A]].putInPlace(returnedItem)
+  }
 }

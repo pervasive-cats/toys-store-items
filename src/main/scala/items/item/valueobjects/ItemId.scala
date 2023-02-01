@@ -7,9 +7,9 @@
 package io.github.pervasivecats
 package items.item.valueobjects
 
-import items.{Id, Validated, ValidationError}
-
 import eu.timepit.refined.api.RefType.applyRef
+
+import items.{Id, Validated, ValidationError}
 
 trait ItemId {
 

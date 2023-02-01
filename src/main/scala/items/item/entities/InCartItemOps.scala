@@ -7,9 +7,15 @@
 package io.github.pervasivecats
 package items.item.entities
 
-import items.Validated
-
 trait InCartItemOps[A <: InCartItem] {
 
-  def returnToStore(): Validated[InPlaceItem]
+  def returnToStore(inCartItem: InCartItem): InPlaceItem
+}
+
+object InCartItemOps {
+
+  extension [A <: InCartItem: InCartItemOps](inCartItem: A) {
+
+    def returnToStore: InPlaceItem = implicitly[InCartItemOps[A]].returnToStore(inCartItem)
+  }
 }

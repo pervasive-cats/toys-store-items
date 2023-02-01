@@ -5,7 +5,7 @@
  */
 
 package io.github.pervasivecats
-package items.item.events
+package items.item.domainevents
 
 import items.catalogitem.valueobjects.{CatalogItemId, Store}
 import items.item.valueobjects.ItemId

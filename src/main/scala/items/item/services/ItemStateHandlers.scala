@@ -7,7 +7,7 @@
 package io.github.pervasivecats
 package items.item.services
 
-import items.item.events.{ItemAddedToCart, ItemPutInPlace, ItemReturned}
+import items.item.domainevents.{ItemAddedToCart, ItemPutInPlace, ItemReturned}
 
 trait ItemStateHandlers {
 

@@ -7,6 +7,7 @@ import org.scalatest.funspec.AnyFunSpec
 import org.scalatest.matchers.should.Matchers.*
 
 import items.item.valueobjects.ItemId.WrongItemIdFormat
+
 class ItemIdTest extends AnyFunSpec {
 
   describe("An item id") {

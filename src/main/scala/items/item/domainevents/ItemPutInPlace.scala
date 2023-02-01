@@ -5,18 +5,16 @@
  */
 
 package io.github.pervasivecats
-package items.item.events
+package items.item.domainevents
 
 import items.catalogitem.valueobjects.{CatalogItemId, Store}
-import items.item.valueobjects.{Customer, ItemId}
+import items.item.valueobjects.ItemId
 
-trait ItemAddedToCart {
+trait ItemPutInPlace {
 
   val catalogItemId: CatalogItemId
 
   val store: Store
 
   val itemId: ItemId
-
-  val customer: Customer
 }
