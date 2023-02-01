@@ -1,3 +1,36 @@
+# [1.0.0-beta.5](https://github.com/pervasive-cats/toys-store-items/compare/v1.0.0-beta.4...v1.0.0-beta.5) (2023-02-01)
+
+
+### Bug Fixes
+
+* correct amountTest with correct failures ([1dc0944](https://github.com/pervasive-cats/toys-store-items/commit/1dc0944ca5b3d94c280e642a3b98062aefb60c9b))
+* correct typos ([40aa23a](https://github.com/pervasive-cats/toys-store-items/commit/40aa23a0b2a01ef18809897fe0c4f9a4b97022cc))
+* made CatalogItem abstract ([372e028](https://github.com/pervasive-cats/toys-store-items/commit/372e028fbbc2306dc7ae1a155d423c7b67fed67d))
+* merge conflicts ([561b301](https://github.com/pervasive-cats/toys-store-items/commit/561b301d20a695c290a4dc985a6cad7fcb3543e5))
+* modified add method output value to validated of item category ([de58d77](https://github.com/pervasive-cats/toys-store-items/commit/de58d777899a14191aa30f285dd21f357874528e))
+* modified equals and hashcode in Catalog Item test ([7303847](https://github.com/pervasive-cats/toys-store-items/commit/7303847ff5f89724a1e49d2d63cc6af1f288508a))
+* modified equals and hashcode tests ([24180f3](https://github.com/pervasive-cats/toys-store-items/commit/24180f3cf6665c6e6561ba056531845e7d03bce4))
+* modify add method return type to Validated of InPlaceCatalogItem ([e8ece10](https://github.com/pervasive-cats/toys-store-items/commit/e8ece10a99fee5fbef10ac2bd46c5cdb5c0c1fc9))
+* update items.sql ([64204a0](https://github.com/pervasive-cats/toys-store-items/commit/64204a0c86c84d46daa73ffeeeb3eb92b2f994f7))
+* updated findAllLifted method ([6e2939c](https://github.com/pervasive-cats/toys-store-items/commit/6e2939c65295d5a5676a8507ac14fde42e73a405))
+
+
+### Features
+
+* add amount implementation and test ([bdf1fcb](https://github.com/pervasive-cats/toys-store-items/commit/bdf1fcb277879283f36a00a35a22189a0afcf7ca))
+* add catalog item implementation and test ([424d1ab](https://github.com/pervasive-cats/toys-store-items/commit/424d1ab6a1195721a3eeaa499803ce97c7ab1bdd))
+* add currency implementation and test ([6e12529](https://github.com/pervasive-cats/toys-store-items/commit/6e12529fa094214596988650e6ae036c68788007))
+* add events implementation and tests ([3b8a6b4](https://github.com/pervasive-cats/toys-store-items/commit/3b8a6b4597442c8a7be5e57bb129beff60a30a09))
+* add findById and add methods on repository ([ccf2dba](https://github.com/pervasive-cats/toys-store-items/commit/ccf2dba81ea5a94dc2e3beae3b02cbab11061867))
+* add lift and putInPlace method implementations and tests ([e00529d](https://github.com/pervasive-cats/toys-store-items/commit/e00529d7d9287b2c51fd651429a95841140d40ea))
+* add remove method implementation and test to repository ([b4890f7](https://github.com/pervasive-cats/toys-store-items/commit/b4890f71187dae6bca69d257f56b0c644f1a3a2a))
+* add store implementation and test ([be66726](https://github.com/pervasive-cats/toys-store-items/commit/be667263a895a786e7b31fb7e4e1882e532dcece))
+* add update method implementation and test ([4687637](https://github.com/pervasive-cats/toys-store-items/commit/468763790e9a9c3abdbb9fd89eb866bb71587330))
+* added catalog item id implementation and test ([5cbc186](https://github.com/pervasive-cats/toys-store-items/commit/5cbc1865b8663f9f5ed0d4e1ffbe485485c56953))
+* added catalog item sql schema ([3db703e](https://github.com/pervasive-cats/toys-store-items/commit/3db703e5bc5a0a5537ffe2b8f52e9e81e0e503b1))
+* added equals and hashcode to item category ([d3573fb](https://github.com/pervasive-cats/toys-store-items/commit/d3573fbd6595f29d72f2574f12004509716bb07d))
+* setup Repositories containers implementation and test ([d89bc28](https://github.com/pervasive-cats/toys-store-items/commit/d89bc2874a74e83df2e7d50ae275c0d397245bf8))
+
 # [1.0.0-beta.4](https://github.com/pervasive-cats/toys-store-items/compare/v1.0.0-beta.3...v1.0.0-beta.4) (2023-01-27)
 
 
