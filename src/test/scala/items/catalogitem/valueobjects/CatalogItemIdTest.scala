@@ -16,7 +16,7 @@ class CatalogItemIdTest extends AnyFunSpec {
   val negativeValue: Long = -9000
   val zeroValue: Long = 0
 
-  describe("A Catalog Item") {
+  describe("A Catalog Item Id") {
     describe("when created with a positive value") {
       it("should be valid") {
         (CatalogItemId(value).getOrElse(fail()).value: Long) shouldBe value

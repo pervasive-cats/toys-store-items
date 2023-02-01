@@ -48,7 +48,7 @@ class RepositoryTest extends AnyFunSpec with TestContainerForAll {
       )
     )
 
-  describe("An Item Category") {
+  describe("An Catalog Item") {
     describe("after being added") {
       it("should be present in database") {
         val db: Repository = repository.getOrElse(fail())
@@ -56,7 +56,7 @@ class RepositoryTest extends AnyFunSpec with TestContainerForAll {
         val store: Store = Store(1).getOrElse(fail())
         val price: Price = Price(Amount(19.99).getOrElse(fail()), Currency.withName("EUR"))
         val inPlaceCatalogItem: InPlaceCatalogItem = db.add(category, store, price).getOrElse(fail())
-        db.findById(inPlaceCatalogItem.id, store).getOrElse(fail()) shouldBe inPlaceCatalogItem
+        db.findById(inPlaceCatalogItem.id, store).value shouldBe inPlaceCatalogItem
         db.remove(inPlaceCatalogItem).getOrElse(fail())
       }
     }
@@ -103,7 +103,7 @@ class RepositoryTest extends AnyFunSpec with TestContainerForAll {
         val catalogItem: InPlaceCatalogItem = db.add(category, store, price).getOrElse(fail())
         val newPrice = Price(Amount(14.99).getOrElse(fail()), Currency.withName("USD"))
         db.update(catalogItem, newPrice).getOrElse(fail())
-        db.findById(catalogItem.id, store).getOrElse(fail()).price shouldBe newPrice
+        db.findById(catalogItem.id, store).value.price shouldBe newPrice
         db.remove(catalogItem).getOrElse(fail())
       }
     }
@@ -124,12 +124,12 @@ class RepositoryTest extends AnyFunSpec with TestContainerForAll {
       it("should not be in the database") {
         val db: Repository = repository.getOrElse(fail())
         val empty: Int = 0
-        db.findAllLifted().getOrElse(fail()).size shouldBe empty
+        db.findAllLifted().value.size shouldBe empty
       }
     }
 
     describe("if added twice, while searching for all lifted catalog items") {
-      it("should be in the database along with the other") {
+      it("should be in the database along with its clone") {
         val db: Repository = repository.getOrElse(fail())
         val empty: Int = 0
         val size: Int = 2
@@ -137,13 +137,13 @@ class RepositoryTest extends AnyFunSpec with TestContainerForAll {
         val store: Store = Store(4).getOrElse(fail())
         val price: Price = Price(Amount(19.99).getOrElse(fail()), Currency.withName("EUR"))
         val inPlaceCatalogItemA: InPlaceCatalogItem = db.add(category, store, price).getOrElse(fail())
-        db.update(inPlaceCatalogItemA.lift, price)
+        db.update(inPlaceCatalogItemA.lift, price).getOrElse(fail())
         val inPlaceCatalogItemB: InPlaceCatalogItem = db.add(category, store, price).getOrElse(fail())
-        db.update(inPlaceCatalogItemB.lift, price)
-        db.findAllLifted().getOrElse(fail()).size shouldBe size
-        db.remove(inPlaceCatalogItemA.lift)
-        db.remove(inPlaceCatalogItemB.lift)
-        db.findAllLifted().getOrElse(fail()).size shouldBe empty
+        db.update(inPlaceCatalogItemB.lift, price).getOrElse(fail())
+        db.findAllLifted().value.size shouldBe size
+        db.remove(inPlaceCatalogItemA.lift).getOrElse(fail())
+        db.remove(inPlaceCatalogItemB.lift).getOrElse(fail())
+        db.findAllLifted().value.size shouldBe empty
       }
     }
   }

@@ -18,7 +18,7 @@ class InPlaceCatalogItemTest extends AnyFunSpec {
   private val category: ItemCategoryId = ItemCategoryId(35).getOrElse(fail())
   private val store: Store = Store(13).getOrElse(fail())
   private val price: Price = Price(Amount(19.99).getOrElse(fail()), Currency.withName("EUR"))
-  val inPlaceCatalogItem: InPlaceCatalogItem = InPlaceCatalogItem(id, category, store, price)
+  private val inPlaceCatalogItem: InPlaceCatalogItem = InPlaceCatalogItem(id, category, store, price)
 
   describe("An in place catalog item") {
     describe("when created with an id, a category, a store and a price") {

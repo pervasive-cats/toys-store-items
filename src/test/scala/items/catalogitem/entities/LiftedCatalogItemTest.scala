@@ -18,7 +18,7 @@ class LiftedCatalogItemTest extends AnyFunSpec {
   private val category: ItemCategoryId = ItemCategoryId(35).getOrElse(fail())
   private val store: Store = Store(13).getOrElse(fail())
   private val price: Price = Price(Amount(19.99).getOrElse(fail()), Currency.withName("EUR"))
-  val liftedCatalogItem: LiftedCatalogItem = LiftedCatalogItem(id, category, store, price)
+  private val liftedCatalogItem: LiftedCatalogItem = LiftedCatalogItem(id, category, store, price)
 
   describe("A lifted catalog item") {
     describe("when created with a id, a category, a store and a price") {
