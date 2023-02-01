@@ -1,5 +1,5 @@
 package io.github.pervasivecats
-package items.itemcategory
+package items.itemcategory.valueobjects
 
 import scala.language.postfixOps
 
@@ -7,9 +7,9 @@ import eu.timepit.refined.auto.autoUnwrap
 import org.scalatest.funspec.AnyFunSpec
 import org.scalatest.matchers.should.Matchers.*
 
-import items.{Id, ValidationError}
 import items.itemcategory.valueobjects.ItemCategoryId
 import items.itemcategory.valueobjects.ItemCategoryId.WrongItemCategoryIdFormat
+import items.{Id, ValidationError}
 
 class ItemCategoryIdTest extends AnyFunSpec {
 

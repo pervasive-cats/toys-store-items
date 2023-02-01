@@ -7,9 +7,15 @@
 package io.github.pervasivecats
 package items.catalogitem.entities
 
-import items.Validated
-
 trait LiftedCatalogItemOps[A <: LiftedCatalogItem] {
 
-  def putInPlace(): Validated[InPlaceCatalogItem]
+  def putInPlace(liftedCatalogItem: LiftedCatalogItem): InPlaceCatalogItem
+}
+
+object LiftedCatalogItemOps {
+
+  extension [A <: LiftedCatalogItem: LiftedCatalogItemOps](liftedCatalogItem: A) {
+
+    def putInPlace: InPlaceCatalogItem = implicitly[LiftedCatalogItemOps[A]].putInPlace(liftedCatalogItem)
+  }
 }

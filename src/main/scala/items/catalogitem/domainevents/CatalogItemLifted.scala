@@ -15,3 +15,10 @@ trait CatalogItemLifted {
 
   val store: Store
 }
+
+object CatalogItemLifted {
+
+  private case class CatalogItemLiftedImpl(catalogItemId: CatalogItemId, store: Store) extends CatalogItemLifted
+
+  def apply(catalogItemId: CatalogItemId, store: Store): CatalogItemLifted = CatalogItemLiftedImpl(catalogItemId, store)
+}

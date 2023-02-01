@@ -7,9 +7,18 @@
 package io.github.pervasivecats
 package items.catalogitem.valueobjects
 
+import items.ValidationError
+
 trait Price {
 
   val amount: Amount
 
   val currency: Currency
+}
+
+object Price {
+
+  final private case class PriceImpl(amount: Amount, currency: Currency) extends Price
+
+  def apply(amount: Amount, currency: Currency): Price = PriceImpl(amount, currency)
 }

@@ -1,10 +1,10 @@
 package io.github.pervasivecats
-package items.itemcategory
+package items.itemcategory.entities
 
 import scala.language.postfixOps
 
 import org.scalatest.funspec.AnyFunSpec
-import org.scalatest.matchers.should.Matchers.shouldBe
+import org.scalatest.matchers.should.Matchers.*
 
 import items.itemcategory.entities.ItemCategory
 import items.itemcategory.entities.ItemCategoryOps.updated
@@ -46,6 +46,36 @@ class ItemCategoryTest extends AnyFunSpec {
       it("should contain it") {
         val newDescription: Description = Description("New Description").getOrElse(fail())
         itemCategory.updated(description = newDescription).description shouldBe newDescription
+      }
+    }
+
+    val secondItemCategory: ItemCategory = ItemCategory(itemCategoryId, name, description)
+    val thirdItemCategory: ItemCategory = ItemCategory(itemCategoryId, name, description)
+
+    describe("when compared with another identical catalog item") {
+      it("should be equal following the symmetrical property") {
+        itemCategory shouldEqual secondItemCategory
+        secondItemCategory shouldEqual itemCategory
+      }
+
+      it("should be equal following the transitive property") {
+        itemCategory shouldEqual secondItemCategory
+        secondItemCategory shouldEqual thirdItemCategory
+        itemCategory shouldEqual thirdItemCategory
+      }
+
+      it("should be equal following the reflexive property") {
+        itemCategory shouldEqual itemCategory
+      }
+
+      it("should have the same hash code as the other") {
+        itemCategory.## shouldEqual secondItemCategory.##
+      }
+    }
+
+    describe("when compared with anything else") {
+      it("should not be equal") {
+        itemCategory should not equal 1.0
       }
     }
   }

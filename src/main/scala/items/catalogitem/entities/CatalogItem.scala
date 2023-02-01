@@ -7,6 +7,8 @@
 package io.github.pervasivecats
 package items.catalogitem.entities
 
+import io.github.pervasivecats.AnyOps.===
+
 import items.catalogitem.valueobjects.{CatalogItemId, Price, Store}
 import items.itemcategory.valueobjects.ItemCategoryId
 

@@ -7,6 +7,8 @@
 package io.github.pervasivecats
 package items.itemcategory.entities
 
+import io.github.pervasivecats.AnyOps.===
+
 import items.itemcategory.valueobjects.*
 
 trait ItemCategory {
@@ -20,7 +22,15 @@ trait ItemCategory {
 
 object ItemCategory {
 
-  private case class ItemCategoryImpl(id: ItemCategoryId, name: Name, description: Description) extends ItemCategory
+  private case class ItemCategoryImpl(id: ItemCategoryId, name: Name, description: Description) extends ItemCategory {
+
+    override def equals(obj: Any): Boolean = obj match {
+      case itemCategory: ItemCategory => itemCategory.id === id
+      case _ => false
+    }
+
+    override def hashCode(): Int = id.##
+  }
 
   given ItemCategoryOps[ItemCategory] with {
 

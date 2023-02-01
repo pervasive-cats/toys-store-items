@@ -1,5 +1,5 @@
 package io.github.pervasivecats
-package items.itemcategory
+package items.itemcategory.valueobjects
 
 import scala.language.postfixOps
 

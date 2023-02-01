@@ -23,7 +23,7 @@ trait Repository {
 
   def findById(id: ItemCategoryId): Validated[ItemCategory]
 
-  def add(name: Name, description: Description): Validated[Unit]
+  def add(name: Name, description: Description): Validated[ItemCategory]
 
   def update(itemCategory: ItemCategory, name: Name, description: Description): Validated[Unit]
 
@@ -64,26 +64,18 @@ object Repository {
         .getOrElse(Left[ValidationError, ItemCategory](ItemCategoryNotFound))
     }
 
-    override def add(name: Name, description: Description): Validated[Unit] = {
-      if (
+    override def add(name: Name, description: Description): Validated[ItemCategory] =
+      ItemCategoryId(
         ctx
           .run(
-            querySchema[ItemCategoriesWithoutId](entity = "item_categories")
-              .insertValue(
-                lift(
-                  ItemCategoriesWithoutId(
-                    name.value,
-                    description.value
-                  )
-                )
+            query[ItemCategories]
+              .insert(
+                _.name -> lift[String](name.value),
+                _.description -> lift[String](description.value)
               )
+              .returningGenerated(_.id)
           )
-        !==
-        1L
-      ) Left[ValidationError, Unit](OperationFailed)
-      else
-        Right[ValidationError, Unit](())
-    }
+      ).map(ItemCategory(_, name, description))
 
     override def update(itemCategory: ItemCategory, name: Name, description: Description): Validated[Unit] = {
       if (

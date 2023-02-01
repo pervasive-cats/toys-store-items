@@ -54,12 +54,10 @@ class RepositoryTest extends AnyFunSpec with TestContainerForAll {
     describe("after being registered") {
       it("should be present in database") {
         val db: Repository = repository.getOrElse(fail())
-        val id: ItemCategoryId = ItemCategoryId(1).getOrElse(fail())
         val name: Name = Name("Terraforming Mars").getOrElse(fail())
         val description: Description = Description("Boardgame produced by BraditGamesStudio").getOrElse(fail())
-        val itemCategory: ItemCategory = ItemCategory(id, name, description)
-        db.add(name, description).getOrElse(fail())
-        db.findById(id).getOrElse(fail()).id shouldBe id
+        val itemCategory: ItemCategory = db.add(name, description).getOrElse(fail())
+        db.findById(itemCategory.id).getOrElse(fail()).id shouldBe itemCategory.id
         db.remove(itemCategory).getOrElse(fail())
       }
     }
@@ -75,13 +73,11 @@ class RepositoryTest extends AnyFunSpec with TestContainerForAll {
     describe("after being registered and then deleted") {
       it("should not be present in database") {
         val db: Repository = repository.getOrElse(fail())
-        val id: ItemCategoryId = ItemCategoryId(2).getOrElse(fail())
         val name: Name = Name("Terraforming Mars").getOrElse(fail())
         val description: Description = Description("Boardgame produced by BraditGamesStudio").getOrElse(fail())
-        val itemCategory: ItemCategory = ItemCategory(id, name, description)
-        db.add(name, description).getOrElse(fail())
+        val itemCategory: ItemCategory = db.add(name, description).getOrElse(fail())
         db.remove(itemCategory).getOrElse(fail())
-        db.findById(id).left.value shouldBe ItemCategoryNotFound
+        db.findById(itemCategory.id).left.value shouldBe ItemCategoryNotFound
       }
     }
 
@@ -99,16 +95,15 @@ class RepositoryTest extends AnyFunSpec with TestContainerForAll {
     describe("after being registered and then their data gets updated") {
       it("should show the update") {
         val db: Repository = repository.getOrElse(fail())
-        val id: ItemCategoryId = ItemCategoryId(3).getOrElse(fail())
         val name: Name = Name("Terraforming Mars").getOrElse(fail())
         val description: Description = Description("Boardgame produced by BraditGamesStudio").getOrElse(fail())
-        db.add(name, description).getOrElse(fail())
+        val itemCategory: ItemCategory = db.add(name, description).getOrElse(fail())
         val updatedName: Name = Name("7 Wonders").getOrElse(fail())
         val updatedDescription: Description = Description("Boardgame produced by REPOS production").getOrElse(fail())
-        val updatedItemCategory: ItemCategory = ItemCategory(id, updatedName, updatedDescription)
+        val updatedItemCategory: ItemCategory = ItemCategory(itemCategory.id, updatedName, updatedDescription)
         db.update(updatedItemCategory, updatedName, updatedDescription)
-        db.findById(id).getOrElse(fail()).name shouldBe updatedName
-        db.findById(id).getOrElse(fail()).description shouldBe updatedDescription
+        db.findById(itemCategory.id).getOrElse(fail()).name shouldBe updatedName
+        db.findById(itemCategory.id).getOrElse(fail()).description shouldBe updatedDescription
         db.remove(updatedItemCategory).getOrElse(fail())
       }
     }
