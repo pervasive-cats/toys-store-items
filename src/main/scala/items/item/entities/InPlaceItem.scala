@@ -33,7 +33,7 @@ object InPlaceItem {
   given InPlaceItemOps[InPlaceItem] with {
 
     override def putInCart(inPlaceItem: InPlaceItem, customer: Customer): InCartItem =
-      InCartItem(customer, inPlaceItem.id, inPlaceItem.kind)
+      InCartItem(inPlaceItem.id, inPlaceItem.kind, customer)
   }
 
   def apply(id: ItemId, kind: CatalogItem): InPlaceItem = InPlaceItemImpl(id, kind)

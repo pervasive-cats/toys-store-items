@@ -9,13 +9,13 @@ package items.item.entities
 
 trait InCartItemOps[A <: InCartItem] {
 
-  def returnToStore(inCartItem: InCartItem): InPlaceItem
+  def returnToStore(inCartItem: InCartItem): ReturnedItem
 }
 
 object InCartItemOps {
 
   extension [A <: InCartItem: InCartItemOps](inCartItem: A) {
 
-    def returnToStore: InPlaceItem = implicitly[InCartItemOps[A]].returnToStore(inCartItem)
+    def returnToStore: ReturnedItem = implicitly[InCartItemOps[A]].returnToStore(inCartItem)
   }
 }

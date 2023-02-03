@@ -24,7 +24,7 @@ trait InCartItem extends Item {
 
 object InCartItem {
 
-  private case class InCartItemImpl(customer: Customer, id: ItemId, kind: CatalogItem) extends InCartItem {
+  private case class InCartItemImpl(id: ItemId, kind: CatalogItem, customer: Customer) extends InCartItem {
 
     override def equals(obj: Any): Boolean = itemEquals(obj)(id)
 
@@ -33,8 +33,8 @@ object InCartItem {
 
   given InCartItemOps[InCartItem] with {
 
-    override def returnToStore(inCartItem: InCartItem): InPlaceItem = InPlaceItem(inCartItem.id, inCartItem.kind)
+    override def returnToStore(inCartItem: InCartItem): ReturnedItem = ReturnedItem(inCartItem.id, inCartItem.kind)
   }
 
-  def apply(customer: Customer, id: ItemId, kind: CatalogItem): InCartItem = InCartItemImpl(customer, id, kind)
+  def apply(id: ItemId, kind: CatalogItem, customer: Customer): InCartItem = InCartItemImpl(id, kind, customer)
 }
