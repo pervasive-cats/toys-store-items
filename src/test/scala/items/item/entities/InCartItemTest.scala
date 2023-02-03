@@ -40,7 +40,7 @@ class InCartItemTest extends AnyFunSpec {
       }
     }
 
-    describe("when its returned to store") {
+    describe("when its returned to the store") {
       it("should contain the same value") {
         val returnedItem: ReturnedItem = inCartItem.returnToStore
         returnedItem.id shouldBe inCartItem.id
