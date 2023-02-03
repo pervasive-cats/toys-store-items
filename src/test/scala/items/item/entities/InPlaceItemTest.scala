@@ -4,6 +4,10 @@ package items.item.entities
 import io.github.pervasivecats.items.catalogitem.entities.CatalogItem
 import io.github.pervasivecats.items.item.entities.InCartItemOps.returnToStore
 import io.github.pervasivecats.items.item.valueobjects.ItemId
+
+import org.scalatest.funspec.AnyFunSpec
+import org.scalatest.matchers.should.Matchers.*
+
 import items.catalogitem.entities.CatalogItemOps.updated
 import items.catalogitem.entities.InPlaceCatalogItem.*
 import items.catalogitem.entities.InPlaceCatalogItemOps.lift
@@ -13,9 +17,6 @@ import items.catalogitem.valueobjects.*
 import items.item.valueobjects.Customer
 import items.itemcategory.valueobjects.ItemCategoryId
 import items.item.entities.InPlaceItemOps.putInCart
-
-import org.scalatest.funspec.AnyFunSpec
-import org.scalatest.matchers.should.Matchers.*
 
 class InPlaceItemTest extends AnyFunSpec {
 
@@ -70,7 +71,5 @@ class InPlaceItemTest extends AnyFunSpec {
         inPlaceItem.## shouldEqual secondInPlaceItem.##
       }
     }
-
   }
-
 }

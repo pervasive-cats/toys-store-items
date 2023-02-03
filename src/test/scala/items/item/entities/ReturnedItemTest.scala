@@ -13,13 +13,13 @@ import org.scalatest.matchers.should.Matchers.*
 import items.catalogitem.entities.CatalogItemOps.updated
 import items.catalogitem.entities.InPlaceCatalogItem.*
 import items.catalogitem.entities.InPlaceCatalogItemOps.lift
-import items.catalogitem.entities.LiftedCatalogItemOps.putInPlace
 import items.catalogitem.entities.{CatalogItem, InPlaceCatalogItem, LiftedCatalogItem}
 import items.catalogitem.valueobjects.*
 import items.item.valueobjects.Customer
 import items.itemcategory.valueobjects.ItemCategoryId
+import items.item.entities.ReturnedItemOps.putInPlace
 
-class InCartItemTest extends AnyFunSpec {
+class ReturnedItemTest extends AnyFunSpec {
 
   private val itemId: ItemId = ItemId(9000).getOrElse(fail())
 
@@ -29,48 +29,45 @@ class InCartItemTest extends AnyFunSpec {
   private val price: Price = Price(Amount(19.99).getOrElse(fail()), Currency.withName("EUR"))
   private val kind: LiftedCatalogItem = LiftedCatalogItem(catalogItemId, category, store, price)
 
-  private val customer: Customer = Customer("addr.3ss.!@email.test.com").getOrElse(fail())
+  private val returnedItem: ReturnedItem = ReturnedItem(itemId, kind)
 
-  private val inCartItem: InCartItem = InCartItem(itemId, kind, customer)
-
-  describe("An in cart item") {
-    describe("when created with an id, a kind and a customer") {
+  describe("A returned item") {
+    describe("when created with an id and a kind") {
       it("should contain them") {
-        inCartItem.id shouldBe itemId
-        inCartItem.kind shouldBe kind
-        inCartItem.customer shouldBe customer
+        returnedItem.id shouldBe itemId
+        returnedItem.kind shouldBe kind
       }
     }
 
-    describe("when its returned to the store") {
+    describe("when its putted in place") {
       it("should contain the same value") {
-        val returnedItem: ReturnedItem = inCartItem.returnToStore
-        returnedItem.id shouldBe inCartItem.id
-        returnedItem.kind shouldBe inCartItem.kind
+        val inPlaceItem: InPlaceItem = returnedItem.putInPlace
+        inPlaceItem.id shouldBe returnedItem.id
+        inPlaceItem.kind shouldBe returnedItem.kind
       }
     }
 
-    val secondInCartItem: InCartItem = InCartItem(itemId, kind, customer)
-    val thirdInCartItem: InCartItem = InCartItem(itemId, kind, customer)
+    val secondReturnedItem: ReturnedItem = ReturnedItem(itemId, kind)
+    val thirdReturnedItem: ReturnedItem = ReturnedItem(itemId, kind)
 
-    describe("when compared with another identical in cart item") {
+    describe("when compared with another identical in retuned item") {
       it("should be equal fllowing the symmetrical property") {
-        inCartItem shouldEqual secondInCartItem
-        secondInCartItem shouldEqual inCartItem
+        returnedItem shouldEqual secondReturnedItem
+        secondReturnedItem shouldEqual returnedItem
       }
 
       it("should be equal following the transitive property") {
-        inCartItem shouldEqual secondInCartItem
-        secondInCartItem shouldEqual thirdInCartItem
-        inCartItem shouldEqual thirdInCartItem
+        returnedItem shouldEqual secondReturnedItem
+        secondReturnedItem shouldEqual thirdReturnedItem
+        returnedItem shouldEqual thirdReturnedItem
       }
 
       it("should be equal following the reflexive property") {
-        inCartItem shouldEqual inCartItem
+        returnedItem shouldEqual returnedItem
       }
 
       it("should have the same hash code as the other") {
-        inCartItem.## shouldEqual secondInCartItem.##
+        returnedItem.## shouldEqual secondReturnedItem.##
       }
     }
   }
