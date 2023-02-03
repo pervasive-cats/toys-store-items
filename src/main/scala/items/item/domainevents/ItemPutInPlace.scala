@@ -20,12 +20,9 @@ trait ItemPutInPlace {
 }
 
 object ItemPutInPlace {
-  
-  private case class ItemPutInPlaceImpl(catalogItemId: CatalogItemId,
-                                        store: Store,
-                                        itemId: ItemId) extends ItemPutInPlace
-  
-  def apply(catalogItemId: CatalogItemId,
-            store: Store,
-            itemId: ItemId): ItemPutInPlace = ItemPutInPlaceImpl(catalogItemId, store, itemId)
+
+  private case class ItemPutInPlaceImpl(catalogItemId: CatalogItemId, store: Store, itemId: ItemId) extends ItemPutInPlace
+
+  def apply(catalogItemId: CatalogItemId, store: Store, itemId: ItemId): ItemPutInPlace =
+    ItemPutInPlaceImpl(catalogItemId, store, itemId)
 }

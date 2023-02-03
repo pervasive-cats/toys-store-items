@@ -9,21 +9,19 @@ import org.scalatest.matchers.should.Matchers.shouldBe
 
 import items.catalogitem.valueobjects.{CatalogItemId, Store}
 
-class ItemAddedToCartTest extends AnyFunSpec {
+class ItemReturnedTest extends AnyFunSpec {
 
   val catalogItemId: CatalogItemId = CatalogItemId(9000).getOrElse(fail())
   val store: Store = Store(39).getOrElse(fail())
   val itemId: ItemId = ItemId(9000).getOrElse(fail())
-  val customer: Customer = Customer("addr.3ss.!@email.test.com").getOrElse(fail())
-  val itemAddedToCart: ItemAddedToCart = ItemAddedToCart(catalogItemId, store, itemId, customer)
+  val itemReturned: ItemReturned = ItemReturned(catalogItemId, store, itemId)
 
-  describe("An Item added to cart") {
-    describe("when created with a catalog item id, a store, an item id and a customer") {
+  describe("An item returned") {
+    describe("when created with a catalog item id, a store and an item id") {
       it("should contain them") {
-        itemAddedToCart.catalogItemId shouldBe catalogItemId
-        itemAddedToCart.store shouldBe store
-        itemAddedToCart.itemId shouldBe itemId
-        itemAddedToCart.customer shouldBe customer
+        itemReturned.catalogItemId shouldBe catalogItemId
+        itemReturned.store shouldBe store
+        itemReturned.itemId shouldBe itemId
       }
     }
   }
