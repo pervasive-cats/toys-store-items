@@ -16,3 +16,13 @@ CREATE TABLE IF NOT EXISTS public.catalog_items
     is_lifted boolean NOT NULL DEFAULT false,
     CONSTRAINT catalog_items_pkey PRIMARY KEY (id, store)
 );
+
+CREATE TABLE IF NOT EXISTS public.items
+(
+    id bigserial NOT NULL,
+    catalog_item bigint NOT NULL,
+    customer bigint NOT NULL,
+    store bigint NOT NULL,
+    is_returned boolean NOT NULL DEFAULT false,
+    CONSTRAINT items_pkey PRIMARY KEY (id)
+);
