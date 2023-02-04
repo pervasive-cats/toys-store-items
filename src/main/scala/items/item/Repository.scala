@@ -94,8 +94,20 @@ object Repository {
               .filter(_.catalogItemId === lift[Long](catalogItemId.value))
               .filter(_.store === lift[Long](store.id))
           }
-        )
-        .map(i =>
+        ).map(i =>
+        for {
+          customer <- Customer(i.customer)
+          catalogItem <- for {
+            category <- ItemCategoryId(123)
+            price <- for {
+              amount <- Amount(14.99)
+            } yield Price(amount, Currency.withName("EUR"))
+          } yield InPlaceCatalogItem(catalogItemId, category, store, price)
+        } yield InCartItem(itemId, catalogItem, customer)
+      )
+        .headOption
+        .getOrElse(Left[ValidationError, Item](ItemNotFound))
+        /*.map(i =>
         for {
           customer <- Customer(i.customer)
           catalogItem <- findCatalogItemById(catalogItemId, store)
@@ -106,7 +118,7 @@ object Repository {
           case "returned" => ReturnedItem(itemId, catalogItem)
         )
         .headOption
-        .getOrElse(Left[ValidationError, Item](ItemNotFound))
+        .getOrElse(Left[ValidationError, Item](ItemNotFound))*/
   }
 
   def apply: Repository = PostgresRepository(PostgresJdbcContext[SnakeCase](SnakeCase, "ctx"))

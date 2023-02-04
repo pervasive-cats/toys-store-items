@@ -26,7 +26,7 @@ CREATE TYPE public.item_status AS ENUM
 
 CREATE TABLE IF NOT EXISTS public.items
 (
-    id bigserial NOT NULL,
+    id bigint NOT NULL,
     catalog_item_id bigint NOT NULL,
     customer character varying(100) NOT NULL,
     store bigint NOT NULL,
@@ -36,8 +36,8 @@ CREATE TABLE IF NOT EXISTS public.items
 
 INSERT INTO public.catalog_items(
   id, category, store, amount, currency, is_lifted)
-  VALUES ('4', '13', '15', '19.99', 'EUR', false);
+  VALUES ('345', '614', '15', '19.99', 'EUR', false);
 
 INSERT INTO public.items(
   id, catalog_item_id, customer, store, is_returned)
-  VALUES ('123', '345', 'elena@gmail.com', '614', 'in_cart');
+  VALUES ('1', '345', 'elena@gmail.com', '614', 'in_cart');

@@ -34,7 +34,7 @@ class RepositoryTest extends AnyFunSpec with TestContainerForAll {
       it("should ") {
         val db = repository.getOrElse(fail())
 
-        val itemId = ItemId(123).getOrElse(fail())
+        val itemId = ItemId(1).getOrElse(fail())
         val catalogItemId = CatalogItemId(345).getOrElse(fail())
         val store: Store = Store(614).getOrElse(fail())
         db.findById(itemId, catalogItemId, store).getOrElse(fail())
