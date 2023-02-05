@@ -33,7 +33,7 @@ trait Repository {
 
   //def update(item: Item): Validated[Unit]
 
-  //def remove(item: Item): Validated[Unit]
+  def remove(itemId: ItemId, catalogItemId: CatalogItemId, store: Store): Validated[Unit]
 }
 
 object Repository {
@@ -119,7 +119,6 @@ object Repository {
               .max
           )
             .fold(0L)(_ + 1)
-        val s = 3
         if (
           ctx.run(
             query[Items]
@@ -142,6 +141,21 @@ object Repository {
           } yield InPlaceItem(itemId, kind)
       }
 
+    override def remove(itemId: ItemId, catalogItemId: CatalogItemId, store: Store): Validated[Unit] =
+      if(
+        ctx.run(
+          query[Items]
+            .filter(_.id === lift[Long](itemId.value))
+            .filter(_.catalogItemId === lift[Long](catalogItemId.value))
+            .filter(_.store === lift[Long](store.id))
+            .delete
+        )
+          !==
+          1L
+      ) 
+        Left[ValidationError, Unit](OperationFailed)
+      else
+        Right[ValidationError, Unit](())
   }
 
   def apply: Repository = PostgresRepository(PostgresJdbcContext[SnakeCase](SnakeCase, "ctx"))
