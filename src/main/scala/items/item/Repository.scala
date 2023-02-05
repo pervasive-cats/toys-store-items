@@ -29,9 +29,9 @@ trait Repository {
 
   //def findAllReturned(): Validated[Set[ReturnedItem]]
 
-  def add(catalogItemId: CatalogItemId, customer: Customer, store: Store): Validated[Item]
+  def add(catalogItemId: CatalogItemId, customer: Customer, store: Store): Validated[InPlaceItem]
 
-  //def update(item: Item): Validated[Unit]
+  def update(item: Item, catalogItemId: CatalogItemId, store: Store): Validated[Unit]
 
   def remove(itemId: ItemId, catalogItemId: CatalogItemId, store: Store): Validated[Unit]
 }
@@ -108,7 +108,7 @@ object Repository {
         .headOption
         .getOrElse(Left[ValidationError, Item](ItemNotFound))
 
-    override def add(catalogItemId: CatalogItemId, customer: Customer, store: Store): Validated[Item] =
+    override def add(catalogItemId: CatalogItemId, customer: Customer, store: Store): Validated[InPlaceItem] =
       ctx.transaction{
         val nextId: Long =
           ctx.run(
@@ -133,7 +133,7 @@ object Repository {
             !==
             1L
         )
-          Left[ValidationError, Item](OperationFailed)
+          Left[ValidationError, InPlaceItem](OperationFailed)
         else
           for {
             itemId <- ItemId(nextId)
@@ -152,7 +152,29 @@ object Repository {
         )
           !==
           1L
-      ) 
+      )
+        Left[ValidationError, Unit](OperationFailed)
+      else
+        Right[ValidationError, Unit](())
+
+    override def update(item: Item, catalogItemId: CatalogItemId, store: Store): Validated[Unit] =
+      val itemStatus: String = item match
+        case _: InCartItem => "in_cart"
+        case _: InPlaceItem => "in_place"
+        case _: ReturnedItem => "returned"
+      if(
+        ctx.run(
+          query[Items]
+            .filter(_.id === lift[Long](item.id.value))
+            .filter(_.catalogItemId === lift[Long](catalogItemId.value))
+            .filter(_.store === lift[Long](store.id))
+            .update(
+              _.isReturned -> lift[String](itemStatus)
+            )
+        )
+        !==
+          1L
+      )
         Left[ValidationError, Unit](OperationFailed)
       else
         Right[ValidationError, Unit](())
