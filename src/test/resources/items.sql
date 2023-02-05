@@ -37,7 +37,3 @@ CREATE TABLE IF NOT EXISTS public.items
 INSERT INTO public.catalog_items(
   id, category, store, amount, currency, is_lifted)
   VALUES ('345', '614', '15', '19.99', 'EUR', false);
-
-INSERT INTO public.items(
-  id, catalog_item_id, customer, store, is_returned)
-  VALUES ('1', '345', 'elena@gmail.com', '614', 'in_cart');

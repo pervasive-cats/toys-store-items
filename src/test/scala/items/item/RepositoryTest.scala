@@ -9,6 +9,14 @@ import org.testcontainers.utility.DockerImageName
 import io.github.pervasivecats.items.item.valueobjects.ItemId
 import io.github.pervasivecats.items.catalogitem.valueobjects.CatalogItemId
 import io.github.pervasivecats.items.catalogitem.valueobjects.Store
+import io.github.pervasivecats.items.catalogitem.entities.CatalogItem
+import items.catalogitem.valueobjects.*
+import items.catalogitem.entities.{CatalogItem, InPlaceCatalogItem, LiftedCatalogItem}
+import io.github.pervasivecats.items.itemcategory.valueobjects.ItemCategoryId
+import io.github.pervasivecats.items.item.valueobjects.Customer
+import items.item.entities.*
+import org.scalatest.matchers.should.Matchers.*
+
 import scala.concurrent.duration.{FiniteDuration, SECONDS}
 
 class RepositoryTest extends AnyFunSpec with TestContainerForAll {
@@ -29,15 +37,28 @@ class RepositoryTest extends AnyFunSpec with TestContainerForAll {
   override def afterContainersStart(containers: Containers): Unit =
     repository = Some(Repository.withPort(containers.container.getFirstMappedPort.intValue()))
 
-  describe("An Item") {
-    describe("when s") {
-      it("should ") {
+  describe("The Item Repository") {
+    describe("when asked to add an Item") {
+      it("should add the entry in the database") {
         val db = repository.getOrElse(fail())
 
-        val itemId = ItemId(1).getOrElse(fail())
+        /*val itemId = ItemId(1).getOrElse(fail())
         val catalogItemId = CatalogItemId(345).getOrElse(fail())
-        val store: Store = Store(614).getOrElse(fail())
-        db.findById(itemId, catalogItemId, store).getOrElse(fail())
+        val store: Store = Store(15).getOrElse(fail())
+
+        val itemCategoryId: ItemCategoryId = ItemCategoryId(614).getOrElse(fail())
+        val price: Price = Price(Amount(19.99).getOrElse(fail()), Currency.withName("EUR"))
+        val inPlaceCatalogItem: InPlaceCatalogItem = InPlaceCatalogItem(catalogItemId, itemCategoryId, store, price)
+
+        db.findById(itemId, catalogItemId, store).getOrElse(fail()).kind shouldBe inPlaceCatalogItem*/
+
+        val catalogItemId: CatalogItemId = CatalogItemId(345).getOrElse(fail())
+        val category: ItemCategoryId = ItemCategoryId(614).getOrElse(fail())
+        val store: Store = Store(15).getOrElse(fail())
+        val price: Price = Price(Amount(19.99).getOrElse(fail()), Currency.withName("EUR"))
+        val inPlaceCatalogItem: InPlaceCatalogItem = InPlaceCatalogItem(catalogItemId, category, store, price)
+        val customer: Customer = Customer("elena@gmail.com").getOrElse(fail())
+        val inCartItem: Item = db.add(catalogItemId, customer, store).getOrElse(fail())
       }
     }
   }

@@ -14,11 +14,12 @@ import items.item.valueobjects.{Customer, ItemId}
 import io.getquill.*
 import com.typesafe.config.{ConfigFactory, ConfigValueFactory}
 import io.getquill.{PostgresJdbcContext, SnakeCase, query, querySchema, quote}
-import io.github.pervasivecats.AnyOps.===
+import io.github.pervasivecats.AnyOps.*
 import eu.timepit.refined.auto.autoUnwrap
 import io.github.pervasivecats.items.catalogitem.Repository.CatalogItemNotFound
 import io.github.pervasivecats.items.catalogitem.entities.{CatalogItem, InPlaceCatalogItem, LiftedCatalogItem}
 import io.github.pervasivecats.items.itemcategory.valueobjects.ItemCategoryId
+import items.catalogitem.Repository as CatalogItemRepository
 
 import scala.util.Try
 
@@ -28,7 +29,7 @@ trait Repository {
 
   //def findAllReturned(): Validated[Set[ReturnedItem]]
 
-  //def add(item: Item): Validated[Unit]
+  def add(catalogItemId: CatalogItemId, customer: Customer, store: Store): Validated[Item]
 
   //def update(item: Item): Validated[Unit]
 
@@ -97,19 +98,6 @@ object Repository {
         ).map(i =>
         for {
           customer <- Customer(i.customer)
-          catalogItem <- for {
-            category <- ItemCategoryId(123)
-            price <- for {
-              amount <- Amount(14.99)
-            } yield Price(amount, Currency.withName("EUR"))
-          } yield InPlaceCatalogItem(catalogItemId, category, store, price)
-        } yield InCartItem(itemId, catalogItem, customer)
-      )
-        .headOption
-        .getOrElse(Left[ValidationError, Item](ItemNotFound))
-        /*.map(i =>
-        for {
-          customer <- Customer(i.customer)
           catalogItem <- findCatalogItemById(catalogItemId, store)
         } yield
         i.isReturned match
@@ -118,7 +106,42 @@ object Repository {
           case "returned" => ReturnedItem(itemId, catalogItem)
         )
         .headOption
-        .getOrElse(Left[ValidationError, Item](ItemNotFound))*/
+        .getOrElse(Left[ValidationError, Item](ItemNotFound))
+
+    override def add(catalogItemId: CatalogItemId, customer: Customer, store: Store): Validated[Item] =
+      ctx.transaction{
+        val nextId: Long =
+          ctx.run(
+            query[Items]
+              .filter(_.id === lift[Long](store.id.value))
+              .filter(_.catalogItemId === lift[Long](catalogItemId.value))
+              .map(_.id)
+              .max
+          )
+            .fold(0L)(_ + 1)
+        val s = 3
+        if (
+          ctx.run(
+            query[Items]
+              .insert(
+                _.id -> lift[Long](nextId),
+                _.store -> lift[Long](store.id),
+                _.catalogItemId -> lift[Long](catalogItemId.value),
+                _.customer -> lift[String](customer.email),
+                _.isReturned -> lift("in_place")
+              )
+          )
+            !==
+            1L
+        )
+          Left[ValidationError, Item](OperationFailed)
+        else
+          for {
+            itemId <- ItemId(nextId)
+            kind <- findCatalogItemById(catalogItemId, store)
+          } yield InPlaceItem(itemId, kind)
+      }
+
   }
 
   def apply: Repository = PostgresRepository(PostgresJdbcContext[SnakeCase](SnakeCase, "ctx"))
