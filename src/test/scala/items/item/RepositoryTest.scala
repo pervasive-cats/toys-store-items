@@ -42,16 +42,6 @@ class RepositoryTest extends AnyFunSpec with TestContainerForAll {
       it("should add the entry in the database") {
         val db = repository.getOrElse(fail())
 
-        /*val itemId = ItemId(1).getOrElse(fail())
-        val catalogItemId = CatalogItemId(345).getOrElse(fail())
-        val store: Store = Store(15).getOrElse(fail())
-
-        val itemCategoryId: ItemCategoryId = ItemCategoryId(614).getOrElse(fail())
-        val price: Price = Price(Amount(19.99).getOrElse(fail()), Currency.withName("EUR"))
-        val inPlaceCatalogItem: InPlaceCatalogItem = InPlaceCatalogItem(catalogItemId, itemCategoryId, store, price)
-
-        db.findById(itemId, catalogItemId, store).getOrElse(fail()).kind shouldBe inPlaceCatalogItem*/
-
         val catalogItemId: CatalogItemId = CatalogItemId(345).getOrElse(fail())
         val category: ItemCategoryId = ItemCategoryId(614).getOrElse(fail())
         val store: Store = Store(15).getOrElse(fail())
@@ -59,6 +49,9 @@ class RepositoryTest extends AnyFunSpec with TestContainerForAll {
         val inPlaceCatalogItem: InPlaceCatalogItem = InPlaceCatalogItem(catalogItemId, category, store, price)
         val customer: Customer = Customer("elena@gmail.com").getOrElse(fail())
         val inCartItem: Item = db.add(catalogItemId, customer, store).getOrElse(fail())
+
+        inCartItem.id shouldBe ItemId(0).getOrElse(fail())
+        inCartItem.kind shouldBe inPlaceCatalogItem
       }
     }
   }

@@ -7,19 +7,19 @@
 package io.github.pervasivecats
 package items.item
 
-import items.{Validated, ValidationError}
-import items.catalogitem.valueobjects.{Amount, CatalogItemId, Currency, Price, Store}
+import AnyOps.*
+import items.catalogitem.Repository as CatalogItemRepository
+import items.catalogitem.Repository.CatalogItemNotFound
+import items.catalogitem.entities.{CatalogItem, InPlaceCatalogItem, LiftedCatalogItem}
+import items.catalogitem.valueobjects.*
 import items.item.entities.{InCartItem, InPlaceItem, Item, ReturnedItem}
 import items.item.valueobjects.{Customer, ItemId}
-import io.getquill.*
+import items.itemcategory.valueobjects.ItemCategoryId
+import items.{Validated, ValidationError}
+
 import com.typesafe.config.{ConfigFactory, ConfigValueFactory}
-import io.getquill.{PostgresJdbcContext, SnakeCase, query, querySchema, quote}
-import io.github.pervasivecats.AnyOps.*
 import eu.timepit.refined.auto.autoUnwrap
-import io.github.pervasivecats.items.catalogitem.Repository.CatalogItemNotFound
-import io.github.pervasivecats.items.catalogitem.entities.{CatalogItem, InPlaceCatalogItem, LiftedCatalogItem}
-import io.github.pervasivecats.items.itemcategory.valueobjects.ItemCategoryId
-import items.catalogitem.Repository as CatalogItemRepository
+import io.getquill.*
 
 import scala.util.Try
 
@@ -128,7 +128,7 @@ object Repository {
                 _.store -> lift[Long](store.id),
                 _.catalogItemId -> lift[Long](catalogItemId.value),
                 _.customer -> lift[String](customer.email),
-                _.isReturned -> lift("in_place")
+                _.isReturned -> lift[String]("in_place")
               )
           )
             !==
