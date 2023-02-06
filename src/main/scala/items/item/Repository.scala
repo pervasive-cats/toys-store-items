@@ -8,12 +8,9 @@ package io.github.pervasivecats
 package items.item
 
 import scala.util.Try
-
-import com.typesafe.config.ConfigFactory
-import com.typesafe.config.ConfigValueFactory
+import com.typesafe.config.{Config, ConfigFactory, ConfigValueFactory}
 import eu.timepit.refined.auto.autoUnwrap
 import io.getquill.*
-
 import AnyOps.*
 import items.catalogitem.Repository as CatalogItemRepository
 import items.catalogitem.Repository.CatalogItemNotFound
@@ -26,11 +23,11 @@ import items.{Validated, ValidationError}
 
 trait Repository {
 
-  def findById(itemId: ItemId, catalogItemId: CatalogItemId, store: Store): Validated[Item]
+  def findById(itemId: ItemId, catalogItemId: CatalogItemId, store: Store)(using CatalogItemRepository): Validated[Item]
 
-  def findAllReturned(): Validated[Set[Validated[ReturnedItem]]]
+  def findAllReturned()(using CatalogItemRepository): Validated[Set[Validated[ReturnedItem]]]
 
-  def add(catalogItemId: CatalogItemId, customer: Customer, store: Store): Validated[InPlaceItem]
+  def add(catalogItemId: CatalogItemId, customer: Customer, store: Store)(using CatalogItemRepository): Validated[InPlaceItem]
 
   def update(item: Item, catalogItemId: CatalogItemId, store: Store): Validated[Unit]
 
@@ -60,34 +57,10 @@ object Repository {
 
     private case class Items(id: Long, catalogItemId: Long, customer: String, store: Long, isReturned: String)
 
-    private case class CatalogItems(id: Long, category: Long, store: Long, amount: Double, currency: String, isLifted: Boolean)
-
     private def protectFromException[A](f: => Validated[A]): Validated[A] =
       Try(f).getOrElse(Left[ValidationError, A](OperationFailed))
 
-    private def findCatalogItemById(catalogItemId: CatalogItemId, store: Store): Validated[CatalogItem] =
-      ctx
-        .run(
-          quote {
-            query[CatalogItems]
-              .filter(_.id === lift[Long](catalogItemId.value))
-              .filter(_.store === lift[Long](store.id))
-          }
-        )
-        .map(c =>
-          for {
-            category <- ItemCategoryId(c.category)
-            amount <- Amount(c.amount)
-          } yield
-            if (c.isLifted)
-              LiftedCatalogItem(catalogItemId, category, store, Price(amount, Currency.withName(c.currency)))
-            else
-              InPlaceCatalogItem(catalogItemId, category, store, Price(amount, Currency.withName(c.currency)))
-        )
-        .headOption
-        .getOrElse(Left[ValidationError, CatalogItem](CatalogItemNotFound))
-
-    override def findById(itemId: ItemId, catalogItemId: CatalogItemId, store: Store): Validated[Item] =
+    override def findById(itemId: ItemId, catalogItemId: CatalogItemId, store: Store)(using CatalogItemRepository): Validated[Item] =
       ctx
         .run(
           quote {
@@ -100,7 +73,7 @@ object Repository {
         .map(i =>
           for {
             customer <- Customer(i.customer)
-            catalogItem <- findCatalogItemById(catalogItemId, store)
+            catalogItem <- summon[CatalogItemRepository].findById(catalogItemId, store)
           } yield i.isReturned match
             case "in_place" => InPlaceItem(itemId, catalogItem)
             case "in_cart" => InCartItem(itemId, catalogItem, customer)
@@ -109,7 +82,7 @@ object Repository {
         .headOption
         .getOrElse(Left[ValidationError, Item](ItemNotFound))
 
-    override def add(catalogItemId: CatalogItemId, customer: Customer, store: Store): Validated[InPlaceItem] =
+    override def add(catalogItemId: CatalogItemId, customer: Customer, store: Store)(using CatalogItemRepository): Validated[InPlaceItem] =
       ctx.transaction {
         val nextId: Long =
           ctx
@@ -139,7 +112,7 @@ object Repository {
         else
           for {
             itemId <- ItemId(nextId)
-            kind <- findCatalogItemById(catalogItemId, store)
+            kind <- summon[CatalogItemRepository].findById(catalogItemId, store)
           } yield InPlaceItem(itemId, kind)
       }
 
@@ -181,7 +154,7 @@ object Repository {
       else
         Right[ValidationError, Unit](())
 
-    override def findAllReturned(): Validated[Set[Validated[ReturnedItem]]] =
+    override def findAllReturned()(using CatalogItemRepository): Validated[Set[Validated[ReturnedItem]]] =
       Try(
         ctx
           .run(
@@ -193,7 +166,7 @@ object Repository {
               validatedKind <- for {
                 catalogItemId <- CatalogItemId(r.catalogItemId)
                 store <- Store(r.store)
-              } yield findCatalogItemById(catalogItemId, store)
+              } yield summon[CatalogItemRepository].findById(catalogItemId, store)
               id <- ItemId(r.id)
               kind <- validatedKind
             } yield ReturnedItem(id, kind)
@@ -205,13 +178,5 @@ object Repository {
         .getOrElse(Left[ValidationError, Set[Validated[ReturnedItem]]](OperationFailed))
   }
 
-  def apply: Repository = PostgresRepository(PostgresJdbcContext[SnakeCase](SnakeCase, "ctx"))
-
-  def withPort(port: Int): Repository =
-    PostgresRepository(
-      PostgresJdbcContext[SnakeCase](
-        SnakeCase,
-        ConfigFactory.load().getConfig("ctx").withValue("dataSource.portNumber", ConfigValueFactory.fromAnyRef(port))
-      )
-    )
+  def apply(config: Config): Repository = PostgresRepository(PostgresJdbcContext[SnakeCase](SnakeCase, config))
 }
