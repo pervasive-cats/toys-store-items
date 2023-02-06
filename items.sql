@@ -26,7 +26,3 @@ CREATE TABLE IF NOT EXISTS public.items
     is_returned character varying(10) NOT NULL DEFAULT 'in_place',
     CONSTRAINT items_pkey PRIMARY KEY (id)
 );
-
-INSERT INTO public.catalog_items(
-  id, category, store, amount, currency, is_lifted)
-  VALUES ('345', '614', '15', '19.99', 'EUR', false);
