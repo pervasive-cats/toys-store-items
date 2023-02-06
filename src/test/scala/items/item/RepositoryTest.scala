@@ -12,7 +12,7 @@ import items.catalogitem.valueobjects.*
 import items.item.entities.*
 import items.item.entities.InCartItemOps.returnToStore
 import items.item.entities.InPlaceItemOps.putInCart
-
+import io.github.pervasivecats.items.Validated
 import com.dimafeng.testcontainers.JdbcDatabaseContainer.CommonParams
 import com.dimafeng.testcontainers.PostgreSQLContainer
 import com.dimafeng.testcontainers.scalatest.TestContainerForAll
@@ -60,15 +60,24 @@ class RepositoryTest extends AnyFunSpec with TestContainerForAll {
           .withValue("dataSource.portNumber", ConfigValueFactory.fromAnyRef(containers.container.getFirstMappedPort.intValue()))
       )
     )
+
+    for {
+      category <- ItemCategoryId(614)
+      store <- Store(15)
+      price <- for {
+        amount <- Amount(19.99)
+      } yield Price(amount, Currency.withName("EUR"))
+    } yield catalogItemRepositoryOpt.getOrElse(fail()).add(category, store, price)
+
   }
 
   describe("An Item") {
     given catalogItemRepository: CatalogItemRepository = catalogItemRepositoryOpt.getOrElse(fail())
-
+    
     describe("after being added") {
       it("should be present in the database") {
         val db = repository.getOrElse(fail())
-        val catalogItemId: CatalogItemId = CatalogItemId(345).value
+        val catalogItemId: CatalogItemId = CatalogItemId(0).value
         val store: Store = Store(15).value
         val customer: Customer = Customer("elena@gmail.com").value
         val inCartItem: Item = db.add(catalogItemId, customer, store).value
@@ -81,7 +90,7 @@ class RepositoryTest extends AnyFunSpec with TestContainerForAll {
       it("should not be present") {
         val db: Repository = repository.getOrElse(fail())
         val itemId: ItemId = ItemId(144).value
-        val catalogItemId: CatalogItemId = CatalogItemId(345).value
+        val catalogItemId: CatalogItemId = CatalogItemId(0).value
         val store: Store = Store(15).value
         db.findById(itemId, catalogItemId, store).left.value shouldBe ItemNotFound
       }
@@ -90,7 +99,7 @@ class RepositoryTest extends AnyFunSpec with TestContainerForAll {
     describe("after being added and then deleted") {
       it("should not be present in database") {
         val db = repository.getOrElse(fail())
-        val catalogItemId: CatalogItemId = CatalogItemId(345).value
+        val catalogItemId: CatalogItemId = CatalogItemId(0).value
         val store: Store = Store(15).value
         val customer: Customer = Customer("elena@gmail.com").value
         val inCartItem: Item = db.add(catalogItemId, customer, store).value
@@ -103,7 +112,7 @@ class RepositoryTest extends AnyFunSpec with TestContainerForAll {
       it("should not be allowed") {
         val db: Repository = repository.getOrElse(fail())
         val itemId: ItemId = ItemId(144).value
-        val catalogItemId: CatalogItemId = CatalogItemId(345).value
+        val catalogItemId: CatalogItemId = CatalogItemId(0).value
         val store: Store = Store(15).value
         db.remove(itemId, catalogItemId, store).left.value shouldBe OperationFailed
       }
@@ -112,7 +121,7 @@ class RepositoryTest extends AnyFunSpec with TestContainerForAll {
     describe("after being added and then it data gets updated") {
       it("should show the update") {
         val db = repository.getOrElse(fail())
-        val catalogItemId: CatalogItemId = CatalogItemId(345).value
+        val catalogItemId: CatalogItemId = CatalogItemId(0).value
         val store: Store = Store(15).value
         val customer: Customer = Customer("elena@gmail.com").value
         val inPlaceItem: InPlaceItem = db.add(catalogItemId, customer, store).value
@@ -132,7 +141,7 @@ class RepositoryTest extends AnyFunSpec with TestContainerForAll {
         val itemId: ItemId = ItemId(144).value
         val category: ItemCategoryId = ItemCategoryId(35).value
         val store: Store = Store(15).value
-        val catalogItemId: CatalogItemId = CatalogItemId(345).value
+        val catalogItemId: CatalogItemId = CatalogItemId(0).value
         val price: Price = Price(Amount(19.99).value, Currency.withName("EUR"))
         val kind: LiftedCatalogItem = LiftedCatalogItem(catalogItemId, category, store, price)
         val inPlaceItem: InPlaceItem = InPlaceItem(itemId, kind)
@@ -154,7 +163,7 @@ class RepositoryTest extends AnyFunSpec with TestContainerForAll {
         val empty: Int = 0
         val one: Int = 1
         val two: Int = 2
-        val catalogItemId: CatalogItemId = CatalogItemId(345).value
+        val catalogItemId: CatalogItemId = CatalogItemId(0).value
         val store: Store = Store(15).value
         val customer: Customer = Customer("elena@gmail.com").value
 

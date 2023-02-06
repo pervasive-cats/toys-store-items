@@ -16,3 +16,17 @@ CREATE TABLE IF NOT EXISTS public.catalog_items
     is_lifted boolean NOT NULL DEFAULT false,
     CONSTRAINT catalog_items_pkey PRIMARY KEY (id, store)
 );
+
+CREATE TABLE IF NOT EXISTS public.items
+(
+    id bigint NOT NULL,
+    catalog_item_id bigint NOT NULL,
+    customer character varying(100) NOT NULL,
+    store bigint NOT NULL,
+    is_returned character varying(10) NOT NULL DEFAULT 'in_place',
+    CONSTRAINT items_pkey PRIMARY KEY (id)
+);
+
+INSERT INTO public.catalog_items(
+  id, category, store, amount, currency, is_lifted)
+  VALUES ('345', '614', '15', '19.99', 'EUR', false);
