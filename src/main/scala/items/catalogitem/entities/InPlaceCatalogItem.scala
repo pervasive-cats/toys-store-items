@@ -8,13 +8,13 @@ package io.github.pervasivecats
 package items.catalogitem.entities
 
 import io.github.pervasivecats.items.Validated
-import io.github.pervasivecats.items.ValidationError
 import io.github.pervasivecats.items.itemcategory.valueobjects.ItemCategoryId
 
 import eu.timepit.refined.api.RefType.applyRef
 
 import AnyOps.*
 import items.catalogitem.valueobjects.{CatalogItemId, Price, Store}
+import io.github.pervasivecats.ValidationError
 
 trait InPlaceCatalogItem extends CatalogItem
 

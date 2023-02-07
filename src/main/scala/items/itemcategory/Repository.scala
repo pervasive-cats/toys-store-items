@@ -14,10 +14,11 @@ import eu.timepit.refined.auto.given
 import io.getquill.*
 import io.getquill.autoQuote
 
-import items.{Validated, ValidationError}
+import items.Validated
 import items.itemcategory.entities.ItemCategory
 import items.itemcategory.valueobjects.*
 import AnyOps.{!==, ===}
+import io.github.pervasivecats.ValidationError
 
 trait Repository {
 

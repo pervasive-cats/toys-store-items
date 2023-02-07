@@ -6,10 +6,9 @@ import scala.language.postfixOps
 import eu.timepit.refined.auto.autoUnwrap
 import org.scalatest.funspec.AnyFunSpec
 import org.scalatest.matchers.should.Matchers.shouldBe
-
-import items.ValidationError
 import items.catalogitem.valueobjects.Amount
 import items.catalogitem.valueobjects.Amount.WrongAmountFormat
+import io.github.pervasivecats.ValidationError
 
 class AmountTest extends AnyFunSpec {
 

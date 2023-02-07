@@ -5,7 +5,6 @@
  */
 
 package io.github.pervasivecats
-package items
 
 type Validated[A] = Either[ValidationError, A]
 

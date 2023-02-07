@@ -11,7 +11,8 @@ import eu.timepit.refined.api.RefType.applyRef
 import eu.timepit.refined.api.Refined
 import eu.timepit.refined.numeric.NonNegative
 
-import items.{Id, Validated, ValidationError}
+import items.{Id, Validated}
+import io.github.pervasivecats.ValidationError
 
 trait ItemCategoryId {
 

@@ -6,10 +6,9 @@ import scala.language.postfixOps
 import eu.timepit.refined.auto.autoUnwrap
 import org.scalatest.funspec.AnyFunSpec
 import org.scalatest.matchers.should.Matchers.shouldBe
-
-import items.ValidationError
 import items.itemcategory.valueobjects.Description
 import items.itemcategory.valueobjects.Description.WrongDescriptionFormat
+import io.github.pervasivecats.ValidationError
 
 class DescriptionTest extends AnyFunSpec {
 

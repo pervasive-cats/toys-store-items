@@ -9,7 +9,8 @@ import org.scalatest.matchers.should.Matchers.*
 
 import items.itemcategory.valueobjects.ItemCategoryId
 import items.itemcategory.valueobjects.ItemCategoryId.WrongItemCategoryIdFormat
-import items.{Id, ValidationError}
+import items.Id
+import io.github.pervasivecats.ValidationError
 
 class ItemCategoryIdTest extends AnyFunSpec {
 

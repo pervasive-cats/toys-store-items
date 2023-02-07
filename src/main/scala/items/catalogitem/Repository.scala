@@ -22,7 +22,8 @@ import items.catalogitem.valueobjects.*
 import items.itemcategory.Repository
 import items.itemcategory.Repository.OperationFailed
 import items.itemcategory.valueobjects.ItemCategoryId
-import items.{Validated, ValidationError}
+import items.Validated
+import io.github.pervasivecats.ValidationError
 
 trait Repository {
 

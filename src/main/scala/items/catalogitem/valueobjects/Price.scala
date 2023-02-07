@@ -7,7 +7,7 @@
 package io.github.pervasivecats
 package items.catalogitem.valueobjects
 
-import items.ValidationError
+import io.github.pervasivecats.ValidationError
 
 trait Price {
 

@@ -5,10 +5,9 @@ import eu.timepit.refined.auto.given
 import org.scalatest.EitherValues.given
 import org.scalatest.funspec.AnyFunSpec
 import org.scalatest.matchers.should.Matchers.shouldBe
-
-import items.ValidationError
 import items.catalogitem.valueobjects.Store
 import items.catalogitem.valueobjects.Store.WrongStoreFormat
+import io.github.pervasivecats.ValidationError
 
 class StoreTest extends AnyFunSpec {
 

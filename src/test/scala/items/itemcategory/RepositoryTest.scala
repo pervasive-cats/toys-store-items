@@ -6,8 +6,6 @@ import java.nio.file.attribute.UserPrincipalNotFoundException
 import scala.concurrent.duration.DurationInt
 import scala.concurrent.duration.FiniteDuration
 import scala.language.postfixOps
-
-import io.github.pervasivecats.items.ValidationError
 import io.github.pervasivecats.items.itemcategory.Repository.ItemCategoryNotFound
 import io.github.pervasivecats.items.itemcategory.Repository.OperationFailed
 import io.github.pervasivecats.items.itemcategory.entities.ItemCategory
@@ -20,6 +18,7 @@ import com.dimafeng.testcontainers.PostgreSQLContainer
 import com.dimafeng.testcontainers.scalatest.TestContainerForAll
 import com.typesafe.config.ConfigFactory
 import com.typesafe.config.ConfigValueFactory
+import io.github.pervasivecats.ValidationError
 import org.scalatest.EitherValues.given
 import org.scalatest.funspec.AnyFunSpec
 import org.scalatest.matchers.should.Matchers.*
