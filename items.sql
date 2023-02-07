@@ -17,12 +17,19 @@ CREATE TABLE IF NOT EXISTS public.catalog_items
     CONSTRAINT catalog_items_pkey PRIMARY KEY (id, store)
 );
 
+CREATE TYPE public.item_status AS ENUM
+(
+  'in_place',
+  'in_cart',
+  'returned'
+);
+
 CREATE TABLE IF NOT EXISTS public.items
 (
     id bigint NOT NULL,
     catalog_item_id bigint NOT NULL,
     customer character varying(100) NOT NULL,
     store bigint NOT NULL,
-    is_returned character varying(10) NOT NULL DEFAULT 'in_place',
+    is_returned item_status NOT NULL DEFAULT 'in_place',
     CONSTRAINT items_pkey PRIMARY KEY (id)
 );

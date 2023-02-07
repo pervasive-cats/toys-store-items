@@ -123,7 +123,7 @@ object Repository {
                   _.store -> lift[Long](store.id),
                   _.catalogItemId -> lift[Long](catalogItemId.value),
                   _.customer -> lift[String](customer.email),
-                  _.isReturned -> lift[String]("in_place")
+                  _.isReturned -> sql"${lift[String]("in_place")}::item_status".as[String]
                 )
             )
             !==
@@ -155,7 +155,7 @@ object Repository {
         ctx.run(
           queryByKeys(item.id, catalogItemId, store)
             .update(
-              _.isReturned -> lift[String](itemStatus)
+              _.isReturned -> sql"${lift[String](itemStatus)}::item_status".as[String]
             )
         )
         !==
@@ -171,7 +171,7 @@ object Repository {
           ctx
             .run(
               query[Items]
-                .filter(_.isReturned === lift[String]("returned"))
+                .filter(_.isReturned === sql"${lift[String]("returned")}::item_status".as[String])
             )
             .map(r =>
               for {
