@@ -10,13 +10,12 @@ package items.catalogitem.entities
 import org.scalatest.funspec.AnyFunSpec
 import org.scalatest.matchers.should.Matchers.*
 
-import items.catalogitem.entities.CatalogItemOps.updated
 import items.catalogitem.entities.InPlaceCatalogItem.*
-import items.catalogitem.entities.InPlaceCatalogItemOps.lift
 import items.catalogitem.entities.{CatalogItem, InPlaceCatalogItem, LiftedCatalogItem}
-import items.catalogitem.entities.LiftedCatalogItemOps.putInPlace
+import items.catalogitem.entities.LiftedCatalogItemOps.{putInPlace, updated}
 import items.catalogitem.valueobjects.*
 import items.itemcategory.valueobjects.ItemCategoryId
+import eu.timepit.refined.auto.given
 
 class LiftedCatalogItemTest extends AnyFunSpec {
 
@@ -24,7 +23,8 @@ class LiftedCatalogItemTest extends AnyFunSpec {
   private val category: ItemCategoryId = ItemCategoryId(35).getOrElse(fail())
   private val store: Store = Store(13).getOrElse(fail())
   private val price: Price = Price(Amount(19.99).getOrElse(fail()), Currency.withName("EUR"))
-  private val liftedCatalogItem: LiftedCatalogItem = LiftedCatalogItem(id, category, store, price)
+  private val count: Count = Count(2).getOrElse(fail())
+  private val liftedCatalogItem: LiftedCatalogItem = LiftedCatalogItem(id, category, store, price, count)
 
   describe("A lifted catalog item") {
     describe("when created with a id, a category, a store and a price") {
@@ -33,6 +33,7 @@ class LiftedCatalogItemTest extends AnyFunSpec {
         liftedCatalogItem.category shouldBe category
         liftedCatalogItem.store shouldBe store
         liftedCatalogItem.price shouldBe price
+        liftedCatalogItem.count shouldBe count
       }
     }
 
@@ -43,8 +44,8 @@ class LiftedCatalogItemTest extends AnyFunSpec {
       }
     }
 
-    val secondCatalogItem: LiftedCatalogItem = LiftedCatalogItem(id, category, store, price)
-    val thirdCatalogItem: LiftedCatalogItem = LiftedCatalogItem(id, category, store, price)
+    val secondCatalogItem: LiftedCatalogItem = LiftedCatalogItem(id, category, store, price, count)
+    val thirdCatalogItem: LiftedCatalogItem = LiftedCatalogItem(id, category, store, price, count)
 
     describe("when compared with another identical catalog item") {
       it("should be equal following the symmetrical property") {
@@ -73,13 +74,27 @@ class LiftedCatalogItemTest extends AnyFunSpec {
       }
     }
 
-    describe("when it is placed on the shelf") {
+    describe("when it is placed on the shelf once") {
       it("should contain the same values") {
-        val inPlaceCatalogItem: InPlaceCatalogItem = liftedCatalogItem.putInPlace
-        inPlaceCatalogItem.id shouldBe liftedCatalogItem.id
-        inPlaceCatalogItem.category shouldBe liftedCatalogItem.category
-        inPlaceCatalogItem.store shouldBe liftedCatalogItem.store
-        inPlaceCatalogItem.price shouldBe liftedCatalogItem.price
+        val catalogItem: CatalogItem = liftedCatalogItem.putInPlace.getOrElse(fail())
+        catalogItem.id shouldBe liftedCatalogItem.id
+        catalogItem.category shouldBe liftedCatalogItem.category
+        catalogItem.store shouldBe liftedCatalogItem.store
+        catalogItem.price shouldBe liftedCatalogItem.price
+        catalogItem match {
+          case item: LiftedCatalogItem =>
+            (item.count.value: Long) shouldBe (liftedCatalogItem.count.value - 1L)
+            item.putInPlace.getOrElse(fail()) match {
+              case item: InPlaceCatalogItem =>
+                item.id shouldBe liftedCatalogItem.id
+                item.category shouldBe liftedCatalogItem.category
+                item.store shouldBe liftedCatalogItem.store
+                item.price shouldBe liftedCatalogItem.price
+              case _ => fail()
+            }
+          case _ => fail()
+        }
+
       }
     }
   }

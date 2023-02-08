@@ -8,12 +8,12 @@ package io.github.pervasivecats
 package items.catalogitem.entities
 
 import io.github.pervasivecats.Validated
-import io.github.pervasivecats.items.itemcategory.valueobjects.ItemCategoryId
+import items.itemcategory.valueobjects.ItemCategoryId
 
 import eu.timepit.refined.api.RefType.applyRef
-
 import AnyOps.*
-import items.catalogitem.valueobjects.{CatalogItemId, Price, Store}
+import items.catalogitem.valueobjects.{CatalogItemId, Count, Price, Store}
+
 import io.github.pervasivecats.ValidationError
 
 trait InPlaceCatalogItem extends CatalogItem
@@ -33,20 +33,22 @@ object InPlaceCatalogItem {
 
   given InPlaceCatalogItemOps[InPlaceCatalogItem] with {
 
-    override def lift(inPlaceCatalogItem: InPlaceCatalogItem): LiftedCatalogItem = LiftedCatalogItem(
-      inPlaceCatalogItem.id,
-      inPlaceCatalogItem.category,
-      inPlaceCatalogItem.store,
-      inPlaceCatalogItem.price
-    )
-  }
-
-  given CatalogItemOps[InPlaceCatalogItem] with {
-
     override def updated(
       catalogItem: InPlaceCatalogItem,
       price: Price
-    ): InPlaceCatalogItem = InPlaceCatalogItemImpl(catalogItem.id, catalogItem.category, catalogItem.store, price)
+    ): InPlaceCatalogItem =
+      InPlaceCatalogItemImpl(catalogItem.id, catalogItem.category, catalogItem.store, price)
+
+    override def lift(inPlaceCatalogItem: InPlaceCatalogItem): Validated[LiftedCatalogItem] =
+      Count(1L).map(
+        LiftedCatalogItem(
+          inPlaceCatalogItem.id,
+          inPlaceCatalogItem.category,
+          inPlaceCatalogItem.store,
+          inPlaceCatalogItem.price,
+          _
+        )
+      )
   }
 
   def apply(itemId: CatalogItemId, id: ItemCategoryId, store: Store, price: Price): InPlaceCatalogItem =

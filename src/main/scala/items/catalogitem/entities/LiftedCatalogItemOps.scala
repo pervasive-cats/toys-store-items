@@ -7,15 +7,23 @@
 package io.github.pervasivecats
 package items.catalogitem.entities
 
+import items.catalogitem.valueobjects.{Count, Price}
+
 trait LiftedCatalogItemOps[A <: LiftedCatalogItem] {
 
-  def putInPlace(liftedCatalogItem: LiftedCatalogItem): InPlaceCatalogItem
+  def updated(liftedCatalogItem: A, count: Count, price: Price): A
+
+  def putInPlace(liftedCatalogItem: A): Validated[CatalogItem]
 }
 
 object LiftedCatalogItemOps {
 
   extension [A <: LiftedCatalogItem: LiftedCatalogItemOps](liftedCatalogItem: A) {
 
-    def putInPlace: InPlaceCatalogItem = implicitly[LiftedCatalogItemOps[A]].putInPlace(liftedCatalogItem)
+    @SuppressWarnings(Array("org.wartremover.warts.DefaultArguments"))
+    def updated(count: Count = liftedCatalogItem.count, price: Price = liftedCatalogItem.price): A =
+      implicitly[LiftedCatalogItemOps[A]].updated(liftedCatalogItem, count, price)
+
+    def putInPlace: Validated[CatalogItem] = implicitly[LiftedCatalogItemOps[A]].putInPlace(liftedCatalogItem)
   }
 }

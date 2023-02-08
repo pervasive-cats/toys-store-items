@@ -10,13 +10,12 @@ package items.catalogitem.entities
 import org.scalatest.funspec.AnyFunSpec
 import org.scalatest.matchers.should.Matchers.*
 
-import items.catalogitem.entities.CatalogItemOps.updated
 import items.catalogitem.entities.InPlaceCatalogItem.*
-import items.catalogitem.entities.InPlaceCatalogItemOps.lift
 import items.catalogitem.entities.{CatalogItem, InPlaceCatalogItem, LiftedCatalogItem}
-import items.catalogitem.entities.LiftedCatalogItemOps.putInPlace
+import items.catalogitem.entities.InPlaceCatalogItemOps.{updated, lift}
 import items.catalogitem.valueobjects.*
 import items.itemcategory.valueobjects.ItemCategoryId
+import eu.timepit.refined.auto.given
 
 class InPlaceCatalogItemTest extends AnyFunSpec {
 
@@ -39,7 +38,7 @@ class InPlaceCatalogItemTest extends AnyFunSpec {
     describe("when updated with a new price") {
       it("should contain that") {
         val newPrice: Price = Price(Amount(14.99).getOrElse(fail()), Currency.withName("EUR"))
-        inPlaceCatalogItem.updated(price = newPrice).price shouldBe newPrice
+        inPlaceCatalogItem.updated(newPrice).price shouldBe newPrice
       }
     }
 
@@ -73,13 +72,14 @@ class InPlaceCatalogItemTest extends AnyFunSpec {
       }
     }
 
-    describe("when its lifted") {
-      it("should contain the same values") {
-        val liftedCatalogItem: LiftedCatalogItem = inPlaceCatalogItem.lift
+    describe("when it is lifted") {
+      it("should contain the same values and the count should be 1") {
+        val liftedCatalogItem: LiftedCatalogItem = inPlaceCatalogItem.lift.getOrElse(fail())
         liftedCatalogItem.id shouldBe inPlaceCatalogItem.id
         liftedCatalogItem.category shouldBe inPlaceCatalogItem.category
         liftedCatalogItem.store shouldBe inPlaceCatalogItem.store
         liftedCatalogItem.price shouldBe inPlaceCatalogItem.price
+        (liftedCatalogItem.count.value: Long) shouldBe 1L
       }
     }
   }

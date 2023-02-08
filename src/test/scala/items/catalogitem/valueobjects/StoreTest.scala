@@ -16,21 +16,20 @@ import items.catalogitem.valueobjects.Store.WrongStoreFormat
 import io.github.pervasivecats.ValidationError
 
 class StoreTest extends AnyFunSpec {
-
-  val negativeValue: Long = -9000
-  val positiveValue: Long = 9000
-  val zeroValue: Long = 0
+  
+  private val positiveValue: Long = 9000
+  private val zeroValue: Long = 0
 
   describe("A store") {
     describe("when created with a negative value identifier") {
       it("should not be valid") {
-        Store(negativeValue) shouldBe Left[ValidationError, Store](WrongStoreFormat)
+        Store(-9000).left.value shouldBe WrongStoreFormat
       }
     }
 
     describe("when created with a positive value identifier") {
       it("should be valid") {
-        (Store(positiveValue).getOrElse(fail()).id: Long) shouldBe positiveValue
+        (Store(positiveValue).value.id: Long) shouldBe positiveValue
       }
     }
 

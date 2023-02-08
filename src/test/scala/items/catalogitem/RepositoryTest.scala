@@ -10,7 +10,6 @@ package items.catalogitem
 import scala.concurrent.duration.DurationInt
 import scala.concurrent.duration.FiniteDuration
 
-
 import com.dimafeng.testcontainers.JdbcDatabaseContainer.CommonParams
 import com.dimafeng.testcontainers.PostgreSQLContainer
 import com.dimafeng.testcontainers.scalatest.TestContainerForAll
@@ -100,16 +99,27 @@ class RepositoryTest extends AnyFunSpec with TestContainerForAll {
       }
     }
 
-    describe("after being added and then it data gets updated") {
+    describe("after being added and then its data gets updated") {
       it("should show the update") {
         val db: Repository = repository.getOrElse(fail())
         val category: ItemCategoryId = ItemCategoryId(35).getOrElse(fail())
         val store: Store = Store(3).getOrElse(fail())
         val price: Price = Price(Amount(19.99).getOrElse(fail()), Currency.withName("EUR"))
         val catalogItem: InPlaceCatalogItem = db.add(category, store, price).getOrElse(fail())
-        val newPrice = Price(Amount(14.99).getOrElse(fail()), Currency.withName("USD"))
-        db.update(catalogItem, newPrice).getOrElse(fail())
+        val newPrice: Price = Price(Amount(14.99).getOrElse(fail()), Currency.withName("USD"))
+        val count: Count = Count(2).getOrElse(fail())
+        db.update(catalogItem, None, newPrice).getOrElse(fail())
         db.findById(catalogItem.id, store).value.price shouldBe newPrice
+        db.update(catalogItem, Some(count), newPrice).getOrElse(fail())
+        db.findById(catalogItem.id, store).getOrElse(fail()) match {
+          case i: LiftedCatalogItem => i.count shouldBe count
+          case _ => fail()
+        }
+        db.update(catalogItem, None, newPrice).getOrElse(fail())
+        db.findById(catalogItem.id, store).getOrElse(fail()) match {
+          case i: InPlaceCatalogItem => succeed
+          case _ => fail()
+        }
         db.remove(catalogItem).getOrElse(fail())
       }
     }
@@ -122,7 +132,7 @@ class RepositoryTest extends AnyFunSpec with TestContainerForAll {
         val store: Store = Store(3).getOrElse(fail())
         val price: Price = Price(Amount(19.99).getOrElse(fail()), Currency.withName("EUR"))
         val catalogItem: InPlaceCatalogItem = InPlaceCatalogItem(id, category, store, price)
-        db.update(catalogItem, price).left.value shouldBe OperationFailed
+        db.update(catalogItem, None, price).left.value shouldBe OperationFailed
       }
     }
 
@@ -143,12 +153,14 @@ class RepositoryTest extends AnyFunSpec with TestContainerForAll {
         val store: Store = Store(4).getOrElse(fail())
         val price: Price = Price(Amount(19.99).getOrElse(fail()), Currency.withName("EUR"))
         val inPlaceCatalogItemA: InPlaceCatalogItem = db.add(category, store, price).getOrElse(fail())
-        db.update(inPlaceCatalogItemA.lift, price).getOrElse(fail())
         val inPlaceCatalogItemB: InPlaceCatalogItem = db.add(category, store, price).getOrElse(fail())
-        db.update(inPlaceCatalogItemB.lift, price).getOrElse(fail())
+        val liftedCatalogItemA: LiftedCatalogItem = inPlaceCatalogItemA.lift.getOrElse(fail())
+        val liftedCatalogItemB: LiftedCatalogItem = inPlaceCatalogItemB.lift.getOrElse(fail())
+        db.update(liftedCatalogItemA, Some(liftedCatalogItemA.count), price).getOrElse(fail())
+        db.update(liftedCatalogItemB, Some(liftedCatalogItemB.count), price).getOrElse(fail())
         db.findAllLifted().value.size shouldBe size
-        db.remove(inPlaceCatalogItemA.lift).getOrElse(fail())
-        db.remove(inPlaceCatalogItemB.lift).getOrElse(fail())
+        db.remove(inPlaceCatalogItemA.lift.getOrElse(fail())).getOrElse(fail())
+        db.remove(inPlaceCatalogItemB.lift.getOrElse(fail())).getOrElse(fail())
         db.findAllLifted().value.size shouldBe empty
       }
     }

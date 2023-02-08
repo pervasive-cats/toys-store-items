@@ -32,7 +32,7 @@ trait Repository {
 
   def add(category: ItemCategoryId, store: Store, price: Price): Validated[InPlaceCatalogItem]
 
-  def update(catalogItem: CatalogItem, price: Price): Validated[Unit]
+  def update(catalogItem: CatalogItem, count: Option[Count], price: Price): Validated[Unit]
 
   def remove(catalogItem: CatalogItem): Validated[Unit]
 }
@@ -53,7 +53,7 @@ object Repository {
 
     import ctx.*
 
-    private case class CatalogItems(id: Long, category: Long, store: Long, amount: Double, currency: String, isLifted: Boolean)
+    private case class CatalogItems(id: Long, category: Long, store: Long, amount: Double, currency: String, count: Long)
 
     override def findById(catalogItemId: CatalogItemId, store: Store): Validated[CatalogItem] =
       ctx
@@ -68,11 +68,12 @@ object Repository {
           for {
             category <- ItemCategoryId(c.category)
             amount <- Amount(c.amount)
-          } yield
-            if (c.isLifted)
-              LiftedCatalogItem(catalogItemId, category, store, Price(amount, Currency.withName(c.currency)))
-            else
-              InPlaceCatalogItem(catalogItemId, category, store, Price(amount, Currency.withName(c.currency)))
+            count <- if (c.count > 0) Count(c.count).map(Some(_)) else Right[ValidationError, Option[Count]](None)
+          } yield count.fold(
+            InPlaceCatalogItem(catalogItemId, category, store, Price(amount, Currency.withName(c.currency)))
+          )(
+            LiftedCatalogItem(catalogItemId, category, store, Price(amount, Currency.withName(c.currency)), _)
+          )
         )
         .headOption
         .getOrElse(Left[ValidationError, CatalogItem](CatalogItemNotFound))
@@ -80,17 +81,15 @@ object Repository {
     override def findAllLifted(): Validated[Set[Validated[LiftedCatalogItem]]] =
       Try(
         ctx
-          .run(
-            query[CatalogItems]
-              .filter(_.isLifted)
-          )
+          .run(query[CatalogItems].filter(_.count > 0))
           .map(c =>
             for {
               id <- CatalogItemId(c.id)
               category <- ItemCategoryId(c.category)
               store <- Store(c.store)
               price <- Amount(c.amount).map(Price(_, Currency.withName(c.currency)))
-            } yield LiftedCatalogItem(id, category, store, price)
+              count <- Count(c.count)
+            } yield LiftedCatalogItem(id, category, store, price, count)
           )
           .toSet
       )
@@ -128,11 +127,7 @@ object Repository {
           CatalogItemId(nextId).map(InPlaceCatalogItem(_, category, store, price))
       }
 
-    override def update(catalogItem: CatalogItem, price: Price): Validated[Unit] =
-      val isLifted: Boolean = catalogItem match {
-        case _: InPlaceCatalogItem => false
-        case _: LiftedCatalogItem => true
-      }
+    override def update(catalogItem: CatalogItem, count: Option[Count], price: Price): Validated[Unit] =
       if (
         ctx.run(
           query[CatalogItems]
@@ -141,7 +136,7 @@ object Repository {
             .update(
               _.amount -> lift[Double](price.amount.value),
               _.currency -> lift[String](String.valueOf(price.currency)),
-              _.isLifted -> lift[Boolean](isLifted)
+              _.count -> lift[Long](count.map(_.value: Long).getOrElse(0L))
             )
         )
         !==

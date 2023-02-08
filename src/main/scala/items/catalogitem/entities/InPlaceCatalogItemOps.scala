@@ -7,15 +7,21 @@
 package io.github.pervasivecats
 package items.catalogitem.entities
 
+import items.catalogitem.valueobjects.Price
+
 trait InPlaceCatalogItemOps[A <: InPlaceCatalogItem] {
 
-  def lift(inPlaceCatalogItem: InPlaceCatalogItem): LiftedCatalogItem
+  def updated(inPlaceCatalogItem: A, price: Price): A
+
+  def lift(inPlaceCatalogItem: A): Validated[LiftedCatalogItem]
 }
 
 object InPlaceCatalogItemOps {
 
   extension [A <: InPlaceCatalogItem: InPlaceCatalogItemOps](inPlaceCatalogItem: A) {
 
-    def lift: LiftedCatalogItem = implicitly[InPlaceCatalogItemOps[A]].lift(inPlaceCatalogItem)
+    def updated(price: Price): A = implicitly[InPlaceCatalogItemOps[A]].updated(inPlaceCatalogItem, price)
+    
+    def lift: Validated[LiftedCatalogItem] = implicitly[InPlaceCatalogItemOps[A]].lift(inPlaceCatalogItem)
   }
 }
