@@ -63,6 +63,11 @@ object Repository {
 
     private case class Items(id: Long, catalogItemId: Long, customer: String, store: Long, isReturned: String)
 
+    private enum ItemStatus(val status: String):
+      case InPlace extends ItemStatus("in_place")
+      case InCart extends ItemStatus("in_cart")
+      case Returned extends ItemStatus("returned")
+
     private def protectFromException[A](f: => Validated[A]): Validated[A] =
       Try(f).getOrElse(Left[ValidationError, A](OperationFailed))
 
@@ -90,9 +95,9 @@ object Repository {
                 .run(queryByKeys(itemId, catalogItemId, store))
                 .map(i =>
                   i.isReturned match {
-                    case "in_place" => Right[ValidationError, Item](InPlaceItem(itemId, catalogItem))
-                    case "returned" => Right[ValidationError, Item](ReturnedItem(itemId, catalogItem))
-                    case "in_cart" => Customer(i.customer).map(InCartItem(itemId, catalogItem, _))
+                    case ItemStatus.InPlace.status => Right[ValidationError, Item](InPlaceItem(itemId, catalogItem))
+                    case ItemStatus.Returned.status => Right[ValidationError, Item](ReturnedItem(itemId, catalogItem))
+                    case ItemStatus.InCart.status => Customer(i.customer).map(InCartItem(itemId, catalogItem, _))
                   }
                 )
                 .headOption
@@ -113,7 +118,7 @@ object Repository {
                   _.id -> lift[Long](inPlaceItem.id.value),
                   _.store -> lift[Long](inPlaceItem.kind.store.id.value),
                   _.catalogItemId -> lift[Long](inPlaceItem.kind.id.value),
-                  _.isReturned -> sql"${lift[String]("in_place")}::item_status".as[String]
+                  _.isReturned -> sql"${lift[String](ItemStatus.InPlace.status)}::item_status".as[String]
                 )
             )
             !==
@@ -151,13 +156,13 @@ object Repository {
               queryByKeys(inCartItem.id, inCartItem.kind.id, inCartItem.kind.store)
                 .update(
                   _.customer -> lift[String](inCartItem.customer.email),
-                  _.isReturned -> sql"${lift[String]("in_cart")}::item_status".as[String]
+                  _.isReturned -> sql"${lift[String](ItemStatus.InCart.status)}::item_status".as[String]
                 )
             )
           !==
           1L
-        case _: InPlaceItem => queryUpdate(item, "in_place")
-        case _: ReturnedItem => queryUpdate(item, "returned")
+        case _: InPlaceItem => queryUpdate(item, ItemStatus.InPlace.status)
+        case _: ReturnedItem => queryUpdate(item, ItemStatus.Returned.status)
       }
       if (ret)
         Left[ValidationError, Unit](OperationFailed)
@@ -170,7 +175,7 @@ object Repository {
           ctx
             .run(
               query[Items]
-                .filter(_.isReturned === sql"${lift[String]("returned")}::item_status".as[String])
+                .filter(_.isReturned === sql"${lift[String](ItemStatus.Returned.status)}::item_status".as[String])
             )
             .map(r =>
               for {
