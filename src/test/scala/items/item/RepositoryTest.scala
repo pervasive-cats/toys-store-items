@@ -193,7 +193,7 @@ class RepositoryTest extends AnyFunSpec with TestContainerForAll {
       }
     }
 
-    /*describe("if added twice, while searching for all returned items") {
+    describe("if added twice, while searching for all returned items") {
       it("should be in the database along with its clone") {
         val db: Repository = repository.getOrElse(fail())
         val empty: Int = 0
@@ -212,21 +212,22 @@ class RepositoryTest extends AnyFunSpec with TestContainerForAll {
         val firstInPlaceItem: InPlaceItem = InPlaceItem(firstItemId, catalogItem)
         db.add(firstInPlaceItem).value
         val firstInCartItem: InCartItem = firstInPlaceItem.putInCart(customer)
-        val returnedItem: ReturnedItem =
-        db.update(firstInCartItem).value
+        val firstReturnedItem: ReturnedItem = firstInCartItem.returnToStore
+        db.update(firstReturnedItem).value
         db.findAllReturned().value.size shouldBe one
 
-        /*val secondItemId: ItemId = ItemId(9001).value
+        val secondItemId: ItemId = ItemId(9001).value
         val secondInPlaceItem: InPlaceItem = InPlaceItem(secondItemId, catalogItem)
         db.add(secondInPlaceItem)
         val secondInCartItem: InCartItem = secondInPlaceItem.putInCart(customer)
-        db.update(secondInCartItem).value
+        val secondReturnedItem: ReturnedItem = secondInCartItem.returnToStore
+        db.update(secondReturnedItem).value
         db.findAllReturned().value.size shouldBe two
 
         db.remove(firstInPlaceItem)
         db.remove(secondInPlaceItem)
-        db.findAllReturned().value.size shouldBe empty*/
+        db.findAllReturned().value.size shouldBe empty
       }
-    }*/
+    }
   }
 }

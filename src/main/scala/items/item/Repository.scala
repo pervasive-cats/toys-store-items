@@ -7,24 +7,23 @@
 package io.github.pervasivecats
 package items.item
 
-import scala.util.Try
-import com.typesafe.config.Config
-import com.typesafe.config.ConfigFactory
-import com.typesafe.config.ConfigValueFactory
-import eu.timepit.refined.auto.autoUnwrap
-import io.getquill.*
 import AnyOps.*
 import items.catalogitem.Repository as CatalogItemRepository
 import items.catalogitem.Repository.CatalogItemNotFound
 import items.catalogitem.entities.{CatalogItem, InPlaceCatalogItem, LiftedCatalogItem}
 import items.catalogitem.valueobjects.*
+import items.catalogitem.valueobjects.Currency.findValues
 import items.item.entities.{InCartItem, InPlaceItem, Item, ReturnedItem}
 import items.item.valueobjects.{Customer, ItemId}
 import items.itemcategory.valueobjects.ItemCategoryId
 import items.{Validated, ValidationError}
 
+import com.typesafe.config.{Config, ConfigFactory, ConfigValueFactory}
 import enumeratum.*
-import io.github.pervasivecats.items.catalogitem.valueobjects.Currency.findValues
+import eu.timepit.refined.auto.autoUnwrap
+import io.getquill.*
+
+import scala.util.Try
 
 trait Repository {
 
@@ -32,7 +31,7 @@ trait Repository {
 
   def findAllReturned()(using CatalogItemRepository): Validated[Set[Validated[ReturnedItem]]]
 
-  def add(inPlaceItem: InPlaceItem)(using CatalogItemRepository): Validated[Unit]
+  def add(inPlaceItem: InPlaceItem): Validated[Unit]
 
   def update(item: Item): Validated[Unit]
 
@@ -72,14 +71,7 @@ object Repository {
         .filter(_.store === lift[Long](store.id))
     }
 
-    override def findById(
-      itemId: ItemId,
-      catalogItemId: CatalogItemId,
-      store: Store
-    )(
-      using
-      CatalogItemRepository
-    ): Validated[Item] =
+    override def findById(itemId: ItemId, catalogItemId: CatalogItemId, store: Store)(using CatalogItemRepository): Validated[Item] =
       protectFromException(
         ctx.transaction(
           summon[CatalogItemRepository].findById(catalogItemId, store).flatMap(catalogItem =>
@@ -96,7 +88,7 @@ object Repository {
         )
       )
 
-    override def add(inPlaceItem: InPlaceItem)(using CatalogItemRepository): Validated[Unit] =
+    override def add(inPlaceItem: InPlaceItem): Validated[Unit] =
       protectFromException(
         ctx.transaction {
           if(ctx.run(queryByKeys(inPlaceItem.id, inPlaceItem.kind.id, inPlaceItem.kind.store).nonEmpty))
