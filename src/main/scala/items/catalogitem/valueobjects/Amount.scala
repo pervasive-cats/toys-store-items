@@ -7,7 +7,7 @@
 package io.github.pervasivecats
 package items.catalogitem.valueobjects
 
-import io.github.pervasivecats.items.Validated
+import io.github.pervasivecats.Validated
 
 import eu.timepit.refined.api.RefType.applyRef
 import eu.timepit.refined.api.Refined

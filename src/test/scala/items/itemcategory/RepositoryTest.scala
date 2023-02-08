@@ -1,3 +1,9 @@
+/*
+ * Copyright © 2022-2023 by Pervasive Cats S.r.l.s.
+ *
+ * All Rights Reserved.
+ */
+
 package io.github.pervasivecats
 package items.itemcategory
 
@@ -5,7 +11,7 @@ import java.nio.file.attribute.UserPrincipalNotFoundException
 
 import scala.concurrent.duration.DurationInt
 import scala.concurrent.duration.FiniteDuration
-import scala.language.postfixOps
+
 import io.github.pervasivecats.items.itemcategory.Repository.ItemCategoryNotFound
 import io.github.pervasivecats.items.itemcategory.Repository.OperationFailed
 import io.github.pervasivecats.items.itemcategory.entities.ItemCategory

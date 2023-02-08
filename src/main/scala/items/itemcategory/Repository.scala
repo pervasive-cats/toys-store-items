@@ -14,7 +14,7 @@ import eu.timepit.refined.auto.given
 import io.getquill.*
 import io.getquill.autoQuote
 
-import items.Validated
+import io.github.pervasivecats.Validated
 import items.itemcategory.entities.ItemCategory
 import items.itemcategory.valueobjects.*
 import AnyOps.{!==, ===}

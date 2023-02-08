@@ -11,7 +11,7 @@ import eu.timepit.refined.api.RefType.applyRef
 import eu.timepit.refined.api.Refined
 import eu.timepit.refined.string.MatchesRegex
 
-import items.Validated
+import io.github.pervasivecats.Validated
 import io.github.pervasivecats.ValidationError
 
 type DescriptionString = String Refined MatchesRegex["^[a-zA-Z0-9\\W]{1,300}$"]

@@ -7,7 +7,7 @@
 package io.github.pervasivecats
 package items.item.entities
 
-import items.Validated
+import io.github.pervasivecats.Validated
 
 trait ReturnedItemOps[A <: ReturnedItem] {
 

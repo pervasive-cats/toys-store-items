@@ -1,9 +1,15 @@
+/*
+ * Copyright © 2022-2023 by Pervasive Cats S.r.l.s.
+ *
+ * All Rights Reserved.
+ */
+
 package io.github.pervasivecats
 package items.catalogitem
 
 import scala.concurrent.duration.DurationInt
 import scala.concurrent.duration.FiniteDuration
-import scala.language.postfixOps
+
 
 import com.dimafeng.testcontainers.JdbcDatabaseContainer.CommonParams
 import com.dimafeng.testcontainers.PostgreSQLContainer
@@ -16,7 +22,7 @@ import org.scalatest.funspec.AnyFunSpec
 import org.scalatest.matchers.should.Matchers.*
 import org.testcontainers.utility.DockerImageName
 
-import items.Validated
+import io.github.pervasivecats.Validated
 import items.catalogitem.Repository.{CatalogItemNotFound, OperationFailed}
 import items.catalogitem.entities.InPlaceCatalogItemOps.lift
 import items.catalogitem.entities.{CatalogItem, InPlaceCatalogItem, LiftedCatalogItem}

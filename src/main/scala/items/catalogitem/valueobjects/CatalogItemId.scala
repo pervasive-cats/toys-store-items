@@ -9,8 +9,8 @@ package items.catalogitem.valueobjects
 
 import eu.timepit.refined.api.RefType.applyRef
 
-import items.{Id, Validated}
-import io.github.pervasivecats.ValidationError
+import items.Id
+import io.github.pervasivecats.{Validated, ValidationError}
 
 trait CatalogItemId {
 

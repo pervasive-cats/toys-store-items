@@ -7,7 +7,6 @@
 package io.github.pervasivecats
 package items.catalogitem
 
-import scala.language.postfixOps
 import scala.util.Try
 
 import com.typesafe.config.Config
@@ -22,7 +21,7 @@ import items.catalogitem.valueobjects.*
 import items.itemcategory.Repository
 import items.itemcategory.Repository.OperationFailed
 import items.itemcategory.valueobjects.ItemCategoryId
-import items.Validated
+import io.github.pervasivecats.Validated
 import io.github.pervasivecats.ValidationError
 
 trait Repository {

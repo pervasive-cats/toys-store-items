@@ -7,7 +7,7 @@
 package io.github.pervasivecats
 package items.catalogitem.entities
 
-import io.github.pervasivecats.items.Validated
+import io.github.pervasivecats.Validated
 import io.github.pervasivecats.items.itemcategory.valueobjects.ItemCategoryId
 
 import AnyOps.*
