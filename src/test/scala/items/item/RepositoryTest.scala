@@ -4,6 +4,7 @@ package items.item
 import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.duration.SECONDS
 import scala.language.postfixOps
+
 import io.github.pervasivecats.items.Validated
 import io.github.pervasivecats.items.catalogitem.entities.CatalogItem
 import io.github.pervasivecats.items.catalogitem.valueobjects.CatalogItemId
@@ -23,6 +24,7 @@ import org.scalatest.EitherValues.given
 import org.scalatest.funspec.AnyFunSpec
 import org.scalatest.matchers.should.Matchers.*
 import org.testcontainers.utility.DockerImageName
+
 import items.catalogitem.Repository as CatalogItemRepository
 import items.catalogitem.entities.{CatalogItem, InPlaceCatalogItem, LiftedCatalogItem}
 import items.catalogitem.valueobjects.*
@@ -72,7 +74,7 @@ class RepositoryTest extends AnyFunSpec with TestContainerForAll {
     val category: ItemCategoryId = ItemCategoryId(614).getOrElse(fail())
     val store: Store = Store(15).getOrElse(fail())
     val price: Price = Price(Amount(19.99).getOrElse(fail()), Currency.withName("EUR"))
-    catalogItemId= Some(catalogItemRepositoryOpt.getOrElse(fail()).add(category, store, price).getOrElse(fail()).id)
+    catalogItemId = Some(catalogItemRepositoryOpt.getOrElse(fail()).add(category, store, price).getOrElse(fail()).id)
   }
 
   describe("An Item") {

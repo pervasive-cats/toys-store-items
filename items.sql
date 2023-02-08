@@ -28,7 +28,7 @@ CREATE TABLE IF NOT EXISTS public.items
 (
     id bigint NOT NULL,
     catalog_item_id bigint NOT NULL,
-    customer character varying(100) NOT NULL,
+    customer character varying(100),
     store bigint NOT NULL,
     is_returned item_status NOT NULL DEFAULT 'in_place',
     CONSTRAINT items_pkey PRIMARY KEY (id)

@@ -7,6 +7,15 @@
 package io.github.pervasivecats
 package items.item
 
+import scala.util.Try
+
+import com.typesafe.config.Config
+import com.typesafe.config.ConfigFactory
+import com.typesafe.config.ConfigValueFactory
+import enumeratum.*
+import eu.timepit.refined.auto.autoUnwrap
+import io.getquill.*
+
 import AnyOps.*
 import items.catalogitem.Repository as CatalogItemRepository
 import items.catalogitem.Repository.CatalogItemNotFound
@@ -17,13 +26,6 @@ import items.item.entities.{InCartItem, InPlaceItem, Item, ReturnedItem}
 import items.item.valueobjects.{Customer, ItemId}
 import items.itemcategory.valueobjects.ItemCategoryId
 import items.{Validated, ValidationError}
-
-import com.typesafe.config.{Config, ConfigFactory, ConfigValueFactory}
-import enumeratum.*
-import eu.timepit.refined.auto.autoUnwrap
-import io.getquill.*
-
-import scala.util.Try
 
 trait Repository {
 
@@ -71,18 +73,28 @@ object Repository {
         .filter(_.store === lift[Long](store.id))
     }
 
-    override def findById(itemId: ItemId, catalogItemId: CatalogItemId, store: Store)(using CatalogItemRepository): Validated[Item] =
+    override def findById(
+      itemId: ItemId,
+      catalogItemId: CatalogItemId,
+      store: Store
+    )(
+      using
+      CatalogItemRepository
+    ): Validated[Item] =
       protectFromException(
         ctx.transaction(
-          summon[CatalogItemRepository].findById(catalogItemId, store)
+          summon[CatalogItemRepository]
+            .findById(catalogItemId, store)
             .flatMap(catalogItem =>
               ctx
                 .run(queryByKeys(itemId, catalogItemId, store))
-                .map(i => i.isReturned match {
-                  case "in_place" => Right[ValidationError, Item](InPlaceItem(itemId, catalogItem))
-                  case "returned" => Right[ValidationError, Item](ReturnedItem(itemId, catalogItem))
-                  case "in_cart" => Customer(i.customer).map(InCartItem(itemId, catalogItem, _))
-                })
+                .map(i =>
+                  i.isReturned match {
+                    case "in_place" => Right[ValidationError, Item](InPlaceItem(itemId, catalogItem))
+                    case "returned" => Right[ValidationError, Item](ReturnedItem(itemId, catalogItem))
+                    case "in_cart" => Customer(i.customer).map(InCartItem(itemId, catalogItem, _))
+                  }
+                )
                 .headOption
                 .getOrElse(Left[ValidationError, Item](ItemNotFound))
             )
@@ -92,7 +104,7 @@ object Repository {
     override def add(inPlaceItem: InPlaceItem): Validated[Unit] =
       protectFromException(
         ctx.transaction {
-          if(ctx.run(queryByKeys(inPlaceItem.id, inPlaceItem.kind.id, inPlaceItem.kind.store).nonEmpty))
+          if (ctx.run(queryByKeys(inPlaceItem.id, inPlaceItem.kind.id, inPlaceItem.kind.store).nonEmpty))
             Left[ValidationError, Unit](ItemAlreadyPresent)
           else if (
             ctx.run(
@@ -104,8 +116,8 @@ object Repository {
                   _.isReturned -> sql"${lift[String]("in_place")}::item_status".as[String]
                 )
             )
-              !==
-              1L
+            !==
+            1L
           )
             Left[ValidationError, Unit](OperationFailed)
           else
@@ -133,14 +145,15 @@ object Repository {
 
     override def update(item: Item): Validated[Unit] =
       val ret: Boolean = item match {
-        case inCartItem: InCartItem => ctx
-          .run(
-            queryByKeys(inCartItem.id, inCartItem.kind.id, inCartItem.kind.store)
-              .update(
-                _.customer -> lift[String](inCartItem.customer.email),
-                _.isReturned -> sql"${lift[String]("in_cart")}::item_status".as[String]
-              )
-          )
+        case inCartItem: InCartItem =>
+          ctx
+            .run(
+              queryByKeys(inCartItem.id, inCartItem.kind.id, inCartItem.kind.store)
+                .update(
+                  _.customer -> lift[String](inCartItem.customer.email),
+                  _.isReturned -> sql"${lift[String]("in_cart")}::item_status".as[String]
+                )
+            )
           !==
           1L
         case _: InPlaceItem => queryUpdate(item, "in_place")
