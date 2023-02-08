@@ -74,17 +74,18 @@ object Repository {
     override def findById(itemId: ItemId, catalogItemId: CatalogItemId, store: Store)(using CatalogItemRepository): Validated[Item] =
       protectFromException(
         ctx.transaction(
-          summon[CatalogItemRepository].findById(catalogItemId, store).flatMap(catalogItem =>
-            ctx
-              .run(queryByKeys(itemId, catalogItemId, store))
-              .map(i => i.isReturned match {
-                case "in_place" => Right[ValidationError, Item](InPlaceItem(itemId, catalogItem))
-                case "returned" => Right[ValidationError, Item](ReturnedItem(itemId, catalogItem))
-                case "in_cart" => Customer(i.customer).map(InCartItem(itemId, catalogItem, _))
-              })
-              .headOption
-              .getOrElse(Left[ValidationError, Item](ItemNotFound))
-          )
+          summon[CatalogItemRepository].findById(catalogItemId, store)
+            .flatMap(catalogItem =>
+              ctx
+                .run(queryByKeys(itemId, catalogItemId, store))
+                .map(i => i.isReturned match {
+                  case "in_place" => Right[ValidationError, Item](InPlaceItem(itemId, catalogItem))
+                  case "returned" => Right[ValidationError, Item](ReturnedItem(itemId, catalogItem))
+                  case "in_cart" => Customer(i.customer).map(InCartItem(itemId, catalogItem, _))
+                })
+                .headOption
+                .getOrElse(Left[ValidationError, Item](ItemNotFound))
+            )
         )
       )
 
@@ -130,20 +131,18 @@ object Repository {
       !==
       1L
 
-    private def inCartItemQueryUpdate(item: InCartItem, itemStatus: String): Boolean =
-      ctx.run(
-        queryByKeys(item.id, item.kind.id, item.kind.store)
-          .update(
-            _.customer -> lift[String](item.customer.email),
-            _.isReturned -> sql"${lift[String](itemStatus)}::item_status".as[String]
-          )
-      )
-      !==
-      1L
-
     override def update(item: Item): Validated[Unit] =
       val ret: Boolean = item match {
-        case inCartItem: InCartItem => inCartItemQueryUpdate(inCartItem, "in_cart")
+        case inCartItem: InCartItem => ctx
+          .run(
+            queryByKeys(inCartItem.id, inCartItem.kind.id, inCartItem.kind.store)
+              .update(
+                _.customer -> lift[String](inCartItem.customer.email),
+                _.isReturned -> sql"${lift[String]("in_cart")}::item_status".as[String]
+              )
+          )
+          !==
+          1L
         case _: InPlaceItem => queryUpdate(item, "in_place")
         case _: ReturnedItem => queryUpdate(item, "returned")
       }
