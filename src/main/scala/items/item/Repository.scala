@@ -150,25 +150,29 @@ object Repository {
       1L
 
     override def update(item: Item): Validated[Unit] =
-      val ret: Boolean = item match {
-        case inCartItem: InCartItem =>
-          ctx
-            .run(
-              queryByKeys(inCartItem.id, inCartItem.kind.id, inCartItem.kind.store)
-                .update(
-                  _.customer -> lift[String](inCartItem.customer.email),
-                  _.status -> sql"${lift[String](ItemStatus.InCart.status)}::item_status".as[String]
+      protectFromException(
+        if (
+          item match {
+            case inCartItem: InCartItem =>
+              ctx
+                .run(
+                  queryByKeys(inCartItem.id, inCartItem.kind.id, inCartItem.kind.store)
+                    .update(
+                      _.customer -> lift[String](inCartItem.customer.email),
+                      _.status -> sql"${lift[String](ItemStatus.InCart.status)}::item_status".as[String]
+                    )
                 )
-            )
-          !==
-          1L
-        case _: InPlaceItem => queryUpdate(item, ItemStatus.InPlace.status)
-        case _: ReturnedItem => queryUpdate(item, ItemStatus.Returned.status)
-      }
-      if (ret)
-        Left[ValidationError, Unit](OperationFailed)
-      else
-        Right[ValidationError, Unit](())
+              !==
+              1L
+            case _: InPlaceItem => queryUpdate(item, ItemStatus.InPlace.status)
+            case _: ReturnedItem => queryUpdate(item, ItemStatus.Returned.status)
+
+          }
+        )
+          Left[ValidationError, Unit](OperationFailed)
+        else
+          Right[ValidationError, Unit](())
+      )
 
     override def findAllReturned()(using CatalogItemRepository): Validated[Set[Validated[ReturnedItem]]] =
       protectFromException(
