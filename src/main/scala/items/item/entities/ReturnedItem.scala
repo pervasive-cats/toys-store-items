@@ -7,8 +7,6 @@
 package io.github.pervasivecats
 package items.item.entities
 
-import java.util.Objects
-
 import items.catalogitem.entities.CatalogItem
 import items.item.entities.Item.itemEquals
 import items.item.valueobjects.ItemId
@@ -21,7 +19,7 @@ object ReturnedItem {
 
     override def equals(obj: Any): Boolean = itemEquals(obj)(id)
 
-    override def hashCode(): Int = Objects.hash(id)
+    override def hashCode(): Int = id.##
   }
 
   given ReturnedItemOps[ReturnedItem] with {

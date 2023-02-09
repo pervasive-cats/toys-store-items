@@ -16,7 +16,7 @@ class ItemPutInPlaceTest extends AnyFunSpec {
   val itemId: ItemId = ItemId(9000).getOrElse(fail())
   val itemPutInPlace: ItemPutInPlace = ItemPutInPlace(catalogItemId, store, itemId)
 
-  describe("An item put in place") {
+  describe("An item put in place event") {
     describe("when created with a catalog item id, a store and an item id") {
       it("should contain them") {
         itemPutInPlace.catalogItemId shouldBe catalogItemId

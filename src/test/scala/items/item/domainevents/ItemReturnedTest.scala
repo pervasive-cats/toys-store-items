@@ -16,7 +16,7 @@ class ItemReturnedTest extends AnyFunSpec {
   val itemId: ItemId = ItemId(9000).getOrElse(fail())
   val itemReturned: ItemReturned = ItemReturned(catalogItemId, store, itemId)
 
-  describe("An item returned") {
+  describe("An returned item event") {
     describe("when created with a catalog item id, a store and an item id") {
       it("should contain them") {
         itemReturned.catalogItemId shouldBe catalogItemId

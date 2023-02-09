@@ -7,15 +7,7 @@
 package io.github.pervasivecats
 package items.item.entities
 
-import java.util.Objects
-
-import io.github.pervasivecats.items.ValidationError
-import io.github.pervasivecats.items.item.entities.Item.WrongItemFormat
-import io.github.pervasivecats.items.item.entities.Item.itemEquals
-import io.github.pervasivecats.items.item.valueobjects.ItemId.WrongItemIdFormat
-
-import eu.timepit.refined.api.RefType.applyRef
-
+import items.item.entities.Item.itemEquals
 import items.catalogitem.entities.CatalogItem
 import items.item.valueobjects.{Customer, ItemId}
 
@@ -27,7 +19,7 @@ object InPlaceItem {
 
     override def equals(obj: Any): Boolean = itemEquals(obj)(id)
 
-    override def hashCode(): Int = Objects.hash(id)
+    override def hashCode(): Int = id.##
   }
 
   given InPlaceItemOps[InPlaceItem] with {

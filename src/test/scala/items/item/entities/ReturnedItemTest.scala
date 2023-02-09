@@ -10,14 +10,13 @@ import io.github.pervasivecats.items.item.valueobjects.ItemId
 import org.scalatest.funspec.AnyFunSpec
 import org.scalatest.matchers.should.Matchers.*
 
-import items.catalogitem.entities.CatalogItemOps.updated
 import items.catalogitem.entities.InPlaceCatalogItem.*
-import items.catalogitem.entities.InPlaceCatalogItemOps.lift
 import items.catalogitem.entities.{CatalogItem, InPlaceCatalogItem, LiftedCatalogItem}
 import items.catalogitem.valueobjects.*
+import items.item.entities.InPlaceItemOps.putInCart
+import items.item.entities.ReturnedItemOps.putInPlace
 import items.item.valueobjects.Customer
 import items.itemcategory.valueobjects.ItemCategoryId
-import items.item.entities.ReturnedItemOps.putInPlace
 
 class ReturnedItemTest extends AnyFunSpec {
 
@@ -39,7 +38,7 @@ class ReturnedItemTest extends AnyFunSpec {
       }
     }
 
-    describe("when its putted in place") {
+    describe("when it is put in place") {
       it("should contain the same value") {
         val inPlaceItem: InPlaceItem = returnedItem.putInPlace
         inPlaceItem.id shouldBe returnedItem.id
@@ -50,8 +49,8 @@ class ReturnedItemTest extends AnyFunSpec {
     val secondReturnedItem: ReturnedItem = ReturnedItem(itemId, kind)
     val thirdReturnedItem: ReturnedItem = ReturnedItem(itemId, kind)
 
-    describe("when compared with another identical in retuned item") {
-      it("should be equal fllowing the symmetrical property") {
+    describe("when compared with another identical in returned item") {
+      it("should be equal following the symmetrical property") {
         returnedItem shouldEqual secondReturnedItem
         secondReturnedItem shouldEqual returnedItem
       }
@@ -68,6 +67,24 @@ class ReturnedItemTest extends AnyFunSpec {
 
       it("should have the same hash code as the other") {
         returnedItem.## shouldEqual secondReturnedItem.##
+      }
+    }
+
+    val customer: Customer = Customer("elena@gmail.com").getOrElse(fail())
+    val inPlaceItem: InPlaceItem = returnedItem.putInPlace
+    val inCartItem: InCartItem = inPlaceItem.putInCart(customer)
+
+    describe("when compared with a different type of item but with the same id") {
+      it("should be equal") {
+        returnedItem shouldBe inPlaceItem
+        inPlaceItem shouldBe inCartItem
+        inCartItem shouldBe returnedItem
+      }
+    }
+
+    describe("when compared with anything else") {
+      it("should not be equal") {
+        returnedItem should not equal 1.0
       }
     }
   }

@@ -7,14 +7,8 @@
 package io.github.pervasivecats
 package items.item.entities
 
-import java.util.Objects
-
-import io.github.pervasivecats.items.Validated
-import io.github.pervasivecats.items.catalogitem.entities.CatalogItem
-import io.github.pervasivecats.items.item.entities.Item.itemEquals
-
-import io.getquill.metaprog.Extractors.ConstantValue.Kind
-
+import items.catalogitem.entities.CatalogItem
+import items.item.entities.Item.itemEquals
 import items.item.valueobjects.{Customer, ItemId}
 
 trait InCartItem extends Item {
@@ -28,7 +22,7 @@ object InCartItem {
 
     override def equals(obj: Any): Boolean = itemEquals(obj)(id)
 
-    override def hashCode(): Int = Objects.hash(id)
+    override def hashCode(): Int = id.##
   }
 
   given InCartItemOps[InCartItem] with {

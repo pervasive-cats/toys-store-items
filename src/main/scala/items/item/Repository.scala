@@ -61,12 +61,13 @@ object Repository {
 
     import ctx.*
 
-    private case class Items(id: Long, catalogItemId: Long, customer: String, store: Long, isReturned: String)
+    private case class Items(id: Long, catalogItemId: Long, customer: String, store: Long, status: String)
 
-    private enum ItemStatus(val status: String):
+    private enum ItemStatus(val status: String) {
       case InPlace extends ItemStatus("in_place")
       case InCart extends ItemStatus("in_cart")
       case Returned extends ItemStatus("returned")
+    }
 
     private def protectFromException[A](f: => Validated[A]): Validated[A] =
       Try(f).getOrElse(Left[ValidationError, A](OperationFailed))
@@ -94,7 +95,7 @@ object Repository {
               ctx
                 .run(queryByKeys(itemId, catalogItemId, store))
                 .map(i =>
-                  i.isReturned match {
+                  i.status match {
                     case ItemStatus.InPlace.status => Right[ValidationError, Item](InPlaceItem(itemId, catalogItem))
                     case ItemStatus.Returned.status => Right[ValidationError, Item](ReturnedItem(itemId, catalogItem))
                     case ItemStatus.InCart.status => Customer(i.customer).map(InCartItem(itemId, catalogItem, _))
@@ -118,7 +119,7 @@ object Repository {
                   _.id -> lift[Long](inPlaceItem.id.value),
                   _.store -> lift[Long](inPlaceItem.kind.store.id.value),
                   _.catalogItemId -> lift[Long](inPlaceItem.kind.id.value),
-                  _.isReturned -> sql"${lift[String](ItemStatus.InPlace.status)}::item_status".as[String]
+                  _.status -> sql"${lift[String](ItemStatus.InPlace.status)}::item_status".as[String]
                 )
             )
             !==
@@ -142,7 +143,7 @@ object Repository {
       ctx.run(
         queryByKeys(item.id, item.kind.id, item.kind.store)
           .update(
-            _.isReturned -> sql"${lift[String](itemStatus)}::item_status".as[String]
+            _.status -> sql"${lift[String](itemStatus)}::item_status".as[String]
           )
       )
       !==
@@ -156,7 +157,7 @@ object Repository {
               queryByKeys(inCartItem.id, inCartItem.kind.id, inCartItem.kind.store)
                 .update(
                   _.customer -> lift[String](inCartItem.customer.email),
-                  _.isReturned -> sql"${lift[String](ItemStatus.InCart.status)}::item_status".as[String]
+                  _.status -> sql"${lift[String](ItemStatus.InCart.status)}::item_status".as[String]
                 )
             )
           !==
@@ -175,7 +176,7 @@ object Repository {
           ctx
             .run(
               query[Items]
-                .filter(_.isReturned === sql"${lift[String](ItemStatus.Returned.status)}::item_status".as[String])
+                .filter(_.status === sql"${lift[String](ItemStatus.Returned.status)}::item_status".as[String])
             )
             .map(r =>
               for {

@@ -10,14 +10,13 @@ import io.github.pervasivecats.items.item.valueobjects.ItemId
 import org.scalatest.funspec.AnyFunSpec
 import org.scalatest.matchers.should.Matchers.*
 
-import items.catalogitem.entities.CatalogItemOps.updated
 import items.catalogitem.entities.InPlaceCatalogItem.*
-import items.catalogitem.entities.InPlaceCatalogItemOps.lift
-import items.catalogitem.entities.LiftedCatalogItemOps.putInPlace
 import items.catalogitem.entities.{CatalogItem, InPlaceCatalogItem, LiftedCatalogItem}
 import items.catalogitem.valueobjects.*
 import items.item.valueobjects.Customer
 import items.itemcategory.valueobjects.ItemCategoryId
+import items.item.entities.InCartItemOps.returnToStore
+import items.item.entities.ReturnedItemOps.putInPlace
 
 class InCartItemTest extends AnyFunSpec {
 
@@ -54,7 +53,7 @@ class InCartItemTest extends AnyFunSpec {
     val thirdInCartItem: InCartItem = InCartItem(itemId, kind, customer)
 
     describe("when compared with another identical in cart item") {
-      it("should be equal fllowing the symmetrical property") {
+      it("should be equal following the symmetrical property") {
         inCartItem shouldEqual secondInCartItem
         secondInCartItem shouldEqual inCartItem
       }
@@ -71,6 +70,23 @@ class InCartItemTest extends AnyFunSpec {
 
       it("should have the same hash code as the other") {
         inCartItem.## shouldEqual secondInCartItem.##
+      }
+    }
+
+    val returnedItem: ReturnedItem = inCartItem.returnToStore
+    val inPlaceItem: InPlaceItem = returnedItem.putInPlace
+
+    describe("when compared with a different type of item but with the same id") {
+      it("should be equal") {
+        inCartItem shouldBe returnedItem
+        returnedItem shouldBe inPlaceItem
+        inPlaceItem shouldBe inCartItem
+      }
+    }
+
+    describe("when compared with anything else") {
+      it("should not be equal") {
+        inCartItem should not equal 1.0
       }
     }
   }

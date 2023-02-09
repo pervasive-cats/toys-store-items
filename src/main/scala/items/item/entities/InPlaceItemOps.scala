@@ -20,5 +20,4 @@ object InPlaceItemOps {
 
     def putInCart(customer: Customer): InCartItem = implicitly[InPlaceItemOps[A]].putInCart(inPlaceItem, customer)
   }
-
 }

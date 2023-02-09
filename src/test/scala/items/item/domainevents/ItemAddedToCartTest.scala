@@ -17,7 +17,7 @@ class ItemAddedToCartTest extends AnyFunSpec {
   val customer: Customer = Customer("addr.3ss.!@email.test.com").getOrElse(fail())
   val itemAddedToCart: ItemAddedToCart = ItemAddedToCart(catalogItemId, store, itemId, customer)
 
-  describe("An Item added to cart") {
+  describe("An Item added to cart event") {
     describe("when created with a catalog item id, a store, an item id and a customer") {
       it("should contain them") {
         itemAddedToCart.catalogItemId shouldBe catalogItemId

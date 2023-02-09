@@ -1,8 +1,8 @@
 package io.github.pervasivecats
 package items.item
 
+import scala.concurrent.duration.DurationInt
 import scala.concurrent.duration.FiniteDuration
-import scala.concurrent.duration.SECONDS
 import scala.language.postfixOps
 
 import io.github.pervasivecats.items.Validated
@@ -34,7 +34,7 @@ import items.item.entities.InPlaceItemOps.putInCart
 
 class RepositoryTest extends AnyFunSpec with TestContainerForAll {
 
-  private val timeout: FiniteDuration = FiniteDuration(300, SECONDS)
+  private val timeout: FiniteDuration = 300.seconds
 
   override val containerDef: PostgreSQLContainer.Def = PostgreSQLContainer.Def(
     dockerImageName = DockerImageName.parse("postgres:15.1"),
@@ -70,7 +70,6 @@ class RepositoryTest extends AnyFunSpec with TestContainerForAll {
           .withValue("dataSource.portNumber", ConfigValueFactory.fromAnyRef(containers.container.getFirstMappedPort.intValue()))
       )
     )
-
     val category: ItemCategoryId = ItemCategoryId(614).getOrElse(fail())
     val store: Store = Store(15).getOrElse(fail())
     val price: Price = Price(Amount(19.99).getOrElse(fail()), Currency.withName("EUR"))
@@ -91,8 +90,10 @@ class RepositoryTest extends AnyFunSpec with TestContainerForAll {
         val catalogItem: CatalogItem = InPlaceCatalogItem(id, itemCategoryId, store, price)
         val inPlaceItem: InPlaceItem = InPlaceItem(itemId, catalogItem)
         db.add(inPlaceItem).getOrElse(fail())
-        db.findById(inPlaceItem.id, catalogItemId.getOrElse(fail()), store).getOrElse(fail())
-        db.remove(inPlaceItem).value
+        val item: Item = db.findById(inPlaceItem.id, catalogItemId.getOrElse(fail()), store).value
+        item.id shouldBe itemId
+        item.kind shouldBe catalogItem
+        db.remove(inPlaceItem).getOrElse(fail())
       }
     }
 
@@ -106,7 +107,7 @@ class RepositoryTest extends AnyFunSpec with TestContainerForAll {
       }
     }
 
-    describe("after being added with a existent id") {
+    describe("after being added with a existing id") {
       it("should not be present in database") {
         val db = repository.getOrElse(fail())
         val store: Store = Store(15).value
@@ -118,7 +119,7 @@ class RepositoryTest extends AnyFunSpec with TestContainerForAll {
         val inPlaceItem: InPlaceItem = InPlaceItem(itemId, catalogItem)
         db.add(inPlaceItem).getOrElse(fail())
         db.add(inPlaceItem).left.value shouldBe ItemAlreadyPresent
-        db.remove(inPlaceItem)
+        db.remove(inPlaceItem).getOrElse(fail())
       }
     }
 
@@ -133,7 +134,7 @@ class RepositoryTest extends AnyFunSpec with TestContainerForAll {
         val catalogItem: CatalogItem = InPlaceCatalogItem(id, itemCategoryId, store, price)
         val inPlaceItem: InPlaceItem = InPlaceItem(itemId, catalogItem)
         db.add(inPlaceItem).getOrElse(fail())
-        db.remove(inPlaceItem).value
+        db.remove(inPlaceItem).getOrElse(fail())
         db.findById(inPlaceItem.id, catalogItemId.getOrElse(fail()), store).left.value shouldBe ItemNotFound
       }
     }
@@ -152,7 +153,7 @@ class RepositoryTest extends AnyFunSpec with TestContainerForAll {
       }
     }
 
-    describe("after being added and then it data gets updated") {
+    describe("after being added and then it data gets updated many times") {
       it("should show the update") {
         val db = repository.getOrElse(fail())
         val store: Store = Store(15).value
@@ -162,18 +163,31 @@ class RepositoryTest extends AnyFunSpec with TestContainerForAll {
         val id: CatalogItemId = catalogItemId.getOrElse(fail())
         val catalogItem: CatalogItem = InPlaceCatalogItem(id, itemCategoryId, store, price)
         val inPlaceItem: InPlaceItem = InPlaceItem(itemId, catalogItem)
-        db.add(inPlaceItem).value
+        db.add(inPlaceItem).getOrElse(fail())
+
         val customer: Customer = Customer("elena@gmail.com").value
         val inCartItem: InCartItem = inPlaceItem.putInCart(customer)
         db.update(inCartItem).value
         db.findById(inCartItem.id, inCartItem.kind.id, inCartItem.kind.store).value match {
-          case item: InCartItem => item.customer shouldBe customer
+          case item: InCartItem => item shouldBe inCartItem
         }
-        db.remove(inCartItem)
+
+        val returnedItem: ReturnedItem = inCartItem.returnToStore
+        db.update(returnedItem).value
+        db.findById(returnedItem.id, returnedItem.kind.id, returnedItem.kind.store).value match {
+          case item: ReturnedItem => item shouldBe returnedItem
+        }
+
+        db.update(inPlaceItem).value
+        db.findById(inPlaceItem.id, inPlaceItem.kind.id, inPlaceItem.kind.store).value match {
+          case item: InPlaceItem => item shouldBe inPlaceItem
+        }
+
+        db.remove(inCartItem).getOrElse(fail())
       }
     }
 
-    describe("when it data gets updated but they were never added in the first place") {
+    describe("when its data gets updated but it was never added in the first place") {
       it("should not be allowed") {
         val db: Repository = repository.getOrElse(fail())
         val store: Store = Store(15).value
@@ -187,48 +201,44 @@ class RepositoryTest extends AnyFunSpec with TestContainerForAll {
       }
     }
 
-    describe("if never registered, while searching for all returned items") {
+    describe("if never added, while searching for all returned items") {
       it("should not be in the database") {
         val db: Repository = repository.getOrElse(fail())
-        val empty: Int = 0
-        db.findAllReturned().value.size shouldBe empty
+        db.findAllReturned().value.size shouldBe 0
       }
     }
 
     describe("if added twice, while searching for all returned items") {
       it("should be in the database along with its clone") {
         val db: Repository = repository.getOrElse(fail())
-        val empty: Int = 0
-        val one: Int = 1
-        val two: Int = 2
 
         val store: Store = Store(15).value
         val itemCategoryId: ItemCategoryId = ItemCategoryId(614).value
         val price: Price = Price(Amount(19.99).value, Currency.withName("EUR"))
         val id: CatalogItemId = catalogItemId.getOrElse(fail())
         val catalogItem: CatalogItem = InPlaceCatalogItem(id, itemCategoryId, store, price)
-        val customer: Customer = Customer("elena@gmail.com").value
-        db.findAllReturned().value.size shouldBe empty
+        val customer: Customer = Customer("elena@gmail.com").getOrElse(fail())
+        db.findAllReturned().value.size shouldBe 0
 
-        val firstItemId: ItemId = ItemId(9000).value
+        val firstItemId: ItemId = ItemId(9000).getOrElse(fail())
         val firstInPlaceItem: InPlaceItem = InPlaceItem(firstItemId, catalogItem)
-        db.add(firstInPlaceItem).value
+        db.add(firstInPlaceItem).getOrElse(fail())
         val firstInCartItem: InCartItem = firstInPlaceItem.putInCart(customer)
         val firstReturnedItem: ReturnedItem = firstInCartItem.returnToStore
         db.update(firstReturnedItem).value
-        db.findAllReturned().value.size shouldBe one
+        db.findAllReturned().value.size shouldBe 1
 
-        val secondItemId: ItemId = ItemId(9001).value
+        val secondItemId: ItemId = ItemId(9001).getOrElse(fail())
         val secondInPlaceItem: InPlaceItem = InPlaceItem(secondItemId, catalogItem)
-        db.add(secondInPlaceItem)
+        db.add(secondInPlaceItem).getOrElse(fail())
         val secondInCartItem: InCartItem = secondInPlaceItem.putInCart(customer)
         val secondReturnedItem: ReturnedItem = secondInCartItem.returnToStore
         db.update(secondReturnedItem).value
-        db.findAllReturned().value.size shouldBe two
+        db.findAllReturned().value.size shouldBe 2
 
-        db.remove(firstInPlaceItem)
-        db.remove(secondInPlaceItem)
-        db.findAllReturned().value.size shouldBe empty
+        db.remove(firstInPlaceItem).getOrElse(fail())
+        db.remove(secondInPlaceItem).getOrElse(fail())
+        db.findAllReturned().value.size shouldBe 0
       }
     }
   }

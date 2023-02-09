@@ -30,6 +30,6 @@ CREATE TABLE IF NOT EXISTS public.items
     catalog_item_id bigint NOT NULL,
     customer character varying(100),
     store bigint NOT NULL,
-    is_returned item_status NOT NULL DEFAULT 'in_place',
+    status item_status NOT NULL DEFAULT 'in_place',
     CONSTRAINT items_pkey PRIMARY KEY (id)
 );

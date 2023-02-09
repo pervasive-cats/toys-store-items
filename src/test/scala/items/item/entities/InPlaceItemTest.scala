@@ -8,15 +8,13 @@ import io.github.pervasivecats.items.item.valueobjects.ItemId
 import org.scalatest.funspec.AnyFunSpec
 import org.scalatest.matchers.should.Matchers.*
 
-import items.catalogitem.entities.CatalogItemOps.updated
 import items.catalogitem.entities.InPlaceCatalogItem.*
-import items.catalogitem.entities.InPlaceCatalogItemOps.lift
-import items.catalogitem.entities.LiftedCatalogItemOps.putInPlace
 import items.catalogitem.entities.{CatalogItem, InPlaceCatalogItem, LiftedCatalogItem}
 import items.catalogitem.valueobjects.*
+import items.item.entities.InPlaceItemOps.putInCart
+import items.item.entities.InCartItemOps.returnToStore
 import items.item.valueobjects.Customer
 import items.itemcategory.valueobjects.ItemCategoryId
-import items.item.entities.InPlaceItemOps.putInCart
 
 class InPlaceItemTest extends AnyFunSpec {
 
@@ -52,7 +50,7 @@ class InPlaceItemTest extends AnyFunSpec {
     val thirdInPlaceItem: InPlaceItem = InPlaceItem(itemId, kind)
 
     describe("when compared with another identical in place item") {
-      it("should be equal fllowing the symmetrical property") {
+      it("should be equal following the symmetrical property") {
         inPlaceItem shouldEqual secondInPlaceItem
         secondInPlaceItem shouldEqual inPlaceItem
       }
@@ -69,6 +67,24 @@ class InPlaceItemTest extends AnyFunSpec {
 
       it("should have the same hash code as the other") {
         inPlaceItem.## shouldEqual secondInPlaceItem.##
+      }
+    }
+
+    val customer: Customer = Customer("elena@gmail.com").getOrElse(fail())
+    val inCartItem: InCartItem = inPlaceItem.putInCart(customer)
+    val returnedItem: ReturnedItem = inCartItem.returnToStore
+
+    describe("when compared with a different type of item but with the same id") {
+      it("should be equal") {
+        inPlaceItem shouldBe inCartItem
+        inCartItem shouldBe returnedItem
+        returnedItem shouldBe inPlaceItem
+      }
+    }
+
+    describe("when compared with anything else") {
+      it("should not be equal") {
+        inPlaceItem should not equal 1.0
       }
     }
   }
