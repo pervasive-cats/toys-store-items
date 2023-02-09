@@ -12,23 +12,24 @@ import java.nio.file.attribute.UserPrincipalNotFoundException
 import scala.concurrent.duration.DurationInt
 import scala.concurrent.duration.FiniteDuration
 
-import io.github.pervasivecats.items.itemcategory.Repository.ItemCategoryNotFound
-import io.github.pervasivecats.items.itemcategory.Repository.OperationFailed
-import io.github.pervasivecats.items.itemcategory.entities.ItemCategory
-import io.github.pervasivecats.items.itemcategory.valueobjects.Description
-import io.github.pervasivecats.items.itemcategory.valueobjects.ItemCategoryId
-import io.github.pervasivecats.items.itemcategory.valueobjects.Name
+import io.github.pervasivecats.ValidationError
+import io.github.pervasivecats.items.RepositoryOperationFailed
 
 import com.dimafeng.testcontainers.JdbcDatabaseContainer.CommonParams
 import com.dimafeng.testcontainers.PostgreSQLContainer
 import com.dimafeng.testcontainers.scalatest.TestContainerForAll
 import com.typesafe.config.ConfigFactory
 import com.typesafe.config.ConfigValueFactory
-import io.github.pervasivecats.ValidationError
 import org.scalatest.EitherValues.given
 import org.scalatest.funspec.AnyFunSpec
 import org.scalatest.matchers.should.Matchers.*
 import org.testcontainers.utility.DockerImageName
+
+import items.itemcategory.Repository.ItemCategoryNotFound
+import items.itemcategory.entities.ItemCategory
+import items.itemcategory.valueobjects.Description
+import items.itemcategory.valueobjects.ItemCategoryId
+import items.itemcategory.valueobjects.Name
 
 class RepositoryTest extends AnyFunSpec with TestContainerForAll {
 
@@ -50,7 +51,7 @@ class RepositoryTest extends AnyFunSpec with TestContainerForAll {
       Repository(
         ConfigFactory
           .load()
-          .getConfig("ctx")
+          .getConfig("repository")
           .withValue("dataSource.portNumber", ConfigValueFactory.fromAnyRef(containers.container.getFirstMappedPort.intValue()))
       )
     )
@@ -93,7 +94,7 @@ class RepositoryTest extends AnyFunSpec with TestContainerForAll {
         val name: Name = Name("Terraforming Mars").getOrElse(fail())
         val description: Description = Description("Boardgame produced by BraditGamesStudio").getOrElse(fail())
         val itemCategory: ItemCategory = ItemCategory(id, name, description)
-        db.remove(itemCategory).left.value shouldBe OperationFailed
+        db.remove(itemCategory).left.value shouldBe RepositoryOperationFailed
       }
     }
 
@@ -120,7 +121,7 @@ class RepositoryTest extends AnyFunSpec with TestContainerForAll {
         val name: Name = Name("Throw Throw Burrito").getOrElse(fail())
         val description: Description = Description("What you get when you cross a card game with dodgeball").getOrElse(fail())
         val itemCategory: ItemCategory = ItemCategory(id, name, description)
-        db.update(itemCategory, name, description).left.value shouldBe OperationFailed
+        db.update(itemCategory, name, description).left.value shouldBe RepositoryOperationFailed
       }
     }
   }

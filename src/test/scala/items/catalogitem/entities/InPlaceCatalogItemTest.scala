@@ -7,6 +7,7 @@
 package io.github.pervasivecats
 package items.catalogitem.entities
 
+import eu.timepit.refined.auto.given
 import org.scalatest.funspec.AnyFunSpec
 import org.scalatest.matchers.should.Matchers.*
 
@@ -15,7 +16,6 @@ import items.catalogitem.entities.{CatalogItem, InPlaceCatalogItem, LiftedCatalo
 import items.catalogitem.entities.InPlaceCatalogItemOps.{updated, lift}
 import items.catalogitem.valueobjects.*
 import items.itemcategory.valueobjects.ItemCategoryId
-import eu.timepit.refined.auto.given
 
 class InPlaceCatalogItemTest extends AnyFunSpec {
 

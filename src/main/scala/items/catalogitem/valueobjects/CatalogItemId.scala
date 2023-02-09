@@ -7,10 +7,12 @@
 package io.github.pervasivecats
 package items.catalogitem.valueobjects
 
+import io.github.pervasivecats.Validated
+import io.github.pervasivecats.ValidationError
+
 import eu.timepit.refined.api.RefType.applyRef
 
 import items.Id
-import io.github.pervasivecats.{Validated, ValidationError}
 
 trait CatalogItemId {
 

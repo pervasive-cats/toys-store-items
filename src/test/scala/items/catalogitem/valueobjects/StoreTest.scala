@@ -7,16 +7,18 @@
 package io.github.pervasivecats
 package items.catalogitem.valueobjects
 
+import io.github.pervasivecats.ValidationError
+
 import eu.timepit.refined.auto.given
 import org.scalatest.EitherValues.given
 import org.scalatest.funspec.AnyFunSpec
 import org.scalatest.matchers.should.Matchers.shouldBe
+
 import items.catalogitem.valueobjects.Store
 import items.catalogitem.valueobjects.Store.WrongStoreFormat
-import io.github.pervasivecats.ValidationError
 
 class StoreTest extends AnyFunSpec {
-  
+
   private val positiveValue: Long = 9000
   private val zeroValue: Long = 0
 

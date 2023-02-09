@@ -9,6 +9,9 @@ package items.catalogitem
 
 import scala.util.Try
 
+import io.github.pervasivecats.Validated
+import io.github.pervasivecats.ValidationError
+
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
 import com.typesafe.config.ConfigValueFactory
@@ -18,11 +21,8 @@ import io.getquill.*
 import AnyOps.*
 import items.catalogitem.entities.{CatalogItem, InPlaceCatalogItem, LiftedCatalogItem}
 import items.catalogitem.valueobjects.*
-import items.itemcategory.Repository
-import items.itemcategory.Repository.OperationFailed
 import items.itemcategory.valueobjects.ItemCategoryId
-import io.github.pervasivecats.Validated
-import io.github.pervasivecats.ValidationError
+import items.RepositoryOperationFailed
 
 trait Repository {
 
@@ -44,18 +44,16 @@ object Repository {
     override val message: String = "The queried customer was not found"
   }
 
-  case object OperationFailed extends ValidationError {
-
-    override val message: String = "The operation on the given catalog item was not correctly performed"
-  }
-
   private class PostgresRepository(ctx: PostgresJdbcContext[SnakeCase]) extends Repository {
 
     import ctx.*
 
     private case class CatalogItems(id: Long, category: Long, store: Long, amount: Double, currency: String, count: Long)
 
-    override def findById(catalogItemId: CatalogItemId, store: Store): Validated[CatalogItem] =
+    private def protectFromException[A](f: => Validated[A]): Validated[A] =
+      Try(f).getOrElse(Left[ValidationError, A](RepositoryOperationFailed))
+
+    override def findById(catalogItemId: CatalogItemId, store: Store): Validated[CatalogItem] = protectFromException {
       ctx
         .run(
           quote {
@@ -77,6 +75,7 @@ object Repository {
         )
         .headOption
         .getOrElse(Left[ValidationError, CatalogItem](CatalogItemNotFound))
+    }
 
     override def findAllLifted(): Validated[Set[Validated[LiftedCatalogItem]]] =
       Try(
@@ -95,9 +94,9 @@ object Repository {
       )
         .toEither
         .map(Right[ValidationError, Set[Validated[LiftedCatalogItem]]])
-        .getOrElse(Left[ValidationError, Set[Validated[LiftedCatalogItem]]](OperationFailed))
+        .getOrElse(Left[ValidationError, Set[Validated[LiftedCatalogItem]]](RepositoryOperationFailed))
 
-    override def add(category: ItemCategoryId, store: Store, price: Price): Validated[InPlaceCatalogItem] =
+    override def add(category: ItemCategoryId, store: Store, price: Price): Validated[InPlaceCatalogItem] = protectFromException {
       ctx.transaction {
         val nextId: Long =
           ctx
@@ -122,10 +121,11 @@ object Repository {
           !==
           1L
         )
-          Left[ValidationError, InPlaceCatalogItem](OperationFailed)
+          Left[ValidationError, InPlaceCatalogItem](RepositoryOperationFailed)
         else
           CatalogItemId(nextId).map(InPlaceCatalogItem(_, category, store, price))
       }
+    }
 
     override def update(catalogItem: CatalogItem, count: Option[Count], price: Price): Validated[Unit] =
       if (
@@ -141,11 +141,11 @@ object Repository {
         )
         !==
         1L
-      ) Left[ValidationError, Unit](OperationFailed)
+      ) Left[ValidationError, Unit](RepositoryOperationFailed)
       else
         Right[ValidationError, Unit](())
 
-    override def remove(catalogItem: CatalogItem): Validated[Unit] =
+    override def remove(catalogItem: CatalogItem): Validated[Unit] = protectFromException {
       if (
         ctx.run(
           query[CatalogItems]
@@ -155,9 +155,10 @@ object Repository {
         )
         !==
         1L
-      ) Left[ValidationError, Unit](OperationFailed)
+      ) Left[ValidationError, Unit](RepositoryOperationFailed)
       else
         Right[ValidationError, Unit](())
+    }
   }
 
   def apply(config: Config): Repository = PostgresRepository(PostgresJdbcContext[SnakeCase](SnakeCase, config))

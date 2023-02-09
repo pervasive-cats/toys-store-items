@@ -7,14 +7,14 @@
 package io.github.pervasivecats
 package items.itemcategory.valueobjects
 
-
+import io.github.pervasivecats.ValidationError
 
 import eu.timepit.refined.auto.autoUnwrap
 import org.scalatest.funspec.AnyFunSpec
 import org.scalatest.matchers.should.Matchers.shouldBe
+
 import items.itemcategory.valueobjects.Name
 import items.itemcategory.valueobjects.Name.WrongNameFormat
-import io.github.pervasivecats.ValidationError
 
 class NameTest extends AnyFunSpec {
 

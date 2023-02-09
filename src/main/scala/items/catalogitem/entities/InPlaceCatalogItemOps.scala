@@ -21,7 +21,7 @@ object InPlaceCatalogItemOps {
   extension [A <: InPlaceCatalogItem: InPlaceCatalogItemOps](inPlaceCatalogItem: A) {
 
     def updated(price: Price): A = implicitly[InPlaceCatalogItemOps[A]].updated(inPlaceCatalogItem, price)
-    
+
     def lift: Validated[LiftedCatalogItem] = implicitly[InPlaceCatalogItemOps[A]].lift(inPlaceCatalogItem)
   }
 }

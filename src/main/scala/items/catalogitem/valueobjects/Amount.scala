@@ -8,11 +8,11 @@ package io.github.pervasivecats
 package items.catalogitem.valueobjects
 
 import io.github.pervasivecats.Validated
+import io.github.pervasivecats.ValidationError
 
 import eu.timepit.refined.api.RefType.applyRef
 import eu.timepit.refined.api.Refined
 import eu.timepit.refined.numeric.Positive
-import io.github.pervasivecats.ValidationError
 
 type AmountDouble = Double Refined Positive
 

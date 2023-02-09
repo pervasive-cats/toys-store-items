@@ -7,10 +7,12 @@
 package io.github.pervasivecats
 package items.catalogitem.valueobjects
 
-import eu.timepit.refined.api.Refined
+import io.github.pervasivecats.Validated
+import io.github.pervasivecats.ValidationError
+
 import eu.timepit.refined.api.RefType.applyRef
+import eu.timepit.refined.api.Refined
 import eu.timepit.refined.numeric.Positive
-import io.github.pervasivecats.{Validated, ValidationError}
 
 type CountLong = Long Refined Positive
 

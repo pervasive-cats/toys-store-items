@@ -20,7 +20,7 @@ object LiftedCatalogItemOps {
 
   extension [A <: LiftedCatalogItem: LiftedCatalogItemOps](liftedCatalogItem: A) {
 
-    @SuppressWarnings(Array("org.wartremover.warts.DefaultArguments"))
+    @SuppressWarnings(Array("org.wartremover.warts.DefaultArguments", "scalafix:DisableSyntax.defaultArgs"))
     def updated(count: Count = liftedCatalogItem.count, price: Price = liftedCatalogItem.price): A =
       implicitly[LiftedCatalogItemOps[A]].updated(liftedCatalogItem, count, price)
 

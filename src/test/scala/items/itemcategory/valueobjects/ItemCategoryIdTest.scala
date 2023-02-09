@@ -7,7 +7,7 @@
 package io.github.pervasivecats
 package items.itemcategory.valueobjects
 
-
+import io.github.pervasivecats.ValidationError
 
 import eu.timepit.refined.auto.autoUnwrap
 import org.scalatest.funspec.AnyFunSpec
@@ -16,7 +16,6 @@ import org.scalatest.matchers.should.Matchers.*
 import items.itemcategory.valueobjects.ItemCategoryId
 import items.itemcategory.valueobjects.ItemCategoryId.WrongItemCategoryIdFormat
 import items.Id
-import io.github.pervasivecats.ValidationError
 
 class ItemCategoryIdTest extends AnyFunSpec {
 

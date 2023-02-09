@@ -7,8 +7,6 @@
 package io.github.pervasivecats
 package items.itemcategory.entities
 
-
-
 import org.scalatest.funspec.AnyFunSpec
 import org.scalatest.matchers.should.Matchers.*
 

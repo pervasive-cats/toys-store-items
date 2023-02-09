@@ -16,10 +16,10 @@ object Currency extends Enum[Currency] {
   val values: IndexedSeq[Currency] = findValues
 
   case object EUR extends Currency
-  
+
   case object USD extends Currency
-  
+
   case object GBP extends Currency
-  
+
   case object CHF extends Currency
 }

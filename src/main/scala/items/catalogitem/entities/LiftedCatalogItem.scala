@@ -8,11 +8,13 @@ package io.github.pervasivecats
 package items.catalogitem.entities
 
 import io.github.pervasivecats.Validated
+
+import eu.timepit.refined.auto.given
+
 import items.itemcategory.valueobjects.ItemCategoryId
 import AnyOps.*
 import items.catalogitem.valueobjects.{CatalogItemId, Count, Price, Store}
 import items.catalogitem.entities.LiftedCatalogItemOps.updated
-import eu.timepit.refined.auto.given
 
 trait LiftedCatalogItem extends CatalogItem {
 

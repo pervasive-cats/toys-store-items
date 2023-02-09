@@ -7,13 +7,15 @@
 package io.github.pervasivecats
 package items.catalogitem.valueobjects
 
+import io.github.pervasivecats.ValidationError
+
 import eu.timepit.refined.auto.given
 import org.scalatest.EitherValues.given
 import org.scalatest.funspec.AnyFunSpec
 import org.scalatest.matchers.should.Matchers.shouldBe
+
 import items.catalogitem.valueobjects.Count
 import items.catalogitem.valueobjects.Count.WrongCountFormat
-import io.github.pervasivecats.ValidationError
 
 class CountTest extends AnyFunSpec {
 

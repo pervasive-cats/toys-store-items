@@ -10,6 +10,9 @@ package items.catalogitem
 import scala.concurrent.duration.DurationInt
 import scala.concurrent.duration.FiniteDuration
 
+import io.github.pervasivecats.Validated
+import io.github.pervasivecats.items.RepositoryOperationFailed
+
 import com.dimafeng.testcontainers.JdbcDatabaseContainer.CommonParams
 import com.dimafeng.testcontainers.PostgreSQLContainer
 import com.dimafeng.testcontainers.scalatest.TestContainerForAll
@@ -21,8 +24,7 @@ import org.scalatest.funspec.AnyFunSpec
 import org.scalatest.matchers.should.Matchers.*
 import org.testcontainers.utility.DockerImageName
 
-import io.github.pervasivecats.Validated
-import items.catalogitem.Repository.{CatalogItemNotFound, OperationFailed}
+import items.catalogitem.Repository.CatalogItemNotFound
 import items.catalogitem.entities.InPlaceCatalogItemOps.lift
 import items.catalogitem.entities.{CatalogItem, InPlaceCatalogItem, LiftedCatalogItem}
 import items.catalogitem.valueobjects.*
@@ -48,7 +50,7 @@ class RepositoryTest extends AnyFunSpec with TestContainerForAll {
       Repository(
         ConfigFactory
           .load()
-          .getConfig("ctx")
+          .getConfig("repository")
           .withValue("dataSource.portNumber", ConfigValueFactory.fromAnyRef(containers.container.getFirstMappedPort.intValue()))
       )
     )
@@ -95,7 +97,7 @@ class RepositoryTest extends AnyFunSpec with TestContainerForAll {
         val store: Store = Store(2).getOrElse(fail())
         val price: Price = Price(Amount(19.99).getOrElse(fail()), Currency.withName("EUR"))
         val inPlaceCatalogItem: InPlaceCatalogItem = InPlaceCatalogItem(id, category, store, price)
-        db.remove(inPlaceCatalogItem).left.value shouldBe OperationFailed
+        db.remove(inPlaceCatalogItem).left.value shouldBe RepositoryOperationFailed
       }
     }
 
@@ -132,7 +134,7 @@ class RepositoryTest extends AnyFunSpec with TestContainerForAll {
         val store: Store = Store(3).getOrElse(fail())
         val price: Price = Price(Amount(19.99).getOrElse(fail()), Currency.withName("EUR"))
         val catalogItem: InPlaceCatalogItem = InPlaceCatalogItem(id, category, store, price)
-        db.update(catalogItem, None, price).left.value shouldBe OperationFailed
+        db.update(catalogItem, None, price).left.value shouldBe RepositoryOperationFailed
       }
     }
 

@@ -7,6 +7,11 @@
 package io.github.pervasivecats
 package items.itemcategory
 
+import scala.util.Try
+
+import io.github.pervasivecats.Validated
+import io.github.pervasivecats.ValidationError
+
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
 import com.typesafe.config.ConfigValueFactory
@@ -14,11 +19,10 @@ import eu.timepit.refined.auto.given
 import io.getquill.*
 import io.getquill.autoQuote
 
-import io.github.pervasivecats.Validated
 import items.itemcategory.entities.ItemCategory
 import items.itemcategory.valueobjects.*
 import AnyOps.{!==, ===}
-import io.github.pervasivecats.ValidationError
+import items.RepositoryOperationFailed
 
 trait Repository {
 
@@ -38,20 +42,16 @@ object Repository {
     override val message: String = "No item category found for the id that was provided"
   }
 
-  case object OperationFailed extends ValidationError {
-
-    override val message: String = "The operation on the given item category was not correctly performed"
-  }
-
   private class PostgresRepository(ctx: PostgresJdbcContext[SnakeCase]) extends Repository {
 
     import ctx.*
 
     private case class ItemCategories(id: Long, name: String, description: String)
 
-    private case class ItemCategoriesWithoutId(name: String, description: String)
+    private def protectFromException[A](f: => Validated[A]): Validated[A] =
+      Try(f).getOrElse(Left[ValidationError, A](RepositoryOperationFailed))
 
-    override def findById(id: ItemCategoryId): Validated[ItemCategory] = {
+    override def findById(id: ItemCategoryId): Validated[ItemCategory] = protectFromException {
       ctx
         .run(query[ItemCategories].filter(_.id === lift[Long](id.value)))
         .map(item =>
@@ -65,7 +65,7 @@ object Repository {
         .getOrElse(Left[ValidationError, ItemCategory](ItemCategoryNotFound))
     }
 
-    override def add(name: Name, description: Description): Validated[ItemCategory] =
+    override def add(name: Name, description: Description): Validated[ItemCategory] = protectFromException {
       ItemCategoryId(
         ctx
           .run(
@@ -77,31 +77,33 @@ object Repository {
               .returningGenerated(_.id)
           )
       ).map(ItemCategory(_, name, description))
-
-    override def update(itemCategory: ItemCategory, name: Name, description: Description): Validated[Unit] = {
-      if (
-        ctx
-          .run(
-            query[ItemCategories]
-              .filter(_.id === lift[Long](itemCategory.id.value))
-              .updateValue(
-                lift(
-                  ItemCategories(
-                    itemCategory.id.value,
-                    name.value,
-                    description.value
-                  )
-                )
-              )
-          )
-        !==
-        1L
-      ) Left[ValidationError, Unit](OperationFailed)
-      else
-        Right[ValidationError, Unit](())
     }
 
-    override def remove(itemCategory: ItemCategory): Validated[Unit] = {
+    override def update(itemCategory: ItemCategory, name: Name, description: Description): Validated[Unit] =
+      protectFromException {
+        if (
+          ctx
+            .run(
+              query[ItemCategories]
+                .filter(_.id === lift[Long](itemCategory.id.value))
+                .updateValue(
+                  lift(
+                    ItemCategories(
+                      itemCategory.id.value,
+                      name.value,
+                      description.value
+                    )
+                  )
+                )
+            )
+          !==
+          1L
+        ) Left[ValidationError, Unit](RepositoryOperationFailed)
+        else
+          Right[ValidationError, Unit](())
+      }
+
+    override def remove(itemCategory: ItemCategory): Validated[Unit] = protectFromException {
       if (
         ctx
           .run(
@@ -111,7 +113,7 @@ object Repository {
           )
         !==
         1L
-      ) Left[ValidationError, Unit](OperationFailed)
+      ) Left[ValidationError, Unit](RepositoryOperationFailed)
       else
         Right[ValidationError, Unit](())
     }

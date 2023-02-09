@@ -7,13 +7,15 @@
 package io.github.pervasivecats
 package items.catalogitem.valueobjects
 
+import io.github.pervasivecats.ValidationError
+
 import eu.timepit.refined.auto.autoUnwrap
 import org.scalatest.funspec.AnyFunSpec
 import org.scalatest.matchers.should.Matchers.shouldBe
+
 import items.catalogitem.valueobjects.CatalogItemId
 import items.catalogitem.valueobjects.CatalogItemId.WrongCatalogItemIdFormat
 import items.itemcategory.valueobjects.ItemCategoryId
-import io.github.pervasivecats.ValidationError
 
 class CatalogItemIdTest extends AnyFunSpec {
 
