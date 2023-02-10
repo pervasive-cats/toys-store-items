@@ -1,36 +1,31 @@
 package io.github.pervasivecats
 package items.item
 
-import scala.concurrent.duration.DurationInt
-import scala.concurrent.duration.FiniteDuration
-import scala.language.postfixOps
-
-import io.github.pervasivecats.items.Validated
-import io.github.pervasivecats.items.catalogitem.entities.CatalogItem
-import io.github.pervasivecats.items.catalogitem.valueobjects.CatalogItemId
-import io.github.pervasivecats.items.catalogitem.valueobjects.Store
-import io.github.pervasivecats.items.item.Repository.*
-import io.github.pervasivecats.items.item.valueobjects.Customer
-import io.github.pervasivecats.items.item.valueobjects.ItemId
-import io.github.pervasivecats.items.itemcategory.valueobjects.ItemCategoryId
-
-import com.dimafeng.testcontainers.JdbcDatabaseContainer.CommonParams
-import com.dimafeng.testcontainers.PostgreSQLContainer
-import com.dimafeng.testcontainers.scalatest.TestContainerForAll
-import com.typesafe.config.ConfigFactory
-import com.typesafe.config.ConfigValueFactory
-import eu.timepit.refined.auto.given
-import org.scalatest.EitherValues.given
-import org.scalatest.funspec.AnyFunSpec
-import org.scalatest.matchers.should.Matchers.*
-import org.testcontainers.utility.DockerImageName
-
+import items.Validated
+import items.catalogitem.entities.CatalogItem
+import items.catalogitem.valueobjects.{CatalogItemId, Store}
+import items.item.Repository.*
+import items.item.valueobjects.{Customer, ItemId}
+import items.itemcategory.valueobjects.ItemCategoryId
 import items.catalogitem.Repository as CatalogItemRepository
 import items.catalogitem.entities.{CatalogItem, InPlaceCatalogItem, LiftedCatalogItem}
 import items.catalogitem.valueobjects.*
 import items.item.entities.*
 import items.item.entities.InCartItemOps.returnToStore
 import items.item.entities.InPlaceItemOps.putInCart
+
+import com.dimafeng.testcontainers.JdbcDatabaseContainer.CommonParams
+import com.dimafeng.testcontainers.PostgreSQLContainer
+import com.dimafeng.testcontainers.scalatest.TestContainerForAll
+import com.typesafe.config.{ConfigFactory, ConfigValueFactory}
+import eu.timepit.refined.auto.given
+import org.scalatest.EitherValues.given
+import org.scalatest.funspec.AnyFunSpec
+import org.scalatest.matchers.should.Matchers.*
+import org.testcontainers.utility.DockerImageName
+
+import scala.concurrent.duration.{DurationInt, FiniteDuration}
+import scala.language.postfixOps
 
 class RepositoryTest extends AnyFunSpec with TestContainerForAll {
 
