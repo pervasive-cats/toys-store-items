@@ -16,8 +16,9 @@ import org.scalatest.funspec.AnyFunSpec
 import org.scalatest.matchers.should.Matchers.*
 import org.testcontainers.utility.DockerImageName
 
-import items.catalogitem.Repository.CatalogItemNotFound
+import items.item.Repository.ItemNotFound
 import items.catalogitem.Repository as CatalogItemRepository
+import items.catalogitem.Repository.CatalogItemNotFound
 import items.catalogitem.entities.{CatalogItem, InPlaceCatalogItem}
 import items.catalogitem.valueobjects.*
 import items.item.Repository as ItemRepository
@@ -93,7 +94,7 @@ class ItemStateHandlersTest extends AnyFunSpec with TestContainerForAll {
       }
     }
 
-    describe("when is called on item added to cart with a non-existent item") {
+    describe("when is called on item added to cart with a non-existent catalog item") {
       it("should not be allowed") {
         val customer: Customer = Customer("elena@gmail.com").getOrElse(fail())
         val itemCategoryId: ItemCategoryId = ItemCategoryId(431).getOrElse(fail())
@@ -112,6 +113,19 @@ class ItemStateHandlersTest extends AnyFunSpec with TestContainerForAll {
       }
     }
 
+    describe("when is called on item added to cart with a non-existent item") {
+      it("should not be allowed") {
+        val customer: Customer = Customer("elena@gmail.com").getOrElse(fail())
+        val inCartItem = InCartItem(ItemId(999).getOrElse(fail()), inPlaceItem.getOrElse(fail()).kind, customer)
+        ItemStateHandlers.onItemAddedToCart(ItemAddedToCart(inCartItem.kind.id, inCartItem.kind.store, inCartItem.id, customer))
+        itemRepository
+          .getOrElse(fail())
+          .findById(inCartItem.id, inCartItem.kind.id, inCartItem.kind.store)
+          .left
+          .value shouldBe ItemNotFound
+      }
+    }
+
     describe("when is called on item returned with an existent item") {
       it("should update the database with the given returned item") {
         val customer: Customer = Customer("elena@gmail.com").getOrElse(fail())
@@ -125,7 +139,7 @@ class ItemStateHandlersTest extends AnyFunSpec with TestContainerForAll {
       }
     }
 
-    describe("when is called on item returned with a non-existent item") {
+    describe("when is called on item returned with a non-existent catalog item") {
       it("should not be allowed") {
         val itemCategoryId: ItemCategoryId = ItemCategoryId(431).getOrElse(fail())
         val store: Store = Store(999).getOrElse(fail())
@@ -143,6 +157,18 @@ class ItemStateHandlersTest extends AnyFunSpec with TestContainerForAll {
       }
     }
 
+    describe("when is called on item returned with a non-existent item") {
+      it("should not be allowed") {
+        val returnedItem = ReturnedItem(ItemId(999).getOrElse(fail()), inPlaceItem.getOrElse(fail()).kind)
+        ItemStateHandlers.onItemReturned(ItemReturned(returnedItem.kind.id, returnedItem.kind.store, returnedItem.id))
+        itemRepository
+          .getOrElse(fail())
+          .findById(returnedItem.id, returnedItem.kind.id, returnedItem.kind.store)
+          .left
+          .value shouldBe ItemNotFound
+      }
+    }
+
     describe("when is called on item put in place with an existent item") {
       it("should update the database with the given in place item") {
         val item = inPlaceItem.getOrElse(fail())
@@ -151,7 +177,7 @@ class ItemStateHandlersTest extends AnyFunSpec with TestContainerForAll {
       }
     }
 
-    describe("when is called on item put in place with a non-existent item") {
+    describe("when is called on item put in place with a non-existent catalog item") {
       it("should not be allowed") {
         val itemCategoryId: ItemCategoryId = ItemCategoryId(431).getOrElse(fail())
         val store: Store = Store(999).getOrElse(fail())
@@ -166,6 +192,14 @@ class ItemStateHandlersTest extends AnyFunSpec with TestContainerForAll {
           .findById(inPlaceItem.id, inPlaceItem.kind.id, inPlaceItem.kind.store)
           .left
           .value shouldBe CatalogItemNotFound
+      }
+    }
+
+    describe("when is called on item put in place with a non-existent item") {
+      it("should not be allowed") {
+        val item: InPlaceItem = InPlaceItem(ItemId(999).getOrElse(fail()), inPlaceItem.getOrElse(fail()).kind)
+        ItemStateHandlers.onItemPutInPlace(ItemPutInPlace(item.kind.id, item.kind.store, item.id))
+        itemRepository.getOrElse(fail()).findById(item.id, item.kind.id, item.kind.store).value shouldBe item
       }
     }
   }
