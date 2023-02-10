@@ -83,8 +83,8 @@ class ItemStateHandlersTest extends AnyFunSpec with TestContainerForAll {
   given givenItemRepository: ItemRepository = itemRepository.getOrElse(fail())
   given givenCatalogItemRepository: CatalogItemRepository = catalogItemRepository.getOrElse(fail())
 
-  describe("The onItemAddedToCart method"){
-    describe("when is called with an existing item"){
+  describe("The onItemAddedToCart method") {
+    describe("when is called with an existing item") {
       it("should update the database with the new item") {
         val customer: Customer = Customer("elena@gmail.com").getOrElse(fail())
         val inCartItem = inPlaceItem.getOrElse(fail()).putInCart(customer)
@@ -93,9 +93,9 @@ class ItemStateHandlersTest extends AnyFunSpec with TestContainerForAll {
           .getOrElse(fail())
           .findById(inCartItem.id, inCartItem.kind.id, inCartItem.kind.store)
           .value match {
-          case _: InCartItem => succeed
-          case _ => fail("type not match")
-        }
+            case _: InCartItem => succeed
+            case _ => fail("type not match")
+          }
       }
     }
 
@@ -109,7 +109,9 @@ class ItemStateHandlersTest extends AnyFunSpec with TestContainerForAll {
           InPlaceCatalogItem(CatalogItemId(999).getOrElse(fail()), itemCategoryId, store, price)
         val itemId: ItemId = ItemId(999).getOrElse(fail())
         val inCartItem: InCartItem = InCartItem(itemId, catalogItem, customer)
-        ItemStateHandlers.onItemAddedToCart(ItemAddedToCart(inCartItem.kind.id, inCartItem.kind.store, inCartItem.id, customer)).left
+        ItemStateHandlers
+          .onItemAddedToCart(ItemAddedToCart(inCartItem.kind.id, inCartItem.kind.store, inCartItem.id, customer))
+          .left
           .value shouldBe CatalogItemNotFound
       }
     }
@@ -118,13 +120,15 @@ class ItemStateHandlersTest extends AnyFunSpec with TestContainerForAll {
       it("should not be allowed") {
         val customer: Customer = Customer("elena@gmail.com").getOrElse(fail())
         val inCartItem = InCartItem(ItemId(999).getOrElse(fail()), inPlaceItem.getOrElse(fail()).kind, customer)
-        ItemStateHandlers.onItemAddedToCart(ItemAddedToCart(inCartItem.kind.id, inCartItem.kind.store, inCartItem.id, customer)).left
+        ItemStateHandlers
+          .onItemAddedToCart(ItemAddedToCart(inCartItem.kind.id, inCartItem.kind.store, inCartItem.id, customer))
+          .left
           .value shouldBe OperationFailed
       }
     }
   }
 
-  describe("The onItemReturned method"){
+  describe("The onItemReturned method") {
     describe("when is called with an existing item") {
       it("should update the database with the new item") {
         val customer: Customer = Customer("elena@gmail.com").getOrElse(fail())
@@ -135,9 +139,9 @@ class ItemStateHandlersTest extends AnyFunSpec with TestContainerForAll {
           .getOrElse(fail())
           .findById(returnedItem.id, returnedItem.kind.id, returnedItem.kind.store)
           .value match {
-          case _: ReturnedItem => succeed
-          case _ => fail("type not match")
-        }
+            case _: ReturnedItem => succeed
+            case _ => fail("type not match")
+          }
       }
     }
 
@@ -150,7 +154,9 @@ class ItemStateHandlersTest extends AnyFunSpec with TestContainerForAll {
           InPlaceCatalogItem(CatalogItemId(999).getOrElse(fail()), itemCategoryId, store, price)
         val itemId: ItemId = ItemId(999).getOrElse(fail())
         val returnedItem = ReturnedItem(itemId, catalogItem)
-        ItemStateHandlers.onItemReturned(ItemReturned(returnedItem.kind.id, returnedItem.kind.store, returnedItem.id)).left
+        ItemStateHandlers
+          .onItemReturned(ItemReturned(returnedItem.kind.id, returnedItem.kind.store, returnedItem.id))
+          .left
           .value shouldBe CatalogItemNotFound
       }
     }
@@ -158,13 +164,15 @@ class ItemStateHandlersTest extends AnyFunSpec with TestContainerForAll {
     describe("when is called on item returned with a non-existing item") {
       it("should not be allowed") {
         val returnedItem = ReturnedItem(ItemId(999).getOrElse(fail()), inPlaceItem.getOrElse(fail()).kind)
-        ItemStateHandlers.onItemReturned(ItemReturned(returnedItem.kind.id, returnedItem.kind.store, returnedItem.id)).left
+        ItemStateHandlers
+          .onItemReturned(ItemReturned(returnedItem.kind.id, returnedItem.kind.store, returnedItem.id))
+          .left
           .value shouldBe OperationFailed
       }
     }
   }
 
-  describe("The onItemPutInPlace method"){
+  describe("The onItemPutInPlace method") {
     describe("when is called with an existing item") {
       it("should update the database with the new item") {
         val item = inPlaceItem.getOrElse(fail())
@@ -182,7 +190,9 @@ class ItemStateHandlersTest extends AnyFunSpec with TestContainerForAll {
           InPlaceCatalogItem(CatalogItemId(999).getOrElse(fail()), itemCategoryId, store, price)
         val itemId: ItemId = ItemId(999).getOrElse(fail())
         val inPlaceItem = InPlaceItem(itemId, catalogItem)
-        ItemStateHandlers.onItemPutInPlace(ItemPutInPlace(inPlaceItem.kind.id, inPlaceItem.kind.store, inPlaceItem.id)).left
+        ItemStateHandlers
+          .onItemPutInPlace(ItemPutInPlace(inPlaceItem.kind.id, inPlaceItem.kind.store, inPlaceItem.id))
+          .left
           .value shouldBe CatalogItemNotFound
       }
     }
@@ -190,7 +200,10 @@ class ItemStateHandlersTest extends AnyFunSpec with TestContainerForAll {
     describe("when is called with a non-existing item") {
       it("should not be allowed") {
         val item: InPlaceItem = InPlaceItem(ItemId(999).getOrElse(fail()), inPlaceItem.getOrElse(fail()).kind)
-        ItemStateHandlers.onItemPutInPlace(ItemPutInPlace(item.kind.id, item.kind.store, item.id)).left.value shouldBe OperationFailed
+        ItemStateHandlers
+          .onItemPutInPlace(ItemPutInPlace(item.kind.id, item.kind.store, item.id))
+          .left
+          .value shouldBe OperationFailed
       }
     }
   }
