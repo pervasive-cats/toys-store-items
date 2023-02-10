@@ -199,7 +199,7 @@ class ItemStateHandlersTest extends AnyFunSpec with TestContainerForAll {
       it("should not be allowed") {
         val item: InPlaceItem = InPlaceItem(ItemId(999).getOrElse(fail()), inPlaceItem.getOrElse(fail()).kind)
         ItemStateHandlers.onItemPutInPlace(ItemPutInPlace(item.kind.id, item.kind.store, item.id))
-        itemRepository.getOrElse(fail()).findById(item.id, item.kind.id, item.kind.store).value shouldBe item
+        itemRepository.getOrElse(fail()).findById(item.id, item.kind.id, item.kind.store).left.value shouldBe ItemNotFound
       }
     }
   }
