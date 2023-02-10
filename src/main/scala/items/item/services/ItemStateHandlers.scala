@@ -12,33 +12,31 @@ import items.catalogitem.entities.{CatalogItem, InPlaceCatalogItem}
 import items.item.Repository as ItemRepository
 import items.item.domainevents.{ItemAddedToCart, ItemPutInPlace, ItemReturned}
 import items.item.entities.{InCartItem, InPlaceItem, ReturnedItem}
+import items.Validated
 
 trait ItemStateHandlers {
 
-  def onItemAddedToCart(event: ItemAddedToCart)(using ItemRepository, CatalogItemRepository): Unit
+  def onItemAddedToCart(event: ItemAddedToCart)(using ItemRepository, CatalogItemRepository): Validated[Unit]
 
-  def onItemReturned(event: ItemReturned)(using ItemRepository, CatalogItemRepository): Unit
+  def onItemReturned(event: ItemReturned)(using ItemRepository, CatalogItemRepository): Validated[Unit]
 
-  def onItemPutInPlace(event: ItemPutInPlace)(using ItemRepository, CatalogItemRepository): Unit
+  def onItemPutInPlace(event: ItemPutInPlace)(using ItemRepository, CatalogItemRepository): Validated[Unit]
 }
 
 object ItemStateHandlers extends ItemStateHandlers {
 
-  override def onItemAddedToCart(event: ItemAddedToCart)(using ItemRepository, CatalogItemRepository): Unit = {
+  override def onItemAddedToCart(event: ItemAddedToCart)(using ItemRepository, CatalogItemRepository): Validated[Unit] =
     summon[CatalogItemRepository]
       .findById(event.catalogItemId, event.store)
-      .map(catalogItem => summon[ItemRepository].update(InCartItem(event.itemId, catalogItem, event.customer)))
-  }
+      .flatMap(catalogItem => summon[ItemRepository].update(InCartItem(event.itemId, catalogItem, event.customer)))
 
-  override def onItemReturned(event: ItemReturned)(using ItemRepository, CatalogItemRepository): Unit = {
+  override def onItemReturned(event: ItemReturned)(using ItemRepository, CatalogItemRepository): Validated[Unit] =
     summon[CatalogItemRepository]
       .findById(event.catalogItemId, event.store)
-      .map(catalogItem => summon[ItemRepository].update(ReturnedItem(event.itemId, catalogItem)))
-  }
+      .flatMap(catalogItem => summon[ItemRepository].update(ReturnedItem(event.itemId, catalogItem)))
 
-  override def onItemPutInPlace(event: ItemPutInPlace)(using ItemRepository, CatalogItemRepository): Unit = {
+  override def onItemPutInPlace(event: ItemPutInPlace)(using ItemRepository, CatalogItemRepository): Validated[Unit] =
     summon[CatalogItemRepository]
       .findById(event.catalogItemId, event.store)
-      .map(catalogItem => summon[ItemRepository].update(InPlaceItem(event.itemId, catalogItem)))
-  }
+      .flatMap(catalogItem => summon[ItemRepository].update(InPlaceItem(event.itemId, catalogItem)))
 }
