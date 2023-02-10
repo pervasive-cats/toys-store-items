@@ -167,18 +167,18 @@ class RepositoryTest extends AnyFunSpec with TestContainerForAll {
 
         val customer: Customer = Customer("elena@gmail.com").getOrElse(fail())
         val inCartItem: InCartItem = inPlaceItem.putInCart(customer)
-        db.update(inCartItem).value
+        db.update(inCartItem).getOrElse(fail())
         db.findById(inCartItem.id, inCartItem.kind.id, inCartItem.kind.store).value match {
           case item: InCartItem => item shouldBe inCartItem
         }
 
         val returnedItem: ReturnedItem = inCartItem.returnToStore
-        db.update(returnedItem).value
+        db.update(returnedItem).getOrElse(fail())
         db.findById(returnedItem.id, returnedItem.kind.id, returnedItem.kind.store).value match {
           case item: ReturnedItem => item shouldBe returnedItem
         }
 
-        db.update(inPlaceItem).value
+        db.update(inPlaceItem).getOrElse(fail())
         db.findById(inPlaceItem.id, inPlaceItem.kind.id, inPlaceItem.kind.store).value match {
           case item: InPlaceItem => item shouldBe inPlaceItem
         }
