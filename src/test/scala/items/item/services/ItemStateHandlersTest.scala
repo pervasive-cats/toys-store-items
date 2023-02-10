@@ -73,7 +73,7 @@ class ItemStateHandlersTest extends AnyFunSpec with TestContainerForAll {
     val price: Price = Price(Amount(19.99).getOrElse(fail()), Currency.withName("EUR"))
     val catalogItem: InPlaceCatalogItem =
       catalogItemRepository.getOrElse(fail()).add(itemCategoryId, store, price).getOrElse(fail())
-    val itemId: ItemId = ItemId(9000).value
+    val itemId: ItemId = ItemId(9000).getOrElse(fail())
     inPlaceItem = Some(InPlaceItem(itemId, catalogItem))
     itemRepository.getOrElse(fail()).add(inPlaceItem.getOrElse(fail())).getOrElse(fail())
   }
@@ -82,7 +82,7 @@ class ItemStateHandlersTest extends AnyFunSpec with TestContainerForAll {
     given givenItemRepository: ItemRepository = itemRepository.getOrElse(fail())
     given givenCatalogItemRepository: CatalogItemRepository = catalogItemRepository.getOrElse(fail())
 
-    describe("when is called on item added to cart event with an existent item") {
+    describe("when is called on item added to cart event with an existing item") {
       it("should update the database with the given in cart item") {
         val customer: Customer = Customer("elena@gmail.com").getOrElse(fail())
         val inCartItem = inPlaceItem.getOrElse(fail()).putInCart(customer)
@@ -94,7 +94,7 @@ class ItemStateHandlersTest extends AnyFunSpec with TestContainerForAll {
       }
     }
 
-    describe("when is called on item added to cart with a non-existent catalog item") {
+    describe("when is called on item added to cart with a non-existing catalog item") {
       it("should not be allowed") {
         val customer: Customer = Customer("elena@gmail.com").getOrElse(fail())
         val itemCategoryId: ItemCategoryId = ItemCategoryId(431).getOrElse(fail())
@@ -102,7 +102,7 @@ class ItemStateHandlersTest extends AnyFunSpec with TestContainerForAll {
         val price: Price = Price(Amount(99.99).getOrElse(fail()), Currency.withName("EUR"))
         val catalogItem: InPlaceCatalogItem =
           InPlaceCatalogItem(CatalogItemId(999).getOrElse(fail()), itemCategoryId, store, price)
-        val itemId: ItemId = ItemId(999).value
+        val itemId: ItemId = ItemId(999).getOrElse(fail())
         val inCartItem: InCartItem = InCartItem(itemId, catalogItem, customer)
         ItemStateHandlers.onItemAddedToCart(ItemAddedToCart(inCartItem.kind.id, inCartItem.kind.store, inCartItem.id, customer))
         itemRepository
@@ -113,7 +113,7 @@ class ItemStateHandlersTest extends AnyFunSpec with TestContainerForAll {
       }
     }
 
-    describe("when is called on item added to cart with a non-existent item") {
+    describe("when is called on item added to cart with a non-existing item") {
       it("should not be allowed") {
         val customer: Customer = Customer("elena@gmail.com").getOrElse(fail())
         val inCartItem = InCartItem(ItemId(999).getOrElse(fail()), inPlaceItem.getOrElse(fail()).kind, customer)
@@ -126,7 +126,7 @@ class ItemStateHandlersTest extends AnyFunSpec with TestContainerForAll {
       }
     }
 
-    describe("when is called on item returned with an existent item") {
+    describe("when is called on item returned with an existing item") {
       it("should update the database with the given returned item") {
         val customer: Customer = Customer("elena@gmail.com").getOrElse(fail())
         val inCartItem = inPlaceItem.getOrElse(fail()).putInCart(customer)
@@ -139,14 +139,14 @@ class ItemStateHandlersTest extends AnyFunSpec with TestContainerForAll {
       }
     }
 
-    describe("when is called on item returned with a non-existent catalog item") {
+    describe("when is called on item returned with a non-existing catalog item") {
       it("should not be allowed") {
         val itemCategoryId: ItemCategoryId = ItemCategoryId(431).getOrElse(fail())
         val store: Store = Store(999).getOrElse(fail())
         val price: Price = Price(Amount(99.99).getOrElse(fail()), Currency.withName("EUR"))
         val catalogItem: InPlaceCatalogItem =
           InPlaceCatalogItem(CatalogItemId(999).getOrElse(fail()), itemCategoryId, store, price)
-        val itemId: ItemId = ItemId(999).value
+        val itemId: ItemId = ItemId(999).getOrElse(fail())
         val returnedItem = ReturnedItem(itemId, catalogItem)
         ItemStateHandlers.onItemReturned(ItemReturned(returnedItem.kind.id, returnedItem.kind.store, returnedItem.id))
         itemRepository
@@ -157,7 +157,7 @@ class ItemStateHandlersTest extends AnyFunSpec with TestContainerForAll {
       }
     }
 
-    describe("when is called on item returned with a non-existent item") {
+    describe("when is called on item returned with a non-existing item") {
       it("should not be allowed") {
         val returnedItem = ReturnedItem(ItemId(999).getOrElse(fail()), inPlaceItem.getOrElse(fail()).kind)
         ItemStateHandlers.onItemReturned(ItemReturned(returnedItem.kind.id, returnedItem.kind.store, returnedItem.id))
@@ -169,7 +169,7 @@ class ItemStateHandlersTest extends AnyFunSpec with TestContainerForAll {
       }
     }
 
-    describe("when is called on item put in place with an existent item") {
+    describe("when is called on item put in place with an existing item") {
       it("should update the database with the given in place item") {
         val item = inPlaceItem.getOrElse(fail())
         ItemStateHandlers.onItemPutInPlace(ItemPutInPlace(item.kind.id, item.kind.store, item.id))
@@ -177,14 +177,14 @@ class ItemStateHandlersTest extends AnyFunSpec with TestContainerForAll {
       }
     }
 
-    describe("when is called on item put in place with a non-existent catalog item") {
+    describe("when is called on item put in place with a non-existing catalog item") {
       it("should not be allowed") {
         val itemCategoryId: ItemCategoryId = ItemCategoryId(431).getOrElse(fail())
         val store: Store = Store(999).getOrElse(fail())
         val price: Price = Price(Amount(99.99).getOrElse(fail()), Currency.withName("EUR"))
         val catalogItem: InPlaceCatalogItem =
           InPlaceCatalogItem(CatalogItemId(999).getOrElse(fail()), itemCategoryId, store, price)
-        val itemId: ItemId = ItemId(999).value
+        val itemId: ItemId = ItemId(999).getOrElse(fail())
         val inPlaceItem = InPlaceItem(itemId, catalogItem)
         ItemStateHandlers.onItemPutInPlace(ItemPutInPlace(inPlaceItem.kind.id, inPlaceItem.kind.store, inPlaceItem.id))
         itemRepository
@@ -195,7 +195,7 @@ class ItemStateHandlersTest extends AnyFunSpec with TestContainerForAll {
       }
     }
 
-    describe("when is called on item put in place with a non-existent item") {
+    describe("when is called on item put in place with a non-existing item") {
       it("should not be allowed") {
         val item: InPlaceItem = InPlaceItem(ItemId(999).getOrElse(fail()), inPlaceItem.getOrElse(fail()).kind)
         ItemStateHandlers.onItemPutInPlace(ItemPutInPlace(item.kind.id, item.kind.store, item.id))
