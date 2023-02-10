@@ -1,6 +1,21 @@
 package io.github.pervasivecats
 package items.item
 
+import scala.concurrent.duration.DurationInt
+import scala.concurrent.duration.FiniteDuration
+import scala.language.postfixOps
+
+import com.dimafeng.testcontainers.JdbcDatabaseContainer.CommonParams
+import com.dimafeng.testcontainers.PostgreSQLContainer
+import com.dimafeng.testcontainers.scalatest.TestContainerForAll
+import com.typesafe.config.ConfigFactory
+import com.typesafe.config.ConfigValueFactory
+import eu.timepit.refined.auto.given
+import org.scalatest.EitherValues.given
+import org.scalatest.funspec.AnyFunSpec
+import org.scalatest.matchers.should.Matchers.*
+import org.testcontainers.utility.DockerImageName
+
 import items.Validated
 import items.catalogitem.entities.CatalogItem
 import items.catalogitem.valueobjects.{CatalogItemId, Store}
@@ -13,19 +28,6 @@ import items.catalogitem.valueobjects.*
 import items.item.entities.*
 import items.item.entities.InCartItemOps.returnToStore
 import items.item.entities.InPlaceItemOps.putInCart
-
-import com.dimafeng.testcontainers.JdbcDatabaseContainer.CommonParams
-import com.dimafeng.testcontainers.PostgreSQLContainer
-import com.dimafeng.testcontainers.scalatest.TestContainerForAll
-import com.typesafe.config.{ConfigFactory, ConfigValueFactory}
-import eu.timepit.refined.auto.given
-import org.scalatest.EitherValues.given
-import org.scalatest.funspec.AnyFunSpec
-import org.scalatest.matchers.should.Matchers.*
-import org.testcontainers.utility.DockerImageName
-
-import scala.concurrent.duration.{DurationInt, FiniteDuration}
-import scala.language.postfixOps
 
 class RepositoryTest extends AnyFunSpec with TestContainerForAll {
 
