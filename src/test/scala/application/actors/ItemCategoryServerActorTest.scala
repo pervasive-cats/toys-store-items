@@ -38,7 +38,7 @@ class ItemCategoryServerActorTest extends AnyFunSpec with TestContainerForAll wi
 
   override val containerDef: PostgreSQLContainer.Def = PostgreSQLContainer.Def(
     dockerImageName = DockerImageName.parse("postgres:15.1"),
-    databaseName = "users",
+    databaseName = "items",
     username = "test",
     password = "test",
     commonJdbcParams = CommonParams(timeout, timeout, Some("items.sql"))
