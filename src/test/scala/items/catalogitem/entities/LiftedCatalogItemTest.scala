@@ -13,7 +13,8 @@ import org.scalatest.matchers.should.Matchers.*
 
 import items.catalogitem.entities.InPlaceCatalogItem.*
 import items.catalogitem.entities.{CatalogItem, InPlaceCatalogItem, LiftedCatalogItem}
-import items.catalogitem.entities.LiftedCatalogItemOps.{putInPlace, updated}
+import items.catalogitem.entities.LiftedCatalogItemOps.putInPlace
+import items.catalogitem.entities.CatalogItemOps.{updated, lift}
 import items.catalogitem.valueobjects.*
 import items.itemcategory.valueobjects.ItemCategoryId
 
@@ -40,7 +41,7 @@ class LiftedCatalogItemTest extends AnyFunSpec {
     describe("when updated with a new price") {
       it("should contain that") {
         val newPrice: Price = Price(Amount(14.99).getOrElse(fail()), Currency.withName("EUR"))
-        liftedCatalogItem.updated(price = newPrice).price shouldBe newPrice
+        liftedCatalogItem.updated(newPrice).price shouldBe newPrice
       }
     }
 
@@ -74,8 +75,19 @@ class LiftedCatalogItemTest extends AnyFunSpec {
       }
     }
 
-    describe("when it is placed on the shelf once") {
-      it("should contain the same values") {
+    describe("when it is lifted") {
+      it("should contain the same values and the count should be incremented by 1") {
+        val liftedCatalogItemTwice: LiftedCatalogItem = liftedCatalogItem.lift.getOrElse(fail())
+        liftedCatalogItemTwice.id shouldBe liftedCatalogItem.id
+        liftedCatalogItemTwice.category shouldBe liftedCatalogItem.category
+        liftedCatalogItemTwice.store shouldBe liftedCatalogItem.store
+        liftedCatalogItemTwice.price shouldBe liftedCatalogItem.price
+        (liftedCatalogItemTwice.count.value: Long) shouldBe 3L
+      }
+    }
+
+    describe("when it is placed on the shelf") {
+      it("should contain the same values and the count should be decremented by 1") {
         val catalogItem: CatalogItem = liftedCatalogItem.putInPlace.getOrElse(fail())
         catalogItem.id shouldBe liftedCatalogItem.id
         catalogItem.category shouldBe liftedCatalogItem.category

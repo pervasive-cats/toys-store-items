@@ -14,7 +14,7 @@ import eu.timepit.refined.auto.given
 import items.itemcategory.valueobjects.ItemCategoryId
 import AnyOps.*
 import items.catalogitem.valueobjects.{CatalogItemId, Count, Price, Store}
-import items.catalogitem.entities.LiftedCatalogItemOps.updated
+import items.catalogitem.entities.CatalogItemOps.updated
 
 trait LiftedCatalogItem extends CatalogItem {
 
@@ -34,13 +34,17 @@ object LiftedCatalogItem {
     override def hashCode(): Int = id.##
   }
 
-  given LiftedCatalogItemOps[LiftedCatalogItem] with {
+  given CatalogItemOps[LiftedCatalogItem] with {
 
-    override def updated(
-      catalogItem: LiftedCatalogItem,
-      count: Count,
-      price: Price
-    ): LiftedCatalogItem = LiftedCatalogItemImpl(catalogItem.id, catalogItem.category, catalogItem.store, price, count)
+    override def updated(catalogItem: LiftedCatalogItem, price: Price): LiftedCatalogItem =
+      LiftedCatalogItemImpl(catalogItem.id, catalogItem.category, catalogItem.store, price, catalogItem.count)
+
+    override def lift(catalogItem: LiftedCatalogItem): Validated[LiftedCatalogItem] =
+      Count(catalogItem.count.value + 1)
+        .map(LiftedCatalogItemImpl(catalogItem.id, catalogItem.category, catalogItem.store, catalogItem.price, _))
+  }
+
+  given LiftedCatalogItemOps[LiftedCatalogItem] with {
 
     override def putInPlace(liftedCatalogItem: LiftedCatalogItem): Validated[CatalogItem] =
       (liftedCatalogItem.count.value: Long) match {
@@ -48,7 +52,16 @@ object LiftedCatalogItem {
           Right[ValidationError, CatalogItem](
             InPlaceCatalogItem(liftedCatalogItem.id, liftedCatalogItem.category, liftedCatalogItem.store, liftedCatalogItem.price)
           )
-        case _ => Count(liftedCatalogItem.count.value - 1).map(c => liftedCatalogItem.updated(count = c))
+        case _ =>
+          Count(liftedCatalogItem.count.value - 1).map(
+            LiftedCatalogItemImpl(
+              liftedCatalogItem.id,
+              liftedCatalogItem.category,
+              liftedCatalogItem.store,
+              liftedCatalogItem.price,
+              _
+            )
+          )
       }
   }
 

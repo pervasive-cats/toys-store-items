@@ -21,7 +21,7 @@ import org.scalatest.funspec.AnyFunSpec
 import org.scalatest.matchers.should.Matchers.*
 import spray.json.enrichAny
 
-import application.actors.command.ItemCategoryServerCommand
+import application.actors.command.{CatalogItemServerCommand, ItemCategoryServerCommand}
 import application.actors.command.ItemCategoryServerCommand.*
 import application.routes.entities.Entity.{ErrorResponseEntity, ResultResponseEntity, given}
 import application.routes.entities.ItemCategoryEntity.*
@@ -40,7 +40,7 @@ class ItemCategoryRoutesTest extends AnyFunSpec with ScalatestRouteTest with Spr
   private val itemCategoryServerProbe = TestProbe[ItemCategoryServerCommand]()
 
   private val routes: Route =
-    Routes(itemCategoryServerProbe.ref)
+    Routes(itemCategoryServerProbe.ref, TestProbe[CatalogItemServerCommand]().ref)
 
   private val itemCategoryId: ItemCategoryId = ItemCategoryId(1000).getOrElse(fail())
   private val name: Name = Name("Lego Bat-mobile").getOrElse(fail())

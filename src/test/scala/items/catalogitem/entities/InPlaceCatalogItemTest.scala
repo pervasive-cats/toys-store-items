@@ -13,7 +13,7 @@ import org.scalatest.matchers.should.Matchers.*
 
 import items.catalogitem.entities.InPlaceCatalogItem.*
 import items.catalogitem.entities.{CatalogItem, InPlaceCatalogItem, LiftedCatalogItem}
-import items.catalogitem.entities.InPlaceCatalogItemOps.{updated, lift}
+import items.catalogitem.entities.CatalogItemOps.{updated, lift}
 import items.catalogitem.valueobjects.*
 import items.itemcategory.valueobjects.ItemCategoryId
 

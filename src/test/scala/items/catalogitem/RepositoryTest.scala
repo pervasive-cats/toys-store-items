@@ -25,7 +25,7 @@ import org.scalatest.matchers.should.Matchers.*
 import org.testcontainers.utility.DockerImageName
 
 import items.catalogitem.Repository.CatalogItemNotFound
-import items.catalogitem.entities.InPlaceCatalogItemOps.lift
+import items.catalogitem.entities.CatalogItemOps.lift
 import items.catalogitem.entities.{CatalogItem, InPlaceCatalogItem, LiftedCatalogItem}
 import items.catalogitem.valueobjects.*
 import items.itemcategory.valueobjects.ItemCategoryId

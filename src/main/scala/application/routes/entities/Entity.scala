@@ -7,9 +7,8 @@
 package io.github.pervasivecats
 package application.routes.entities
 
-import io.github.pervasivecats.application.routes.Routes.DeserializationFailed
-import io.github.pervasivecats.application.routes.Routes.RequestFailed
-
+import spray.json.DefaultJsonProtocol
+import spray.json.JsArray
 import spray.json.JsNull
 import spray.json.JsObject
 import spray.json.JsString
@@ -19,7 +18,9 @@ import spray.json.RootJsonFormat
 import spray.json.deserializationError
 import spray.json.enrichAny
 
+import application.routes.Routes.{DeserializationFailed, RequestFailed}
 import application.RequestProcessingFailed
+import application.Serializers.given
 import items.itemcategory.Repository.ItemCategoryNotFound
 import items.RepositoryOperationFailed
 import items.catalogitem.valueobjects.Amount.WrongAmountFormat
@@ -28,7 +29,6 @@ import items.catalogitem.valueobjects.Store.WrongStoreFormat
 import items.catalogitem.Repository.CatalogItemNotFound
 import items.itemcategory.valueobjects.Description.WrongDescriptionFormat
 import items.itemcategory.valueobjects.Name.WrongNameFormat
-import application.Serializers.given
 
 trait Entity
 
@@ -47,6 +47,19 @@ object Entity {
       "result" -> response.result.toJson,
       "error" -> JsNull
     )
+  }
+
+  given [A: JsonFormat]: RootJsonFormat[Validated[A]] with {
+
+    override def read(json: JsValue): Validated[A] = json.asJsObject.getFields("result", "error") match {
+      case Seq(JsObject(_), JsNull) => Right[ValidationError, A](json.convertTo[ResultResponseEntity[A]].result)
+      case Seq(JsNull, JsObject(_)) => Left[ValidationError, A](json.convertTo[ErrorResponseEntity].error)
+    }
+
+    override def write(validated: Validated[A]): JsValue = validated match {
+      case Left(error) => ErrorResponseEntity(error).toJson
+      case Right(value) => ResultResponseEntity(value).toJson
+    }
   }
 
   case class ErrorResponseEntity(error: ValidationError) extends Entity

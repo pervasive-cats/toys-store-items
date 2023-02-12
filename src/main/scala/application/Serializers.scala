@@ -82,7 +82,7 @@ object Serializers extends DefaultJsonProtocol {
   given JsonFormat[Price] with {
 
     override def read(json: JsValue): Price = json.asJsObject.getFields("amount", "currency") match {
-      case Seq(JsNumber(amount), JsString(currency)) if amount.isExactDouble && Currency.withNameOption(currency).isDefined =>
+      case Seq(JsNumber(amount), JsString(currency)) if amount.isDecimalDouble && Currency.withNameOption(currency).isDefined =>
         (for {
           a <- Amount(amount.doubleValue)
           c = Currency.withName(currency)

@@ -31,26 +31,15 @@ object InPlaceCatalogItem {
     override def hashCode(): Int = id.##
   }
 
-  given InPlaceCatalogItemOps[InPlaceCatalogItem] with {
+  given CatalogItemOps[InPlaceCatalogItem] with {
 
-    override def updated(
-      catalogItem: InPlaceCatalogItem,
-      price: Price
-    ): InPlaceCatalogItem =
+    override def updated(catalogItem: InPlaceCatalogItem, price: Price): InPlaceCatalogItem =
       InPlaceCatalogItemImpl(catalogItem.id, catalogItem.category, catalogItem.store, price)
 
-    override def lift(inPlaceCatalogItem: InPlaceCatalogItem): Validated[LiftedCatalogItem] =
-      Count(1L).map(
-        LiftedCatalogItem(
-          inPlaceCatalogItem.id,
-          inPlaceCatalogItem.category,
-          inPlaceCatalogItem.store,
-          inPlaceCatalogItem.price,
-          _
-        )
-      )
+    override def lift(catalogItem: InPlaceCatalogItem): Validated[LiftedCatalogItem] =
+      Count(1L).map(LiftedCatalogItem(catalogItem.id, catalogItem.category, catalogItem.store, catalogItem.price, _))
   }
 
-  def apply(itemId: CatalogItemId, id: ItemCategoryId, store: Store, price: Price): InPlaceCatalogItem =
-    InPlaceCatalogItemImpl(itemId, id, store, price)
+  def apply(id: CatalogItemId, category: ItemCategoryId, store: Store, price: Price): InPlaceCatalogItem =
+    InPlaceCatalogItemImpl(id, category, store, price)
 }

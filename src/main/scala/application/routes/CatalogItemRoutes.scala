@@ -16,6 +16,8 @@ import akka.actor.typed.ActorSystem
 import akka.actor.typed.scaladsl.AskPattern.Askable
 import akka.actor.typed.scaladsl.AskPattern.schedulerFromActorSystem
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
+import akka.http.scaladsl.marshalling.ToEntityMarshaller
+import akka.http.scaladsl.marshalling.ToResponseMarshaller
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directives
 import akka.http.scaladsl.server.Route
@@ -24,28 +26,24 @@ import akka.util.Timeout
 import spray.json.DefaultJsonProtocol
 import spray.json.JsonWriter
 
-import application.actors.command.ItemCategoryServerCommand
-import application.actors.command.ItemCategoryServerCommand.{
-  AddItemCategory,
-  RemoveItemCategory,
-  ShowItemCategory,
-  UpdateItemCategory
-}
+import application.actors.command.CatalogItemServerCommand
+import application.actors.command.CatalogItemServerCommand.*
 import application.routes.entities.Entity.{ErrorResponseEntity, ResultResponseEntity}
+import application.routes.entities.Entity.given
 import application.routes.entities.Response
-import application.routes.entities.Response.{EmptyResponse, ItemCategoryResponse}
 import application.routes.Routes.RequestFailed
-import items.itemcategory.entities.ItemCategory
-import items.itemcategory.Repository.ItemCategoryNotFound
-import application.routes.entities.ItemCategoryEntity.*
+import application.routes.entities.CatalogItemEntity.*
+import application.routes.entities.Response.{CatalogItemResponse, EmptyResponse}
 import application.Serializers.given
+import items.catalogitem.entities.{CatalogItem, LiftedCatalogItem}
+import items.catalogitem.Repository.CatalogItemNotFound
 
-private object ItemCategoryRoutes extends SprayJsonSupport with DefaultJsonProtocol with Directives {
+private object CatalogItemRoutes extends SprayJsonSupport with DefaultJsonProtocol with Directives {
 
   private given Timeout = 30.seconds
 
-  private def route[A: FromRequestUnmarshaller, B <: ItemCategoryServerCommand, C <: Response[D], D: JsonWriter](
-    server: ActorRef[ItemCategoryServerCommand],
+  private def route[A: FromRequestUnmarshaller, B <: CatalogItemServerCommand, C <: Response[D], D: JsonWriter](
+    server: ActorRef[CatalogItemServerCommand],
     request: A => ActorRef[C] => B,
     responseHandler: C => Route
   )(
@@ -59,27 +57,39 @@ private object ItemCategoryRoutes extends SprayJsonSupport with DefaultJsonProto
       }
     }
 
-  def apply(server: ActorRef[ItemCategoryServerCommand])(using ActorSystem[_]): Route =
-    path("item_category") {
+  def apply(server: ActorRef[CatalogItemServerCommand])(using ActorSystem[_]): Route = concat(
+    path("catalog_item" / "lifted") {
+      get {
+        onComplete(server ? ShowAllLiftedCatalogItems.apply) {
+          case Failure(_) => complete(StatusCodes.InternalServerError, ErrorResponseEntity(RequestFailed))
+          case Success(value) =>
+            value.result match {
+              case Right(value) => complete(ResultResponseEntity(value))
+              case Left(error) => complete(StatusCodes.InternalServerError, ErrorResponseEntity(error))
+            }
+        }
+      }
+    },
+    path("catalog_item") {
       concat(
         get {
-          route[ItemCategoryShowEntity, ShowItemCategory, ItemCategoryResponse, ItemCategory](
+          route[CatalogItemShowEntity, ShowCatalogItem, CatalogItemResponse, CatalogItem](
             server,
-            e => ShowItemCategory(e.id, _),
+            e => ShowCatalogItem(e.id, e.store, _),
             _.result match {
               case Right(value) => complete(ResultResponseEntity(value))
               case Left(error) =>
                 error match {
-                  case ItemCategoryNotFound => complete(StatusCodes.NotFound, ErrorResponseEntity(ItemCategoryNotFound))
+                  case CatalogItemNotFound => complete(StatusCodes.NotFound, ErrorResponseEntity(CatalogItemNotFound))
                   case _ => complete(StatusCodes.InternalServerError, ErrorResponseEntity(error))
                 }
             }
           )
         },
         post {
-          route[ItemCategoryAdditionEntity, AddItemCategory, ItemCategoryResponse, ItemCategory](
+          route[CatalogItemAdditionEntity, AddCatalogItem, CatalogItemResponse, CatalogItem](
             server,
-            e => AddItemCategory(e.name, e.description, _),
+            e => AddCatalogItem(e.itemCategoryId, e.store, e.price, _),
             _.result match {
               case Right(value) => complete(ResultResponseEntity(value))
               case Left(error) => complete(StatusCodes.InternalServerError, ErrorResponseEntity(error))
@@ -87,28 +97,28 @@ private object ItemCategoryRoutes extends SprayJsonSupport with DefaultJsonProto
           )
         },
         put {
-          route[ItemCategoryUpdateEntity, UpdateItemCategory, ItemCategoryResponse, ItemCategory](
+          route[CatalogItemUpdateEntity, UpdateCatalogItem, CatalogItemResponse, CatalogItem](
             server,
-            e => UpdateItemCategory(e.id, e.newName, e.newDescription, _),
+            e => UpdateCatalogItem(e.id, e.store, e.price, _),
             _.result match {
               case Right(value) => complete(ResultResponseEntity(value))
               case Left(error) =>
                 error match {
-                  case ItemCategoryNotFound => complete(StatusCodes.NotFound, ErrorResponseEntity(ItemCategoryNotFound))
+                  case CatalogItemNotFound => complete(StatusCodes.NotFound, ErrorResponseEntity(CatalogItemNotFound))
                   case _ => complete(StatusCodes.InternalServerError, ErrorResponseEntity(error))
                 }
             }
           )
         },
         delete {
-          route[ItemCategoryRemovalEntity, RemoveItemCategory, EmptyResponse, Unit](
+          route[CatalogItemRemovalEntity, RemoveCatalogItem, EmptyResponse, Unit](
             server,
-            e => RemoveItemCategory(e.id, _),
+            e => RemoveCatalogItem(e.id, e.store, _),
             _.result match {
               case Right(value) => complete(ResultResponseEntity(value))
               case Left(error) =>
                 error match {
-                  case ItemCategoryNotFound => complete(StatusCodes.NotFound, ErrorResponseEntity(ItemCategoryNotFound))
+                  case CatalogItemNotFound => complete(StatusCodes.NotFound, ErrorResponseEntity(CatalogItemNotFound))
                   case _ => complete(StatusCodes.InternalServerError, ErrorResponseEntity(error))
                 }
             }
@@ -116,4 +126,5 @@ private object ItemCategoryRoutes extends SprayJsonSupport with DefaultJsonProto
         }
       )
     }
+  )
 }
