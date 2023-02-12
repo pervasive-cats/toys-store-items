@@ -70,7 +70,7 @@ class RepositoryTest extends AnyFunSpec with TestContainerForAll {
       CatalogItemRepository(
         ConfigFactory
           .load()
-          .getConfig("ctx")
+          .getConfig("repository")
           .withValue("dataSource.portNumber", ConfigValueFactory.fromAnyRef(containers.container.getFirstMappedPort.intValue()))
       )
     )

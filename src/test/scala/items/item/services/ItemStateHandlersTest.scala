@@ -64,7 +64,7 @@ class ItemStateHandlersTest extends AnyFunSpec with TestContainerForAll {
       ItemRepository(
         ConfigFactory
           .load()
-          .getConfig("ctx")
+          .getConfig("repository")
           .withValue("dataSource.portNumber", ConfigValueFactory.fromAnyRef(containers.container.getFirstMappedPort.intValue()))
       )
     )
@@ -72,7 +72,7 @@ class ItemStateHandlersTest extends AnyFunSpec with TestContainerForAll {
       CatalogItemRepository(
         ConfigFactory
           .load()
-          .getConfig("ctx")
+          .getConfig("repository")
           .withValue("dataSource.portNumber", ConfigValueFactory.fromAnyRef(containers.container.getFirstMappedPort.intValue()))
       )
     )
