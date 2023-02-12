@@ -1,3 +1,17 @@
+# [1.0.0-beta.7](https://github.com/pervasive-cats/toys-store-items/compare/v1.0.0-beta.6...v1.0.0-beta.7) (2023-02-12)
+
+
+### Bug Fixes
+
+* fix catalog item behavior for lifting it and putting it in place ([127ff50](https://github.com/pervasive-cats/toys-store-items/commit/127ff50d5745f59d6380645dfe40815cb17d5a33))
+* fix database name in test configuration ([7b94440](https://github.com/pervasive-cats/toys-store-items/commit/7b94440285adeeade2dc53d9b01a46e0f6b3fac1))
+
+
+### Features
+
+* add actor and routes for ItemCategory aggregate ([091742c](https://github.com/pervasive-cats/toys-store-items/commit/091742c54da29b19786e955d6550ad8811e8c0ec))
+* add catalog item routes ([b951e01](https://github.com/pervasive-cats/toys-store-items/commit/b951e01ff3aa11fddab340821b168a127e5400c7))
+
 # [1.0.0-beta.6](https://github.com/pervasive-cats/toys-store-items/compare/v1.0.0-beta.5...v1.0.0-beta.6) (2023-02-12)
 
 
