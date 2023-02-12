@@ -7,4 +7,25 @@
 package io.github.pervasivecats
 package items.item.entities
 
-trait ReturnedItem
+import items.catalogitem.entities.CatalogItem
+import items.item.entities.Item.itemEquals
+import items.item.valueobjects.ItemId
+
+trait ReturnedItem extends Item
+
+object ReturnedItem {
+
+  private case class ReturnedItemImpl(id: ItemId, kind: CatalogItem) extends ReturnedItem {
+
+    override def equals(obj: Any): Boolean = itemEquals(obj)(id)
+
+    override def hashCode(): Int = id.##
+  }
+
+  given ReturnedItemOps[ReturnedItem] with {
+
+    override def putInPlace(returnedItem: ReturnedItem): InPlaceItem = InPlaceItem(returnedItem.id, returnedItem.kind)
+  }
+
+  def apply(id: ItemId, kind: CatalogItem): ReturnedItem = ReturnedItemImpl(id, kind)
+}
