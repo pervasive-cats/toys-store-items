@@ -1,3 +1,9 @@
+/*
+ * Copyright © 2022-2023 by Pervasive Cats S.r.l.s.
+ *
+ * All Rights Reserved.
+ */
+
 package io.github.pervasivecats
 package items.item.entities
 
@@ -36,7 +42,7 @@ class InPlaceItemTest extends AnyFunSpec {
       }
     }
 
-    describe("when its putted in to the cart by a customer") {
+    describe("when it is put in cart by a customer") {
       it("should contain the same value and the customer") {
         val customer: Customer = Customer("addr.3ss.!@email.test.com").getOrElse(fail())
         val inCartItem: InCartItem = inPlaceItem.putInCart(customer)

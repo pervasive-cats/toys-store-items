@@ -166,7 +166,6 @@ object Repository {
               1L
             case _: InPlaceItem => queryUpdate(item, ItemStatus.InPlace.status)
             case _: ReturnedItem => queryUpdate(item, ItemStatus.Returned.status)
-
           }
         )
           Left[ValidationError, Unit](OperationFailed)
@@ -184,12 +183,11 @@ object Repository {
             )
             .map(r =>
               for {
-                validatedKind <- for {
+                kind <- (for {
                   catalogItemId <- CatalogItemId(r.catalogItemId)
                   store <- Store(r.store)
-                } yield summon[CatalogItemRepository].findById(catalogItemId, store)
+                } yield summon[CatalogItemRepository].findById(catalogItemId, store)).flatten
                 id <- ItemId(r.id)
-                kind <- validatedKind
               } yield ReturnedItem(id, kind)
             )
             .toSet

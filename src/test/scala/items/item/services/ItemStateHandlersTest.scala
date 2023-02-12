@@ -1,3 +1,9 @@
+/*
+ * Copyright © 2022-2023 by Pervasive Cats S.r.l.s.
+ *
+ * All Rights Reserved.
+ */
+
 package io.github.pervasivecats
 package items.item.services
 
@@ -83,18 +89,20 @@ class ItemStateHandlersTest extends AnyFunSpec with TestContainerForAll {
   given givenItemRepository: ItemRepository = itemRepository.getOrElse(fail())
   given givenCatalogItemRepository: CatalogItemRepository = catalogItemRepository.getOrElse(fail())
 
-  describe("The onItemAddedToCart method") {
+  describe("The onItemAddedToCart handler") {
     describe("when is called with an existing item") {
       it("should update the database with the new item") {
         val customer: Customer = Customer("elena@gmail.com").getOrElse(fail())
         val inCartItem = inPlaceItem.getOrElse(fail()).putInCart(customer)
-        ItemStateHandlers.onItemAddedToCart(ItemAddedToCart(inCartItem.kind.id, inCartItem.kind.store, inCartItem.id, customer))
+        ItemStateHandlers
+          .onItemAddedToCart(ItemAddedToCart(inCartItem.kind.id, inCartItem.kind.store, inCartItem.id, customer))
+          .value shouldBe ()
         itemRepository
           .getOrElse(fail())
           .findById(inCartItem.id, inCartItem.kind.id, inCartItem.kind.store)
           .value match {
             case _: InCartItem => succeed
-            case _ => fail("type not match")
+            case _ => fail()
           }
       }
     }
@@ -128,19 +136,21 @@ class ItemStateHandlersTest extends AnyFunSpec with TestContainerForAll {
     }
   }
 
-  describe("The onItemReturned method") {
+  describe("The onItemReturned handler") {
     describe("when is called with an existing item") {
       it("should update the database with the new item") {
         val customer: Customer = Customer("elena@gmail.com").getOrElse(fail())
         val inCartItem = inPlaceItem.getOrElse(fail()).putInCart(customer)
         val returnedItem = inCartItem.returnToStore
-        ItemStateHandlers.onItemReturned(ItemReturned(returnedItem.kind.id, returnedItem.kind.store, returnedItem.id))
+        ItemStateHandlers
+          .onItemReturned(ItemReturned(returnedItem.kind.id, returnedItem.kind.store, returnedItem.id))
+          .value shouldBe ()
         itemRepository
           .getOrElse(fail())
           .findById(returnedItem.id, returnedItem.kind.id, returnedItem.kind.store)
           .value match {
             case _: ReturnedItem => succeed
-            case _ => fail("type not match")
+            case _ => fail()
           }
       }
     }
@@ -176,7 +186,7 @@ class ItemStateHandlersTest extends AnyFunSpec with TestContainerForAll {
     describe("when is called with an existing item") {
       it("should update the database with the new item") {
         val item = inPlaceItem.getOrElse(fail())
-        ItemStateHandlers.onItemPutInPlace(ItemPutInPlace(item.kind.id, item.kind.store, item.id))
+        ItemStateHandlers.onItemPutInPlace(ItemPutInPlace(item.kind.id, item.kind.store, item.id)).value shouldBe ()
         itemRepository.getOrElse(fail()).findById(item.id, item.kind.id, item.kind.store).value shouldBe item
       }
     }

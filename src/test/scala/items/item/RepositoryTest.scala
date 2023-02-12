@@ -1,3 +1,9 @@
+/*
+ * Copyright © 2022-2023 by Pervasive Cats S.r.l.s.
+ *
+ * All Rights Reserved.
+ */
+
 package io.github.pervasivecats
 package items.item
 
@@ -87,7 +93,7 @@ class RepositoryTest extends AnyFunSpec with TestContainerForAll {
         val catalogItem: CatalogItem = InPlaceCatalogItem(id, itemCategoryId, store, price)
         val inPlaceItem: InPlaceItem = InPlaceItem(itemId, catalogItem)
         db.add(inPlaceItem).getOrElse(fail())
-        val item: Item = db.findById(inPlaceItem.id, catalogItemId.getOrElse(fail()), store).value
+        val item: Item = db.findById(inPlaceItem.id, catalogItemId.getOrElse(fail()), store).getOrElse(fail())
         item.id shouldBe itemId
         item.kind shouldBe catalogItem
         db.remove(inPlaceItem).getOrElse(fail())
@@ -167,17 +173,20 @@ class RepositoryTest extends AnyFunSpec with TestContainerForAll {
         db.update(inCartItem).getOrElse(fail())
         db.findById(inCartItem.id, inCartItem.kind.id, inCartItem.kind.store).value match {
           case item: InCartItem => item shouldBe inCartItem
+          case _ => fail()
         }
 
         val returnedItem: ReturnedItem = inCartItem.returnToStore
         db.update(returnedItem).getOrElse(fail())
         db.findById(returnedItem.id, returnedItem.kind.id, returnedItem.kind.store).value match {
           case item: ReturnedItem => item shouldBe returnedItem
+          case _ => fail()
         }
 
         db.update(inPlaceItem).getOrElse(fail())
         db.findById(inPlaceItem.id, inPlaceItem.kind.id, inPlaceItem.kind.store).value match {
           case item: InPlaceItem => item shouldBe inPlaceItem
+          case _ => fail()
         }
 
         db.remove(inCartItem).getOrElse(fail())
@@ -208,7 +217,6 @@ class RepositoryTest extends AnyFunSpec with TestContainerForAll {
     describe("if added twice, while searching for all returned items") {
       it("should be in the database along with its clone") {
         val db: Repository = repository.getOrElse(fail())
-
         val store: Store = Store(15).getOrElse(fail())
         val itemCategoryId: ItemCategoryId = ItemCategoryId(614).getOrElse(fail())
         val price: Price = Price(Amount(19.99).getOrElse(fail()), Currency.withName("EUR"))
