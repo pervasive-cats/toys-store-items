@@ -8,7 +8,6 @@ package io.github.pervasivecats
 package application.routes
 
 import scala.concurrent.duration.DurationInt
-
 import akka.actor.testkit.typed.scaladsl.TestProbe
 import akka.actor.typed.ActorSystem
 import akka.actor.typed.scaladsl.adapter.*
@@ -20,8 +19,7 @@ import akka.http.scaladsl.testkit.ScalatestRouteTest
 import org.scalatest.funspec.AnyFunSpec
 import org.scalatest.matchers.should.Matchers.*
 import spray.json.enrichAny
-
-import application.actors.command.{CatalogItemServerCommand, ItemCategoryServerCommand}
+import application.actors.command.{CatalogItemServerCommand, ItemCategoryServerCommand, MessageBrokerCommand}
 import application.actors.command.ItemCategoryServerCommand.*
 import application.routes.entities.Entity.{ErrorResponseEntity, ResultResponseEntity, given}
 import application.routes.entities.ItemCategoryEntity.*
@@ -40,7 +38,7 @@ class ItemCategoryRoutesTest extends AnyFunSpec with ScalatestRouteTest with Spr
   private val itemCategoryServerProbe = TestProbe[ItemCategoryServerCommand]()
 
   private val routes: Route =
-    Routes(itemCategoryServerProbe.ref, TestProbe[CatalogItemServerCommand]().ref)
+    Routes(TestProbe[MessageBrokerCommand]().ref, itemCategoryServerProbe.ref, TestProbe[CatalogItemServerCommand]().ref)
 
   private val itemCategoryId: ItemCategoryId = ItemCategoryId(1000).getOrElse(fail())
   private val name: Name = Name("Lego Bat-mobile").getOrElse(fail())

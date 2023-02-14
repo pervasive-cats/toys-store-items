@@ -7,29 +7,13 @@
 package io.github.pervasivecats
 package application.routes
 
-import scala.concurrent.duration.DurationInt
-
-import akka.actor.testkit.typed.scaladsl.TestProbe
-import akka.actor.typed.ActorSystem
-import akka.actor.typed.scaladsl.adapter.*
-import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
-import akka.http.scaladsl.model.ContentTypes
-import akka.http.scaladsl.model.StatusCodes
-import akka.http.scaladsl.server.Route
-import akka.http.scaladsl.testkit.ScalatestRouteTest
-import org.scalatest.EitherValues.*
-import org.scalatest.OptionValues.*
-import org.scalatest.funspec.AnyFunSpec
-import org.scalatest.matchers.should.Matchers.*
-import spray.json.enrichAny
-
-import application.actors.command.{CatalogItemServerCommand, ItemCategoryServerCommand}
+import application.actors.command.*
 import application.actors.command.CatalogItemServerCommand.*
 import application.routes.entities.CatalogItemEntity.*
-import application.routes.entities.Entity.{ErrorResponseEntity, ResultResponseEntity}
 import application.routes.entities.Response.*
 import application.Serializers.given
-import application.routes.entities.Entity.given
+import application.actors.command.MessageBrokerCommand.CatalogItemPutInPlace
+import application.routes.entities.Entity.{ErrorResponseEntity, ResultResponseEntity, given}
 import application.routes.Routes.DeserializationFailed
 import items.catalogitem.entities.*
 import items.catalogitem.valueobjects.*
@@ -37,14 +21,34 @@ import items.catalogitem.Repository.CatalogItemNotFound
 import items.catalogitem.entities.CatalogItemOps.updated
 import items.itemcategory.valueobjects.ItemCategoryId
 import items.RepositoryOperationFailed
+import items.catalogitem.domainevents.CatalogItemPutInPlace as CatalogItemPutInPlaceEvent
+
+import akka.actor.testkit.typed.scaladsl.TestProbe
+import akka.actor.typed.ActorSystem
+import akka.actor.typed.scaladsl.adapter.*
+import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
+import akka.http.scaladsl.model.{ContentTypes, StatusCodes}
+import akka.http.scaladsl.model.ws.TextMessage
+import akka.http.scaladsl.server.Route
+import akka.http.scaladsl.testkit.{ScalatestRouteTest, WSProbe}
+import org.scalatest.EitherValues.*
+import org.scalatest.OptionValues.*
+import org.scalatest.funspec.AnyFunSpec
+import org.scalatest.matchers.should.Matchers.*
+import spray.json.enrichAny
+
+import java.util.concurrent.CountDownLatch
+import scala.concurrent.duration.DurationInt
+import scala.concurrent.Future
 
 class CatalogItemRoutesTest extends AnyFunSpec with ScalatestRouteTest with SprayJsonSupport {
 
   private given typedSystem: ActorSystem[_] = system.toTyped
   private val catalogItemServerProbe = TestProbe[CatalogItemServerCommand]()
+  private val messageBrokerActorProbe = TestProbe[MessageBrokerCommand]()
 
   private val routes: Route =
-    Routes(TestProbe[ItemCategoryServerCommand]().ref, catalogItemServerProbe.ref)
+    Routes(messageBrokerActorProbe.ref, TestProbe[ItemCategoryServerCommand]().ref, catalogItemServerProbe.ref)
 
   private val catalogItemId: CatalogItemId = CatalogItemId(1).getOrElse(fail())
   private val itemCategoryId: ItemCategoryId = ItemCategoryId(1).getOrElse(fail())
@@ -118,8 +122,53 @@ class CatalogItemRoutesTest extends AnyFunSpec with ScalatestRouteTest with Spra
       }
     }
 
+    describe("when sending a websocket request to the /catalog_item/put_in_place endpoint") {
+      it("should send a response returning success if everything is correct") {
+        val wsProbe: WSProbe = WSProbe()
+        WS("/catalog_item/put_in_place", wsProbe.flow) ~> routes ~> check {
+          val event: CatalogItemPutInPlaceEvent = CatalogItemPutInPlaceEvent(catalogItemId, store)
+          wsProbe.sendMessage(event.toJson.compactPrint)
+          val latch: CountDownLatch = CountDownLatch(2)
+          Future {
+            val message: MessageBrokerCommand = messageBrokerActorProbe.receiveMessage(10.seconds)
+            message match {
+              case CatalogItemPutInPlace(e, r) =>
+                e shouldBe event
+                r ! EmptyResponse(Right[ValidationError, Unit](()))
+              case _ => fail()
+            }
+            latch.countDown()
+          }
+          Future {
+            wsProbe.expectMessage(ResultResponseEntity[Unit](()).toJson.compactPrint)
+            latch.countDown()
+          }
+          latch.await()
+        }
+      }
+
+      it("should send a response returning failure is something goes wrong") {
+        val wsProbe: WSProbe = WSProbe()
+        WS("/catalog_item/put_in_place", wsProbe.flow) ~> routes ~> check {
+          val event: CatalogItemPutInPlaceEvent = CatalogItemPutInPlaceEvent(catalogItemId, store)
+          wsProbe.sendMessage(event.toJson.compactPrint)
+          val latch: CountDownLatch = CountDownLatch(2)
+          Future {
+            val message: CatalogItemPutInPlace = messageBrokerActorProbe.expectMessageType[CatalogItemPutInPlace](10.seconds)
+            message.replyTo ! EmptyResponse(Left[ValidationError, Unit](CatalogItemNotFound))
+            latch.countDown()
+          }
+          Future {
+            wsProbe.expectMessage(ErrorResponseEntity(CatalogItemNotFound).toJson.compactPrint)
+            latch.countDown()
+          }
+          latch.await()
+        }
+      }
+    }
+
     describe("when sending a GET request to the /catalog_item endpoint") {
-      it("should send a response returning an item category if everything is correct") {
+      it("should send a response returning a catalog item if everything is correct") {
         val test: RouteTestResult =
           Get("/catalog_item", CatalogItemShowEntity(catalogItemId, store)) ~> routes
         val message: CatalogItemServerCommand = catalogItemServerProbe.receiveMessage(10.seconds)
@@ -137,7 +186,7 @@ class CatalogItemRoutesTest extends AnyFunSpec with ScalatestRouteTest with Spra
         }
       }
 
-      it("should send a 404 response if the item category does not exists") {
+      it("should send a 404 response if the catalog item does not exists") {
         val test: RouteTestResult =
           Get("/catalog_item", CatalogItemShowEntity(catalogItemId, store)) ~> routes
         val message: ShowCatalogItem = catalogItemServerProbe.expectMessageType[ShowCatalogItem](10.seconds)
@@ -171,7 +220,7 @@ class CatalogItemRoutesTest extends AnyFunSpec with ScalatestRouteTest with Spra
     }
 
     describe("when sending a POST request to the /catalog_item endpoint") {
-      it("should send a response creating a new item category if everything is correct") {
+      it("should send a response creating a new catalog item if everything is correct") {
         val test: RouteTestResult =
           Post("/catalog_item", CatalogItemAdditionEntity(itemCategoryId, store, price)) ~> routes
         val message: CatalogItemServerCommand = catalogItemServerProbe.receiveMessage(10.seconds)
@@ -212,7 +261,7 @@ class CatalogItemRoutesTest extends AnyFunSpec with ScalatestRouteTest with Spra
     }
 
     describe("when sending a DELETE request to the /catalog_item endpoint") {
-      it("should send a response removing an item category if everything is correct") {
+      it("should send a response removing a catalog item if everything is correct") {
         val test: RouteTestResult =
           Delete("/catalog_item", CatalogItemRemovalEntity(catalogItemId, store)) ~> routes
         val message: CatalogItemServerCommand = catalogItemServerProbe.receiveMessage(10.seconds)
@@ -230,7 +279,7 @@ class CatalogItemRoutesTest extends AnyFunSpec with ScalatestRouteTest with Spra
         }
       }
 
-      it("should send a 404 response if the item category does not exists") {
+      it("should send a 404 response if the catalog item does not exists") {
         val test: RouteTestResult =
           Delete("/catalog_item", CatalogItemRemovalEntity(catalogItemId, store)) ~> routes
         val message: RemoveCatalogItem = catalogItemServerProbe.expectMessageType[RemoveCatalogItem](10.seconds)
@@ -270,7 +319,7 @@ class CatalogItemRoutesTest extends AnyFunSpec with ScalatestRouteTest with Spra
       )
       val newInPlaceCatalogItem: InPlaceCatalogItem = inPlaceCatalogItem.updated(newPrice)
       val newLiftedCatalogItem: LiftedCatalogItem = liftedCatalogItem.updated(newPrice)
-      it("should send a response updating an item category if everything is correct") {
+      it("should send a response updating a catalog item if everything is correct") {
         val firstTest: RouteTestResult =
           Put("/catalog_item", CatalogItemUpdateEntity(catalogItemId, store, newPrice)) ~> routes
         val firstMessage: CatalogItemServerCommand = catalogItemServerProbe.receiveMessage(10.seconds)
@@ -305,7 +354,7 @@ class CatalogItemRoutesTest extends AnyFunSpec with ScalatestRouteTest with Spra
         }
       }
 
-      it("should send a 404 response if the item category does not exists") {
+      it("should send a 404 response if the catalog item does not exists") {
         val test: RouteTestResult =
           Put("/catalog_item", CatalogItemUpdateEntity(catalogItemId, store, price)) ~> routes
         val message: UpdateCatalogItem = catalogItemServerProbe.expectMessageType[UpdateCatalogItem](10.seconds)

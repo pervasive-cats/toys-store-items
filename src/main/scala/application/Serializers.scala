@@ -8,9 +8,7 @@ package io.github.pervasivecats
 package application
 
 import scala.util.control.Exception.Described
-
 import io.github.pervasivecats.Validated
-
 import eu.timepit.refined.auto.given
 import spray.json.DefaultJsonProtocol
 import spray.json.JsBoolean
@@ -21,11 +19,12 @@ import spray.json.JsValue
 import spray.json.JsonFormat
 import spray.json.deserializationError
 import spray.json.enrichAny
-
 import items.itemcategory.valueobjects.{Description, ItemCategoryId, Name}
 import items.catalogitem.entities.{CatalogItem, InPlaceCatalogItem, LiftedCatalogItem}
 import items.catalogitem.valueobjects.{Amount, CatalogItemId, Count, Currency, Price, Store}
 import items.itemcategory.entities.ItemCategory
+
+import io.github.pervasivecats.items.catalogitem.domainevents.{CatalogItemLifted, CatalogItemPutInPlace}
 
 object Serializers extends DefaultJsonProtocol {
 
@@ -59,7 +58,7 @@ object Serializers extends DefaultJsonProtocol {
   given JsonFormat[Amount] with {
 
     override def read(json: JsValue): Amount = json match {
-      case JsNumber(value) if value.isExactDouble =>
+      case JsNumber(value) if value.isDecimalDouble =>
         Amount(value.doubleValue).fold(e => deserializationError(e.message), identity)
       case _ => deserializationError(msg = "Json format is not valid")
     }
@@ -145,6 +144,42 @@ object Serializers extends DefaultJsonProtocol {
         case item: InPlaceCatalogItem => JsNumber(0L)
         case item: LiftedCatalogItem => item.count.toJson
       })
+    )
+  }
+
+  given JsonFormat[CatalogItemLifted] with {
+
+    override def read(json: JsValue): CatalogItemLifted = json.asJsObject.getFields("type", "id", "store") match {
+      case Seq(JsString("CatalogItemLifted"), JsNumber(id), JsNumber(store)) if id.isValidLong && store.isValidLong =>
+        (for {
+          i <- CatalogItemId(id.longValue)
+          s <- Store(store.longValue)
+        } yield CatalogItemLifted(i, s)).fold(e => deserializationError(e.message), identity)
+      case _ => deserializationError(msg = "Json format is not valid")
+    }
+
+    override def write(catalogItemLifted: CatalogItemLifted): JsValue = JsObject(
+      "type" -> "CatalogItemLifted".toJson,
+      "id" -> catalogItemLifted.catalogItemId.toJson,
+      "store" -> catalogItemLifted.store.toJson
+    )
+  }
+
+  given JsonFormat[CatalogItemPutInPlace] with {
+
+    override def read(json: JsValue): CatalogItemPutInPlace = json.asJsObject.getFields("type", "id", "store") match {
+      case Seq(JsString("CatalogItemPutInPlace"), JsNumber(id), JsNumber(store)) if id.isValidLong && store.isValidLong =>
+        (for {
+          i <- CatalogItemId(id.longValue)
+          s <- Store(store.longValue)
+        } yield CatalogItemPutInPlace(i, s)).fold(e => deserializationError(e.message), identity)
+      case _ => deserializationError(msg = "Json format is not valid")
+    }
+
+    override def write(catalogItemPutInPlace: CatalogItemPutInPlace): JsValue = JsObject(
+      "type" -> "CatalogItemPutInPlace".toJson,
+      "id" -> catalogItemPutInPlace.catalogItemId.toJson,
+      "store" -> catalogItemPutInPlace.store.toJson
     )
   }
 }

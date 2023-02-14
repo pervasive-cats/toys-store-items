@@ -86,8 +86,8 @@ class ItemStateHandlersTest extends AnyFunSpec with TestContainerForAll {
     itemRepository.getOrElse(fail()).add(inPlaceItem.getOrElse(fail())).getOrElse(fail())
   }
 
-  given givenItemRepository: ItemRepository = itemRepository.getOrElse(fail())
-  given givenCatalogItemRepository: CatalogItemRepository = catalogItemRepository.getOrElse(fail())
+  private given ItemRepository = itemRepository.getOrElse(fail())
+  private given CatalogItemRepository = catalogItemRepository.getOrElse(fail())
 
   describe("The onItemAddedToCart handler") {
     describe("when is called with an existing item") {
