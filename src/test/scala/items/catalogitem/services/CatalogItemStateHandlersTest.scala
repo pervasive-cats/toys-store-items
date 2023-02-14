@@ -7,17 +7,15 @@
 package io.github.pervasivecats
 package items.catalogitem.services
 
-import items.catalogitem.{CatalogItemStateHandlers, Repository}
-import items.catalogitem.Repository.CatalogItemNotFound
-import items.catalogitem.domainevents.{CatalogItemLifted, CatalogItemPutInPlace}
-import items.catalogitem.entities.*
-import items.catalogitem.valueobjects.*
-import items.itemcategory.valueobjects.ItemCategoryId
+import scala.concurrent.duration.DurationInt
+import scala.concurrent.duration.FiniteDuration
 
 import com.dimafeng.testcontainers.JdbcDatabaseContainer.CommonParams
 import com.dimafeng.testcontainers.PostgreSQLContainer
-import com.dimafeng.testcontainers.scalatest.{TestContainerForAll, TestContainersForAll}
-import com.typesafe.config.{ConfigFactory, ConfigValueFactory}
+import com.dimafeng.testcontainers.scalatest.TestContainerForAll
+import com.dimafeng.testcontainers.scalatest.TestContainersForAll
+import com.typesafe.config.ConfigFactory
+import com.typesafe.config.ConfigValueFactory
 import eu.timepit.refined.auto.given
 import org.scalatest.EitherValues.given
 import org.scalatest.Failed
@@ -25,7 +23,12 @@ import org.scalatest.funspec.AnyFunSpec
 import org.scalatest.matchers.should.Matchers.*
 import org.testcontainers.utility.DockerImageName
 
-import scala.concurrent.duration.{DurationInt, FiniteDuration}
+import items.catalogitem.{CatalogItemStateHandlers, Repository}
+import items.catalogitem.Repository.CatalogItemNotFound
+import items.catalogitem.domainevents.{CatalogItemLifted, CatalogItemPutInPlace}
+import items.catalogitem.entities.*
+import items.catalogitem.valueobjects.*
+import items.itemcategory.valueobjects.ItemCategoryId
 
 class CatalogItemStateHandlersTest extends AnyFunSpec with TestContainerForAll {
 
@@ -123,14 +126,14 @@ class CatalogItemStateHandlersTest extends AnyFunSpec with TestContainerForAll {
           }
         CatalogItemStateHandlers
           .onCatalogItemPutInPlace(CatalogItemPutInPlace(item.id, item.store))
-          .value shouldBe()
+          .value shouldBe ()
         repository
           .getOrElse(fail())
           .findById(item.id, item.store)
           .value match {
-          case _: InPlaceCatalogItem => succeed
-          case _ => fail()
-        }
+            case _: InPlaceCatalogItem => succeed
+            case _ => fail()
+          }
       }
     }
 

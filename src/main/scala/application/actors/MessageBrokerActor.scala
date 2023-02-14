@@ -7,6 +7,26 @@
 package io.github.pervasivecats
 package application.actors
 
+import java.nio.charset.StandardCharsets
+import java.util.concurrent.ForkJoinPool
+
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
+import scala.jdk.CollectionConverters.MapHasAsJava
+import scala.util.*
+
+import akka.actor.typed.*
+import akka.actor.typed.scaladsl.Behaviors
+import com.rabbitmq.client.*
+import com.typesafe.config.Config
+import spray.json.DefaultJsonProtocol.StringJsonFormat
+import spray.json.JsObject
+import spray.json.JsString
+import spray.json.JsValue
+import spray.json.JsonFormat
+import spray.json.enrichAny
+import spray.json.enrichString
+
 import application.actors.command.{MessageBrokerCommand, RootCommand}
 import application.actors.command.RootCommand.Startup
 import application.Serializers.given
@@ -16,20 +36,10 @@ import application.routes.entities.Entity.{ErrorResponseEntity, ResultResponseEn
 import application.routes.entities.Response.EmptyResponse
 import application.RequestProcessingFailed
 import items.catalogitem.{CatalogItemStateHandlers, Repository}
-import items.catalogitem.domainevents.{CatalogItemLifted as CatalogItemLiftedEvent, CatalogItemPutInPlace as CatalogItemPutInPlaceEvent}
-
-import akka.actor.typed.*
-import akka.actor.typed.scaladsl.Behaviors
-import com.rabbitmq.client.*
-import com.typesafe.config.Config
-import spray.json.{enrichAny, enrichString, JsObject, JsonFormat, JsString, JsValue}
-import spray.json.DefaultJsonProtocol.StringJsonFormat
-
-import java.nio.charset.StandardCharsets
-import java.util.concurrent.ForkJoinPool
-import scala.concurrent.{ExecutionContext, Future}
-import scala.jdk.CollectionConverters.MapHasAsJava
-import scala.util.*
+import items.catalogitem.domainevents.{
+  CatalogItemLifted as CatalogItemLiftedEvent,
+  CatalogItemPutInPlace as CatalogItemPutInPlaceEvent
+}
 
 object MessageBrokerActor {
 

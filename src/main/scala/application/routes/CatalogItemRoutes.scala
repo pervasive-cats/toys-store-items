@@ -7,6 +7,37 @@
 package io.github.pervasivecats
 package application.routes
 
+import java.nio.charset.StandardCharsets
+
+import scala.concurrent.Await
+import scala.concurrent.Future
+import scala.concurrent.duration.DurationInt
+import scala.util.Failure
+import scala.util.Success
+
+import akka.actor.typed.ActorRef
+import akka.actor.typed.ActorSystem
+import akka.actor.typed.scaladsl.AskPattern.Askable
+import akka.actor.typed.scaladsl.AskPattern.schedulerFromActorSystem
+import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
+import akka.http.scaladsl.marshalling.ToEntityMarshaller
+import akka.http.scaladsl.marshalling.ToResponseMarshaller
+import akka.http.scaladsl.model.StatusCodes
+import akka.http.scaladsl.model.ws.*
+import akka.http.scaladsl.server.Directives
+import akka.http.scaladsl.server.Route
+import akka.http.scaladsl.unmarshalling.FromRequestUnmarshaller
+import akka.stream.scaladsl.Flow
+import akka.stream.scaladsl.Sink
+import akka.util.Timeout
+import spray.json.DefaultJsonProtocol
+import spray.json.JsObject
+import spray.json.JsString
+import spray.json.JsValue
+import spray.json.JsonWriter
+import spray.json.enrichAny
+import spray.json.enrichString
+
 import application.actors.command.{CatalogItemServerCommand, MessageBrokerCommand}
 import application.actors.command.CatalogItemServerCommand.*
 import application.routes.entities.Entity.{ErrorResponseEntity, ResultResponseEntity, given}
@@ -19,23 +50,6 @@ import application.actors.command.MessageBrokerCommand.CatalogItemPutInPlace
 import items.catalogitem.entities.{CatalogItem, LiftedCatalogItem}
 import items.catalogitem.Repository.CatalogItemNotFound
 import items.catalogitem.domainevents.CatalogItemPutInPlace as CatalogItemPutInPlaceEvent
-
-import akka.actor.typed.{ActorRef, ActorSystem}
-import akka.actor.typed.scaladsl.AskPattern.{schedulerFromActorSystem, Askable}
-import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
-import akka.http.scaladsl.marshalling.{ToEntityMarshaller, ToResponseMarshaller}
-import akka.http.scaladsl.model.StatusCodes
-import akka.http.scaladsl.model.ws.*
-import akka.http.scaladsl.server.{Directives, Route}
-import akka.http.scaladsl.unmarshalling.FromRequestUnmarshaller
-import akka.stream.scaladsl.{Flow, Sink}
-import akka.util.Timeout
-import spray.json.{enrichAny, enrichString, DefaultJsonProtocol, JsObject, JsonWriter, JsString, JsValue}
-
-import java.nio.charset.StandardCharsets
-import scala.concurrent.duration.DurationInt
-import scala.concurrent.{Await, Future}
-import scala.util.{Failure, Success}
 
 private object CatalogItemRoutes extends SprayJsonSupport with DefaultJsonProtocol with Directives {
 
@@ -85,11 +99,11 @@ private object CatalogItemRoutes extends SprayJsonSupport with DefaultJsonProtoc
               Future.failed[TextMessage.Strict](IllegalStateException())
           }
           .mapConcat(t =>
-              val json: JsValue = t.text.parseJson
-              json.asJsObject.getFields("type") match {
-                case Seq(JsString("CatalogItemPutInPlace")) => Seq(json.convertTo[CatalogItemPutInPlaceEvent])
-                case _ => Nil
-              }
+            val json: JsValue = t.text.parseJson
+            json.asJsObject.getFields("type") match {
+              case Seq(JsString("CatalogItemPutInPlace")) => Seq(json.convertTo[CatalogItemPutInPlaceEvent])
+              case _ => Nil
+            }
           )
           .mapAsync[EmptyResponse](parallelism = 2)(e => messageBrokerActor ? (CatalogItemPutInPlace(e, _)))
           .mapConcat(_.result match {

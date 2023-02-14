@@ -7,11 +7,14 @@
 package io.github.pervasivecats
 package application.actors.command
 
-import application.routes.entities.Response.EmptyResponse
-import items.catalogitem.domainevents.{CatalogItemLifted as CatalogItemLiftedEvent, CatalogItemPutInPlace as CatalogItemPutInPlaceEvent}
-import items.catalogitem.valueobjects.{CatalogItemId, Store}
-
 import akka.actor.typed.ActorRef
+
+import application.routes.entities.Response.EmptyResponse
+import items.catalogitem.domainevents.{
+  CatalogItemLifted as CatalogItemLiftedEvent,
+  CatalogItemPutInPlace as CatalogItemPutInPlaceEvent
+}
+import items.catalogitem.valueobjects.{CatalogItemId, Store}
 
 sealed trait MessageBrokerCommand
 

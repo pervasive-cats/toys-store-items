@@ -7,6 +7,38 @@
 package io.github.pervasivecats
 package application.actors
 
+import java.nio.charset.StandardCharsets
+import java.util.UUID
+import java.util.concurrent.*
+
+import scala.concurrent.Await
+import scala.concurrent.duration.DurationInt
+import scala.concurrent.duration.FiniteDuration
+import scala.jdk.CollectionConverters.MapHasAsJava
+
+import io.github.pervasivecats.application.routes.entities.Response.EmptyResponse
+
+import akka.actor.testkit.typed.scaladsl.ActorTestKit
+import akka.actor.testkit.typed.scaladsl.TestProbe
+import akka.actor.typed.ActorRef
+import com.dimafeng.testcontainers.GenericContainer
+import com.dimafeng.testcontainers.GenericContainer.DockerImage
+import com.dimafeng.testcontainers.JdbcDatabaseContainer.CommonParams
+import com.dimafeng.testcontainers.PostgreSQLContainer
+import com.dimafeng.testcontainers.lifecycle.and
+import com.dimafeng.testcontainers.scalatest.TestContainersForAll
+import com.rabbitmq.client.*
+import com.typesafe.config.*
+import eu.timepit.refined.auto.given
+import org.scalatest.BeforeAndAfterAll
+import org.scalatest.EitherValues.*
+import org.scalatest.funspec.AnyFunSpec
+import org.scalatest.matchers.should.Matchers.*
+import org.testcontainers.containers.wait.strategy.LogMessageWaitStrategy
+import org.testcontainers.utility.DockerImageName
+import spray.json.enrichAny
+import spray.json.enrichString
+
 import application.actors.command.{MessageBrokerCommand, RootCommand}
 import application.actors.command.MessageBrokerCommand.{CatalogItemLifted, CatalogItemPutInPlace}
 import application.actors.command.RootCommand.Startup
@@ -21,32 +53,6 @@ import items.catalogitem.entities.*
 import items.catalogitem.valueobjects.*
 import items.catalogitem.Repository.CatalogItemNotFound
 import items.itemcategory.valueobjects.ItemCategoryId
-
-import akka.actor.testkit.typed.scaladsl.{ActorTestKit, TestProbe}
-import akka.actor.typed.ActorRef
-import com.dimafeng.testcontainers.{GenericContainer, PostgreSQLContainer}
-import com.dimafeng.testcontainers.lifecycle.and
-import com.dimafeng.testcontainers.scalatest.TestContainersForAll
-import com.dimafeng.testcontainers.GenericContainer.DockerImage
-import com.dimafeng.testcontainers.JdbcDatabaseContainer.CommonParams
-import com.rabbitmq.client.*
-import com.typesafe.config.*
-import eu.timepit.refined.auto.given
-import io.github.pervasivecats.application.routes.entities.Response.EmptyResponse
-import org.scalatest.funspec.AnyFunSpec
-import org.scalatest.BeforeAndAfterAll
-import org.scalatest.matchers.should.Matchers.*
-import org.scalatest.EitherValues.*
-import org.testcontainers.containers.wait.strategy.LogMessageWaitStrategy
-import org.testcontainers.utility.DockerImageName
-import spray.json.{enrichAny, enrichString}
-
-import java.nio.charset.StandardCharsets
-import java.util.concurrent.*
-import java.util.UUID
-import scala.concurrent.duration.{DurationInt, FiniteDuration}
-import scala.concurrent.Await
-import scala.jdk.CollectionConverters.MapHasAsJava
 
 class MessageBrokerActorTest extends AnyFunSpec with TestContainersForAll with BeforeAndAfterAll {
 

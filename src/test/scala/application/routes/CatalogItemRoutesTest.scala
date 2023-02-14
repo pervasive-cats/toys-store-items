@@ -7,6 +7,27 @@
 package io.github.pervasivecats
 package application.routes
 
+import java.util.concurrent.CountDownLatch
+
+import scala.concurrent.Future
+import scala.concurrent.duration.DurationInt
+
+import akka.actor.testkit.typed.scaladsl.TestProbe
+import akka.actor.typed.ActorSystem
+import akka.actor.typed.scaladsl.adapter.*
+import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
+import akka.http.scaladsl.model.ContentTypes
+import akka.http.scaladsl.model.StatusCodes
+import akka.http.scaladsl.model.ws.TextMessage
+import akka.http.scaladsl.server.Route
+import akka.http.scaladsl.testkit.ScalatestRouteTest
+import akka.http.scaladsl.testkit.WSProbe
+import org.scalatest.EitherValues.*
+import org.scalatest.OptionValues.*
+import org.scalatest.funspec.AnyFunSpec
+import org.scalatest.matchers.should.Matchers.*
+import spray.json.enrichAny
+
 import application.actors.command.*
 import application.actors.command.CatalogItemServerCommand.*
 import application.routes.entities.CatalogItemEntity.*
@@ -22,24 +43,6 @@ import items.catalogitem.entities.CatalogItemOps.updated
 import items.itemcategory.valueobjects.ItemCategoryId
 import items.RepositoryOperationFailed
 import items.catalogitem.domainevents.CatalogItemPutInPlace as CatalogItemPutInPlaceEvent
-
-import akka.actor.testkit.typed.scaladsl.TestProbe
-import akka.actor.typed.ActorSystem
-import akka.actor.typed.scaladsl.adapter.*
-import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
-import akka.http.scaladsl.model.{ContentTypes, StatusCodes}
-import akka.http.scaladsl.model.ws.TextMessage
-import akka.http.scaladsl.server.Route
-import akka.http.scaladsl.testkit.{ScalatestRouteTest, WSProbe}
-import org.scalatest.EitherValues.*
-import org.scalatest.OptionValues.*
-import org.scalatest.funspec.AnyFunSpec
-import org.scalatest.matchers.should.Matchers.*
-import spray.json.enrichAny
-
-import java.util.concurrent.CountDownLatch
-import scala.concurrent.duration.DurationInt
-import scala.concurrent.Future
 
 class CatalogItemRoutesTest extends AnyFunSpec with ScalatestRouteTest with SprayJsonSupport {
 
