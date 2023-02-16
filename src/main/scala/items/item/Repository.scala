@@ -8,13 +8,16 @@ package io.github.pervasivecats
 package items.item
 
 import scala.util.Try
+
 import io.github.pervasivecats.Validated
+
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
 import com.typesafe.config.ConfigValueFactory
 import enumeratum.*
 import eu.timepit.refined.auto.autoUnwrap
 import io.getquill.*
+
 import AnyOps.*
 import items.catalogitem.Repository as CatalogItemRepository
 import items.catalogitem.Repository.CatalogItemNotFound

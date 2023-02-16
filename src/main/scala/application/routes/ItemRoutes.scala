@@ -7,6 +7,37 @@
 package io.github.pervasivecats
 package application.routes
 
+import java.nio.charset.StandardCharsets
+
+import scala.concurrent.Await
+import scala.concurrent.Future
+import scala.concurrent.duration.DurationInt
+import scala.util.Failure
+import scala.util.Success
+
+import akka.actor.typed.ActorRef
+import akka.actor.typed.ActorSystem
+import akka.actor.typed.scaladsl.AskPattern.Askable
+import akka.actor.typed.scaladsl.AskPattern.schedulerFromActorSystem
+import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
+import akka.http.scaladsl.marshalling.ToEntityMarshaller
+import akka.http.scaladsl.marshalling.ToResponseMarshaller
+import akka.http.scaladsl.model.StatusCodes
+import akka.http.scaladsl.model.ws.*
+import akka.http.scaladsl.server.Directives
+import akka.http.scaladsl.server.Route
+import akka.http.scaladsl.unmarshalling.FromRequestUnmarshaller
+import akka.stream.scaladsl.Flow
+import akka.stream.scaladsl.Sink
+import akka.util.Timeout
+import spray.json.DefaultJsonProtocol
+import spray.json.JsObject
+import spray.json.JsString
+import spray.json.JsValue
+import spray.json.JsonWriter
+import spray.json.enrichAny
+import spray.json.enrichString
+
 import application.actors.command.{ItemServerCommand, MessageBrokerCommand}
 import application.actors.command.ItemServerCommand.*
 import application.routes.entities.Entity.{ErrorResponseEntity, ResultResponseEntity, given}
@@ -19,23 +50,6 @@ import application.actors.command.MessageBrokerCommand.{ItemAddedToCart, ItemPut
 import items.item.Repository.{ItemAlreadyPresent, ItemNotFound}
 import items.item.domainevents.ItemPutInPlace as ItemPutInPlaceEvent
 import items.item.entities.Item
-
-import akka.actor.typed.{ActorRef, ActorSystem}
-import akka.actor.typed.scaladsl.AskPattern.{schedulerFromActorSystem, Askable}
-import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
-import akka.http.scaladsl.marshalling.{ToEntityMarshaller, ToResponseMarshaller}
-import akka.http.scaladsl.model.StatusCodes
-import akka.http.scaladsl.model.ws.*
-import akka.http.scaladsl.server.{Directives, Route}
-import akka.http.scaladsl.unmarshalling.FromRequestUnmarshaller
-import akka.stream.scaladsl.{Flow, Sink}
-import akka.util.Timeout
-import spray.json.{enrichAny, enrichString, DefaultJsonProtocol, JsObject, JsonWriter, JsString, JsValue}
-
-import java.nio.charset.StandardCharsets
-import scala.concurrent.{Await, Future}
-import scala.concurrent.duration.DurationInt
-import scala.util.{Failure, Success}
 
 private object ItemRoutes extends SprayJsonSupport with DefaultJsonProtocol with Directives {
 
@@ -120,10 +134,11 @@ private object ItemRoutes extends SprayJsonSupport with DefaultJsonProtocol with
             e => AddItem(e.id, e.kind, e.store, _),
             _.result match {
               case Right(value) => complete(ResultResponseEntity(value))
-              case Left(error) => error match {
-                case ItemAlreadyPresent => complete(StatusCodes.BadRequest, ErrorResponseEntity(ItemAlreadyPresent))
-                case _ => complete(StatusCodes.InternalServerError, ErrorResponseEntity(error))
-              }
+              case Left(error) =>
+                error match {
+                  case ItemAlreadyPresent => complete(StatusCodes.BadRequest, ErrorResponseEntity(ItemAlreadyPresent))
+                  case _ => complete(StatusCodes.InternalServerError, ErrorResponseEntity(error))
+                }
             }
           )
         },

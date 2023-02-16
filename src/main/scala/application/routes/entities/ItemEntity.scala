@@ -7,14 +7,15 @@
 package io.github.pervasivecats
 package application.routes.entities
 
+import io.github.pervasivecats.items.item.valueobjects.ItemId
+
 import spray.json.DefaultJsonProtocol.jsonFormat3
 import spray.json.RootJsonFormat
+
 import application.routes.entities.Entity
 import application.Serializers.given
 import items.catalogitem.valueobjects.*
 import items.itemcategory.valueobjects.ItemCategoryId
-
-import io.github.pervasivecats.items.item.valueobjects.ItemId
 
 sealed trait ItemEntity extends Entity
 

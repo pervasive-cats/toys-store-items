@@ -7,29 +7,22 @@
 package io.github.pervasivecats
 package application.actors
 
-import application.actors.command.{MessageBrokerCommand, RootCommand}
-import application.actors.command.MessageBrokerCommand.{CatalogItemLifted, CatalogItemPutInPlace}
-import application.actors.command.RootCommand.Startup
-import application.routes.entities.Response.EmptyResponse
-import application.Serializers.given
-import application.routes.entities.Entity.{ErrorResponseEntity, ResultResponseEntity}
-import items.catalogitem.Repository as CatalogItemRepository
-import items.catalogitem.domainevents.{CatalogItemLifted as CatalogItemLiftedEvent, CatalogItemPutInPlace as CatalogItemPutInPlaceEvent}
-import items.catalogitem.entities.*
-import items.catalogitem.valueobjects.*
-import items.catalogitem.Repository.CatalogItemNotFound
-import items.item.Repository as ItemRepository
-import items.item.domainevents.{ItemAddedToCart as ItemAddedToCartEvent, ItemReturned as ItemReturnedEvent}
-import items.item.entities.{InPlaceItem, Item}
-import items.item.valueobjects.{Customer, ItemId}
-import items.RepositoryOperationFailed
-import items.itemcategory.valueobjects.ItemCategoryId
+import java.nio.charset.StandardCharsets
+import java.util.UUID
+import java.util.concurrent.*
 
-import akka.actor.testkit.typed.scaladsl.{ActorTestKit, TestProbe}
+import scala.concurrent.Await
+import scala.concurrent.duration.DurationInt
+import scala.concurrent.duration.FiniteDuration
+import scala.jdk.CollectionConverters.MapHasAsJava
+
+import akka.actor.testkit.typed.scaladsl.ActorTestKit
+import akka.actor.testkit.typed.scaladsl.TestProbe
 import akka.actor.typed.ActorRef
-import com.dimafeng.testcontainers.{GenericContainer, PostgreSQLContainer}
+import com.dimafeng.testcontainers.GenericContainer
 import com.dimafeng.testcontainers.GenericContainer.DockerImage
 import com.dimafeng.testcontainers.JdbcDatabaseContainer.CommonParams
+import com.dimafeng.testcontainers.PostgreSQLContainer
 import com.dimafeng.testcontainers.lifecycle.and
 import com.dimafeng.testcontainers.scalatest.TestContainersForAll
 import com.rabbitmq.client.*
@@ -41,14 +34,29 @@ import org.scalatest.funspec.AnyFunSpec
 import org.scalatest.matchers.should.Matchers.*
 import org.testcontainers.containers.wait.strategy.LogMessageWaitStrategy
 import org.testcontainers.utility.DockerImageName
-import spray.json.{enrichAny, enrichString}
+import spray.json.enrichAny
+import spray.json.enrichString
 
-import java.nio.charset.StandardCharsets
-import java.util.UUID
-import java.util.concurrent.*
-import scala.concurrent.Await
-import scala.concurrent.duration.{DurationInt, FiniteDuration}
-import scala.jdk.CollectionConverters.MapHasAsJava
+import application.actors.command.{MessageBrokerCommand, RootCommand}
+import application.actors.command.MessageBrokerCommand.{CatalogItemLifted, CatalogItemPutInPlace}
+import application.actors.command.RootCommand.Startup
+import application.routes.entities.Response.EmptyResponse
+import application.Serializers.given
+import application.routes.entities.Entity.{ErrorResponseEntity, ResultResponseEntity}
+import items.catalogitem.Repository as CatalogItemRepository
+import items.catalogitem.domainevents.{
+  CatalogItemLifted as CatalogItemLiftedEvent,
+  CatalogItemPutInPlace as CatalogItemPutInPlaceEvent
+}
+import items.catalogitem.entities.*
+import items.catalogitem.valueobjects.*
+import items.catalogitem.Repository.CatalogItemNotFound
+import items.item.Repository as ItemRepository
+import items.item.domainevents.{ItemAddedToCart as ItemAddedToCartEvent, ItemReturned as ItemReturnedEvent}
+import items.item.entities.{InPlaceItem, Item}
+import items.item.valueobjects.{Customer, ItemId}
+import items.RepositoryOperationFailed
+import items.itemcategory.valueobjects.ItemCategoryId
 
 class MessageBrokerActorTest extends AnyFunSpec with TestContainersForAll with BeforeAndAfterAll {
 

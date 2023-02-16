@@ -8,6 +8,19 @@ package io.github.pervasivecats
 package application
 
 import io.github.pervasivecats.Validated
+
+import eu.timepit.refined.auto.given
+import spray.json.DefaultJsonProtocol
+import spray.json.JsBoolean
+import spray.json.JsNull
+import spray.json.JsNumber
+import spray.json.JsObject
+import spray.json.JsString
+import spray.json.JsValue
+import spray.json.JsonFormat
+import spray.json.deserializationError
+import spray.json.enrichAny
+
 import items.catalogitem.domainevents.{CatalogItemLifted, CatalogItemPutInPlace}
 import items.catalogitem.entities.*
 import items.catalogitem.valueobjects.*
@@ -16,20 +29,6 @@ import items.item.entities.*
 import items.item.valueobjects.{Customer, ItemId}
 import items.itemcategory.entities.ItemCategory
 import items.itemcategory.valueobjects.*
-
-import eu.timepit.refined.auto.given
-import spray.json.{
-  deserializationError,
-  enrichAny,
-  DefaultJsonProtocol,
-  JsBoolean,
-  JsNull,
-  JsNumber,
-  JsObject,
-  JsonFormat,
-  JsString,
-  JsValue
-}
 
 object Serializers extends DefaultJsonProtocol {
 

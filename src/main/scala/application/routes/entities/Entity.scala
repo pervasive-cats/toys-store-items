@@ -7,6 +7,13 @@
 package io.github.pervasivecats
 package application.routes.entities
 
+import io.github.pervasivecats.items.catalogitem.valueobjects.CatalogItemId.WrongCatalogItemIdFormat
+import io.github.pervasivecats.items.item.Repository.ItemAlreadyPresent
+import io.github.pervasivecats.items.item.Repository.ItemNotFound
+import io.github.pervasivecats.items.item.valueobjects.Customer.WrongCustomerFormat
+import io.github.pervasivecats.items.item.valueobjects.ItemId.WrongItemIdFormat
+import io.github.pervasivecats.items.itemcategory.valueobjects.ItemCategoryId.WrongItemCategoryIdFormat
+
 import spray.json.DefaultJsonProtocol
 import spray.json.JsArray
 import spray.json.JsNull
@@ -17,6 +24,7 @@ import spray.json.JsonFormat
 import spray.json.RootJsonFormat
 import spray.json.deserializationError
 import spray.json.enrichAny
+
 import application.routes.Routes.{DeserializationFailed, RequestFailed}
 import application.RequestProcessingFailed
 import application.Serializers.given
@@ -28,12 +36,6 @@ import items.catalogitem.valueobjects.Store.WrongStoreFormat
 import items.catalogitem.Repository.CatalogItemNotFound
 import items.itemcategory.valueobjects.Description.WrongDescriptionFormat
 import items.itemcategory.valueobjects.Name.WrongNameFormat
-
-import io.github.pervasivecats.items.catalogitem.valueobjects.CatalogItemId.WrongCatalogItemIdFormat
-import io.github.pervasivecats.items.item.valueobjects.Customer.WrongCustomerFormat
-import io.github.pervasivecats.items.item.valueobjects.ItemId.WrongItemIdFormat
-import io.github.pervasivecats.items.item.Repository.{ItemAlreadyPresent, ItemNotFound}
-import io.github.pervasivecats.items.itemcategory.valueobjects.ItemCategoryId.WrongItemCategoryIdFormat
 
 trait Entity
 

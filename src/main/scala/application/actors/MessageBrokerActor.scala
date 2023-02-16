@@ -7,6 +7,27 @@
 package io.github.pervasivecats
 package application.actors
 
+import java.nio.charset.StandardCharsets
+import java.util.concurrent.ForkJoinPool
+
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
+import scala.jdk.CollectionConverters.MapHasAsJava
+import scala.util.*
+
+import akka.actor.typed.*
+import akka.actor.typed.scaladsl.ActorContext
+import akka.actor.typed.scaladsl.Behaviors
+import com.rabbitmq.client.*
+import com.typesafe.config.Config
+import spray.json.DefaultJsonProtocol.StringJsonFormat
+import spray.json.JsObject
+import spray.json.JsString
+import spray.json.JsValue
+import spray.json.JsonFormat
+import spray.json.enrichAny
+import spray.json.enrichString
+
 import application.actors.command.{MessageBrokerCommand, RootCommand}
 import application.actors.command.RootCommand.Startup
 import application.Serializers.given
@@ -24,19 +45,6 @@ import items.item.Repository as ItemRepository
 import items.item.domainevents.{ItemAddedToCart as ItemAddedToCartEvent, ItemReturned as ItemReturnedEvent}
 import items.item.services.ItemStateHandlers
 import AnyOps.===
-
-import akka.actor.typed.*
-import akka.actor.typed.scaladsl.{ActorContext, Behaviors}
-import com.rabbitmq.client.*
-import com.typesafe.config.Config
-import spray.json.{enrichAny, enrichString, JsObject, JsonFormat, JsString, JsValue}
-import spray.json.DefaultJsonProtocol.StringJsonFormat
-
-import java.nio.charset.StandardCharsets
-import java.util.concurrent.ForkJoinPool
-import scala.concurrent.{ExecutionContext, Future}
-import scala.jdk.CollectionConverters.MapHasAsJava
-import scala.util.*
 
 object MessageBrokerActor {
 

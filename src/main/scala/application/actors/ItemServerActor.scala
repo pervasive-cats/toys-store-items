@@ -7,6 +7,18 @@
 package io.github.pervasivecats
 package application.actors
 
+import java.util.concurrent.ForkJoinPool
+
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
+import scala.util.Failure
+import scala.util.Success
+
+import akka.actor.typed.ActorRef
+import akka.actor.typed.Behavior
+import akka.actor.typed.scaladsl.Behaviors
+import com.typesafe.config.Config
+
 import application.actors.command.{ItemServerCommand, RootCommand}
 import application.actors.command.ItemServerCommand.*
 import application.actors.command.RootCommand.Startup
@@ -15,14 +27,6 @@ import application.RequestProcessingFailed
 import items.catalogitem.Repository as CatalogItemRepository
 import items.item.Repository as ItemRepository
 import items.item.entities.{InPlaceItem, Item}
-
-import akka.actor.typed.{ActorRef, Behavior}
-import akka.actor.typed.scaladsl.Behaviors
-import com.typesafe.config.Config
-
-import java.util.concurrent.ForkJoinPool
-import scala.concurrent.{ExecutionContext, Future}
-import scala.util.{Failure, Success}
 
 object ItemServerActor {
 

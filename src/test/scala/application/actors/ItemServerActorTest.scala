@@ -7,6 +7,23 @@
 package io.github.pervasivecats
 package application.actors
 
+import scala.concurrent.duration.DurationInt
+import scala.concurrent.duration.FiniteDuration
+
+import akka.actor.testkit.typed.scaladsl.ActorTestKit
+import akka.actor.testkit.typed.scaladsl.TestProbe
+import akka.actor.typed.ActorRef
+import com.dimafeng.testcontainers.JdbcDatabaseContainer.CommonParams
+import com.dimafeng.testcontainers.PostgreSQLContainer
+import com.dimafeng.testcontainers.scalatest.TestContainerForAll
+import com.typesafe.config.Config
+import com.typesafe.config.ConfigFactory
+import com.typesafe.config.ConfigValueFactory
+import org.scalatest.BeforeAndAfterAll
+import org.scalatest.funspec.AnyFunSpec
+import org.scalatest.matchers.should.Matchers.*
+import org.testcontainers.utility.DockerImageName
+
 import application.actors.command.{ItemServerCommand, RootCommand}
 import application.actors.command.ItemServerCommand.*
 import application.actors.command.RootCommand.Startup
@@ -18,19 +35,6 @@ import items.item.valueobjects.ItemId
 import items.item.Repository.{ItemAlreadyPresent, ItemNotFound}
 import items.itemcategory.valueobjects.ItemCategoryId
 import items.catalogitem.Repository as CatalogItemRepository
-
-import akka.actor.testkit.typed.scaladsl.{ActorTestKit, TestProbe}
-import akka.actor.typed.ActorRef
-import com.dimafeng.testcontainers.JdbcDatabaseContainer.CommonParams
-import com.dimafeng.testcontainers.PostgreSQLContainer
-import com.dimafeng.testcontainers.scalatest.TestContainerForAll
-import com.typesafe.config.{Config, ConfigFactory, ConfigValueFactory}
-import org.scalatest.BeforeAndAfterAll
-import org.scalatest.funspec.AnyFunSpec
-import org.scalatest.matchers.should.Matchers.*
-import org.testcontainers.utility.DockerImageName
-
-import scala.concurrent.duration.{DurationInt, FiniteDuration}
 
 class ItemServerActorTest extends AnyFunSpec with TestContainerForAll with BeforeAndAfterAll {
 
