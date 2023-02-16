@@ -7,39 +7,36 @@
 package io.github.pervasivecats
 package application.actors
 
-import java.nio.charset.StandardCharsets
-import java.util.concurrent.ForkJoinPool
-
-import scala.concurrent.ExecutionContext
-import scala.concurrent.Future
-import scala.jdk.CollectionConverters.MapHasAsJava
-import scala.util.*
-
-import akka.actor.typed.*
-import akka.actor.typed.scaladsl.Behaviors
-import com.rabbitmq.client.*
-import com.typesafe.config.Config
-import spray.json.DefaultJsonProtocol.StringJsonFormat
-import spray.json.JsObject
-import spray.json.JsString
-import spray.json.JsValue
-import spray.json.JsonFormat
-import spray.json.enrichAny
-import spray.json.enrichString
-
 import application.actors.command.{MessageBrokerCommand, RootCommand}
 import application.actors.command.RootCommand.Startup
 import application.Serializers.given
-import application.actors.command.MessageBrokerCommand.{CatalogItemLifted, CatalogItemPutInPlace}
+import application.actors.command.MessageBrokerCommand.*
 import application.routes.entities.Entity
 import application.routes.entities.Entity.{ErrorResponseEntity, ResultResponseEntity}
 import application.routes.entities.Response.EmptyResponse
 import application.RequestProcessingFailed
-import items.catalogitem.{CatalogItemStateHandlers, Repository}
+import items.catalogitem.{CatalogItemStateHandlers, Repository as CatalogItemRepository}
 import items.catalogitem.domainevents.{
   CatalogItemLifted as CatalogItemLiftedEvent,
   CatalogItemPutInPlace as CatalogItemPutInPlaceEvent
 }
+import items.item.Repository as ItemRepository
+import items.item.domainevents.{ItemAddedToCart as ItemAddedToCartEvent, ItemReturned as ItemReturnedEvent}
+import items.item.services.ItemStateHandlers
+import AnyOps.===
+
+import akka.actor.typed.*
+import akka.actor.typed.scaladsl.{ActorContext, Behaviors}
+import com.rabbitmq.client.*
+import com.typesafe.config.Config
+import spray.json.{enrichAny, enrichString, JsObject, JsonFormat, JsString, JsValue}
+import spray.json.DefaultJsonProtocol.StringJsonFormat
+
+import java.nio.charset.StandardCharsets
+import java.util.concurrent.ForkJoinPool
+import scala.concurrent.{ExecutionContext, Future}
+import scala.jdk.CollectionConverters.MapHasAsJava
+import scala.util.*
 
 object MessageBrokerActor {
 
@@ -56,6 +53,52 @@ object MessageBrokerActor {
         .correlationId(correlationId)
         .build(),
       response.toJson.compactPrint.getBytes(StandardCharsets.UTF_8)
+    )
+
+  private def publishValidated[A: JsonFormat](
+    channel: Channel,
+    value: Validated[A],
+    replyTo: String,
+    correlationId: String
+  ): Unit =
+    value.fold(
+      t => publish(channel, ErrorResponseEntity(t), replyTo, correlationId),
+      _ => publish(channel, ResultResponseEntity(()), replyTo, correlationId)
+    )
+
+  private def consume[A <: MessageBrokerCommand](
+    queue: String,
+    channel: Channel,
+    events: Map[String, (JsObject, String, String) => A],
+    ctx: ActorContext[MessageBrokerCommand]
+  ): Unit =
+    channel.basicConsume(
+      queue,
+      true,
+      (_: String, message: Delivery) => {
+        val body: String = String(message.getBody, StandardCharsets.UTF_8)
+        val json: JsObject = body.parseJson.asJsObject
+        events
+          .toSeq
+          .find((eventName, _) =>
+            json.getFields("type") match {
+              case Seq(JsString(e)) => eventName === e
+              case _ => false
+            }
+          )
+          .map(_._2)
+          .fold {
+            ctx.system.deadLetters[String] ! body
+            channel.basicReject(message.getEnvelope.getDeliveryTag, false)
+          }(b =>
+            ctx.self ! b.apply(
+              json,
+              message.getProperties.getReplyTo,
+              message.getProperties.getCorrelationId
+            )
+          )
+      },
+      (_: String) => {}
     )
 
   def apply(root: ActorRef[RootCommand], messageBrokerConfig: Config, repositoryConfig: Config): Behavior[MessageBrokerCommand] =
@@ -102,35 +145,36 @@ object MessageBrokerActor {
           couples
             .flatMap((b1, b2) => Seq((b1, b1 + "_" + b2, b2), (b2, b2 + "_" + b1, b1)))
             .foreach((e, q, r) => channel.queueBind(q, e, r))
-          couples
-            .map(_ + "_" + _)
-            .foreach(q =>
-              channel.basicConsume(
-                q,
-                true,
-                (_: String, message: Delivery) => {
-                  val body: String = String(message.getBody, StandardCharsets.UTF_8)
-                  val json: JsObject = body.parseJson.asJsObject
-                  json.getFields("type") match {
-                    case Seq(JsString("CatalogItemLifted")) =>
-                      ctx.self ! CatalogItemLifted(
-                        json.convertTo[CatalogItemLiftedEvent],
-                        message.getProperties.getReplyTo,
-                        message.getProperties.getCorrelationId
-                      )
-                    case _ =>
-                      ctx.system.deadLetters[String] ! body
-                      channel.basicReject(message.getEnvelope.getDeliveryTag, false)
-                  }
-                },
-                (_: String) => {}
-              )
-            )
+          consume(
+            "shopping_items",
+            channel,
+            Map(
+              "CatalogItemLifted" -> ((j, r, c) => CatalogItemLifted(summon[JsonFormat[CatalogItemLiftedEvent]].read(j), r, c)),
+              "ItemAddedToCart" -> ((j, r, c) => ItemAddedToCart(summon[JsonFormat[ItemAddedToCartEvent]].read(j), r, c))
+            ),
+            ctx
+          )
+          consume(
+            "stores_items",
+            channel,
+            Map(
+              "CatalogItemLifted" -> ((j, r, c) => CatalogItemLifted(summon[JsonFormat[CatalogItemLiftedEvent]].read(j), r, c)),
+              "ItemReturned" -> ((j, r, c) => ItemReturned(summon[JsonFormat[ItemReturnedEvent]].read(j), r, c))
+            ),
+            ctx
+          )
+          consume(
+            "carts_items",
+            channel,
+            Map("ItemAddedToCart" -> ((j, r, c) => ItemAddedToCart(summon[JsonFormat[ItemAddedToCartEvent]].read(j), r, c))),
+            ctx
+          )
           (c, channel)
         }
       }.map { (co, ch) =>
         root ! Startup(true)
-        given Repository = Repository(repositoryConfig)
+        given CatalogItemRepository = CatalogItemRepository(repositoryConfig)
+        given ItemRepository = ItemRepository(repositoryConfig)
         given ExecutionContext = ExecutionContext.fromExecutor(ForkJoinPool.commonPool())
         Behaviors
           .receiveMessage[MessageBrokerCommand] {
@@ -139,17 +183,31 @@ object MessageBrokerActor {
                 CatalogItemStateHandlers.onCatalogItemLifted(event)
               ).onComplete {
                 case Failure(_) => publish(ch, ErrorResponseEntity(RequestProcessingFailed), replyTo, correlationId)
-                case Success(value) =>
-                  value.fold(
-                    t => publish(ch, ErrorResponseEntity(t), replyTo, correlationId),
-                    _ => publish(ch, ResultResponseEntity(()), replyTo, correlationId)
-                  )
+                case Success(value) => publishValidated(ch, value, replyTo, correlationId)
               }(ctx.executionContext)
               Behaviors.same[MessageBrokerCommand]
             case CatalogItemPutInPlace(event, replyTo) =>
               Future(CatalogItemStateHandlers.onCatalogItemPutInPlace(event)).onComplete {
                 case Failure(_) => replyTo ! EmptyResponse(Left[ValidationError, Unit](RequestProcessingFailed))
                 case Success(value) => replyTo ! EmptyResponse(value)
+              }(ctx.executionContext)
+              Behaviors.same[MessageBrokerCommand]
+            case ItemPutInPlace(event, replyTo) =>
+              Future(ItemStateHandlers.onItemPutInPlace(event)).onComplete {
+                case Failure(_) => replyTo ! EmptyResponse(Left[ValidationError, Unit](RequestProcessingFailed))
+                case Success(value) => replyTo ! EmptyResponse(value)
+              }(ctx.executionContext)
+              Behaviors.same[MessageBrokerCommand]
+            case ItemAddedToCart(event, replyTo, correlationId) =>
+              Future(ItemStateHandlers.onItemAddedToCart(event)).onComplete {
+                case Failure(_) => publish(ch, ErrorResponseEntity(RequestProcessingFailed), replyTo, correlationId)
+                case Success(value) => publishValidated(ch, value, replyTo, correlationId)
+              }(ctx.executionContext)
+              Behaviors.same[MessageBrokerCommand]
+            case ItemReturned(event, replyTo, correlationId) =>
+              Future(ItemStateHandlers.onItemReturned(event)).onComplete {
+                case Failure(_) => publish(ch, ErrorResponseEntity(RequestProcessingFailed), replyTo, correlationId)
+                case Success(value) => publishValidated(ch, value, replyTo, correlationId)
               }(ctx.executionContext)
               Behaviors.same[MessageBrokerCommand]
           }

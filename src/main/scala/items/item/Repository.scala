@@ -8,16 +8,13 @@ package io.github.pervasivecats
 package items.item
 
 import scala.util.Try
-
 import io.github.pervasivecats.Validated
-
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
 import com.typesafe.config.ConfigValueFactory
 import enumeratum.*
 import eu.timepit.refined.auto.autoUnwrap
 import io.getquill.*
-
 import AnyOps.*
 import items.catalogitem.Repository as CatalogItemRepository
 import items.catalogitem.Repository.CatalogItemNotFound
@@ -27,6 +24,7 @@ import items.catalogitem.valueobjects.Currency.findValues
 import items.item.entities.{InCartItem, InPlaceItem, Item, ReturnedItem}
 import items.item.valueobjects.{Customer, ItemId}
 import items.itemcategory.valueobjects.ItemCategoryId
+import items.RepositoryOperationFailed
 
 trait Repository {
 
@@ -53,11 +51,6 @@ object Repository {
     override val message: String = "No item found for the username that was provided"
   }
 
-  case object OperationFailed extends ValidationError {
-
-    override val message: String = "The operation on the given item has failed"
-  }
-
   private class PostgresRepository(ctx: PostgresJdbcContext[SnakeCase]) extends Repository {
 
     import ctx.*
@@ -71,7 +64,7 @@ object Repository {
     }
 
     private def protectFromException[A](f: => Validated[A]): Validated[A] =
-      Try(f).getOrElse(Left[ValidationError, A](OperationFailed))
+      Try(f).getOrElse(Left[ValidationError, A](RepositoryOperationFailed))
 
     private def queryByKeys(itemId: ItemId, catalogItemId: CatalogItemId, store: Store) = quote {
       query[Items]
@@ -126,7 +119,7 @@ object Repository {
             !==
             1L
           )
-            Left[ValidationError, Unit](OperationFailed)
+            Left[ValidationError, Unit](RepositoryOperationFailed)
           else
             Right[ValidationError, Unit](())
         }
@@ -135,7 +128,7 @@ object Repository {
     override def remove(item: Item): Validated[Unit] =
       protectFromException(
         if (ctx.run(queryByKeys(item.id, item.kind.id, item.kind.store).delete) !== 1L)
-          Left[ValidationError, Unit](OperationFailed)
+          Left[ValidationError, Unit](RepositoryOperationFailed)
         else
           Right[ValidationError, Unit](())
       )
@@ -169,7 +162,7 @@ object Repository {
             case _: ReturnedItem => queryUpdate(item, ItemStatus.Returned.status)
           }
         )
-          Left[ValidationError, Unit](OperationFailed)
+          Left[ValidationError, Unit](RepositoryOperationFailed)
         else
           Right[ValidationError, Unit](())
       )
@@ -195,7 +188,7 @@ object Repository {
         )
           .toEither
           .map(Right[ValidationError, Set[Validated[ReturnedItem]]])
-          .getOrElse(Left[ValidationError, Set[Validated[ReturnedItem]]](OperationFailed))
+          .getOrElse(Left[ValidationError, Set[Validated[ReturnedItem]]](RepositoryOperationFailed))
       )
   }
 

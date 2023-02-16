@@ -17,7 +17,6 @@ import spray.json.JsonFormat
 import spray.json.RootJsonFormat
 import spray.json.deserializationError
 import spray.json.enrichAny
-
 import application.routes.Routes.{DeserializationFailed, RequestFailed}
 import application.RequestProcessingFailed
 import application.Serializers.given
@@ -29,6 +28,12 @@ import items.catalogitem.valueobjects.Store.WrongStoreFormat
 import items.catalogitem.Repository.CatalogItemNotFound
 import items.itemcategory.valueobjects.Description.WrongDescriptionFormat
 import items.itemcategory.valueobjects.Name.WrongNameFormat
+
+import io.github.pervasivecats.items.catalogitem.valueobjects.CatalogItemId.WrongCatalogItemIdFormat
+import io.github.pervasivecats.items.item.valueobjects.Customer.WrongCustomerFormat
+import io.github.pervasivecats.items.item.valueobjects.ItemId.WrongItemIdFormat
+import io.github.pervasivecats.items.item.Repository.{ItemAlreadyPresent, ItemNotFound}
+import io.github.pervasivecats.items.itemcategory.valueobjects.ItemCategoryId.WrongItemCategoryIdFormat
 
 trait Entity
 
@@ -73,11 +78,17 @@ object Entity {
             ErrorResponseEntity(tpe match {
               case "ItemCategoryNotFound" => ItemCategoryNotFound
               case "CatalogItemNotFound" => CatalogItemNotFound
+              case "ItemNotFound" => ItemNotFound
+              case "ItemAlreadyPresent" => ItemAlreadyPresent
               case "WrongNameFormat" => WrongNameFormat
               case "WrongDescriptionFormat" => WrongDescriptionFormat
               case "WrongAmountFormat" => WrongAmountFormat
               case "WrongCountFormat" => WrongCountFormat
               case "WrongStoreFormat" => WrongStoreFormat
+              case "WrongCustomerFormat" => WrongCustomerFormat
+              case "WrongItemCategoryIdFormat" => WrongItemCategoryIdFormat
+              case "WrongCatalogItemIdFormat" => WrongCatalogItemIdFormat
+              case "WrongItemIdFormat" => WrongItemIdFormat
               case "RepositoryOperationFailed" => RepositoryOperationFailed
               case "RequestProcessingFailed" => RequestProcessingFailed
               case "RequestFailed" => RequestFailed

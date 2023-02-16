@@ -26,7 +26,7 @@ import org.testcontainers.utility.DockerImageName
 import items.item.Repository.ItemNotFound
 import items.catalogitem.Repository as CatalogItemRepository
 import items.catalogitem.Repository.CatalogItemNotFound
-import items.item.Repository.OperationFailed
+import items.RepositoryOperationFailed
 import items.catalogitem.entities.{CatalogItem, InPlaceCatalogItem}
 import items.catalogitem.valueobjects.*
 import items.item.Repository as ItemRepository
@@ -131,7 +131,7 @@ class ItemStateHandlersTest extends AnyFunSpec with TestContainerForAll {
         ItemStateHandlers
           .onItemAddedToCart(ItemAddedToCart(inCartItem.kind.id, inCartItem.kind.store, inCartItem.id, customer))
           .left
-          .value shouldBe OperationFailed
+          .value shouldBe RepositoryOperationFailed
       }
     }
   }
@@ -177,7 +177,7 @@ class ItemStateHandlersTest extends AnyFunSpec with TestContainerForAll {
         ItemStateHandlers
           .onItemReturned(ItemReturned(returnedItem.kind.id, returnedItem.kind.store, returnedItem.id))
           .left
-          .value shouldBe OperationFailed
+          .value shouldBe RepositoryOperationFailed
       }
     }
   }
@@ -213,7 +213,7 @@ class ItemStateHandlersTest extends AnyFunSpec with TestContainerForAll {
         ItemStateHandlers
           .onItemPutInPlace(ItemPutInPlace(item.kind.id, item.kind.store, item.id))
           .left
-          .value shouldBe OperationFailed
+          .value shouldBe RepositoryOperationFailed
       }
     }
   }

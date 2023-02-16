@@ -15,6 +15,11 @@ import items.catalogitem.domainevents.{
   CatalogItemPutInPlace as CatalogItemPutInPlaceEvent
 }
 import items.catalogitem.valueobjects.{CatalogItemId, Store}
+import items.item.domainevents.{
+  ItemPutInPlace as ItemPutInPlaceEvent,
+  ItemReturned as ItemReturnedEvent,
+  ItemAddedToCart as ItemAddedToCartEvent
+}
 
 sealed trait MessageBrokerCommand
 
@@ -24,5 +29,12 @@ object MessageBrokerCommand {
     extends MessageBrokerCommand
 
   final case class CatalogItemPutInPlace(event: CatalogItemPutInPlaceEvent, replyTo: ActorRef[EmptyResponse])
+    extends MessageBrokerCommand
+
+  final case class ItemPutInPlace(event: ItemPutInPlaceEvent, replyTo: ActorRef[EmptyResponse]) extends MessageBrokerCommand
+
+  final case class ItemReturned(event: ItemReturnedEvent, replyTo: String, correlationId: String) extends MessageBrokerCommand
+
+  final case class ItemAddedToCart(event: ItemAddedToCartEvent, replyTo: String, correlationId: String)
     extends MessageBrokerCommand
 }

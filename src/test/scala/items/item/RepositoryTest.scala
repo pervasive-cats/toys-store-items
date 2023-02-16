@@ -24,6 +24,7 @@ import org.scalatest.funspec.AnyFunSpec
 import org.scalatest.matchers.should.Matchers.*
 import org.testcontainers.utility.DockerImageName
 
+import items.RepositoryOperationFailed
 import items.catalogitem.entities.CatalogItem
 import items.catalogitem.valueobjects.{CatalogItemId, Store}
 import items.item.Repository.*
@@ -153,7 +154,7 @@ class RepositoryTest extends AnyFunSpec with TestContainerForAll {
         val id: CatalogItemId = catalogItemId.getOrElse(fail())
         val catalogItem: CatalogItem = InPlaceCatalogItem(id, itemCategoryId, store, price)
         val inPlaceItem: InPlaceItem = InPlaceItem(itemId, catalogItem)
-        db.remove(inPlaceItem).left.value shouldBe OperationFailed
+        db.remove(inPlaceItem).left.value shouldBe RepositoryOperationFailed
       }
     }
 
@@ -204,7 +205,7 @@ class RepositoryTest extends AnyFunSpec with TestContainerForAll {
         val id: CatalogItemId = catalogItemId.getOrElse(fail())
         val catalogItem: CatalogItem = InPlaceCatalogItem(id, itemCategoryId, store, price)
         val inPlaceItem: InPlaceItem = InPlaceItem(itemId, catalogItem)
-        db.update(inPlaceItem).left.value shouldBe OperationFailed
+        db.update(inPlaceItem).left.value shouldBe RepositoryOperationFailed
       }
     }
 

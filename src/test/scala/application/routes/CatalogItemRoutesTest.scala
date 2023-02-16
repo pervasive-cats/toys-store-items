@@ -51,7 +51,12 @@ class CatalogItemRoutesTest extends AnyFunSpec with ScalatestRouteTest with Spra
   private val messageBrokerActorProbe = TestProbe[MessageBrokerCommand]()
 
   private val routes: Route =
-    Routes(messageBrokerActorProbe.ref, TestProbe[ItemCategoryServerCommand]().ref, catalogItemServerProbe.ref)
+    Routes(
+      messageBrokerActorProbe.ref,
+      TestProbe[ItemCategoryServerCommand]().ref,
+      catalogItemServerProbe.ref,
+      TestProbe[ItemServerCommand]().ref
+    )
 
   private val catalogItemId: CatalogItemId = CatalogItemId(1).getOrElse(fail())
   private val itemCategoryId: ItemCategoryId = ItemCategoryId(1).getOrElse(fail())
