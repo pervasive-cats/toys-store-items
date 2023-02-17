@@ -34,6 +34,7 @@ import spray.json.DefaultJsonProtocol
 import spray.json.JsObject
 import spray.json.JsString
 import spray.json.JsValue
+import spray.json.JsonFormat
 import spray.json.JsonWriter
 import spray.json.enrichAny
 import spray.json.enrichString
@@ -42,7 +43,7 @@ import application.actors.command.{CatalogItemServerCommand, MessageBrokerComman
 import application.actors.command.CatalogItemServerCommand.*
 import application.routes.entities.Entity.{ErrorResponseEntity, ResultResponseEntity, given}
 import application.routes.entities.Response
-import application.routes.Routes.RequestFailed
+import application.routes.Routes.{completeWithValidated, route, strictTextMessageFlow, toTextMessage, RequestFailed}
 import application.routes.entities.CatalogItemEntity.*
 import application.routes.entities.Response.{CatalogItemResponse, EmptyResponse}
 import application.Serializers.given
@@ -55,20 +56,14 @@ private object CatalogItemRoutes extends SprayJsonSupport with DefaultJsonProtoc
 
   private given timeout: Timeout = 30.seconds
 
-  private def route[A: FromRequestUnmarshaller, B <: CatalogItemServerCommand, C <: Response[D], D: JsonWriter](
-    server: ActorRef[CatalogItemServerCommand],
-    request: A => ActorRef[C] => B,
-    responseHandler: C => Route
-  )(
-    using
-    ActorSystem[_]
-  ): Route =
-    entity(as[A]) { e =>
-      onComplete(server ? request(e)) {
-        case Failure(_) => complete(StatusCodes.InternalServerError, ErrorResponseEntity(RequestFailed))
-        case Success(value) => responseHandler(value)
+  private def handleCatalogItemNotFound[A: JsonFormat](response: Response[A]): Route = response.result match {
+    case Right(value) => complete(ResultResponseEntity(value))
+    case Left(error) =>
+      error match {
+        case CatalogItemNotFound => complete(StatusCodes.NotFound, ErrorResponseEntity(CatalogItemNotFound))
+        case _ => complete(StatusCodes.InternalServerError, ErrorResponseEntity(error))
       }
-    }
+  }
 
   def apply(
     server: ActorRef[CatalogItemServerCommand],
@@ -81,23 +76,13 @@ private object CatalogItemRoutes extends SprayJsonSupport with DefaultJsonProtoc
       get {
         onComplete(server ? ShowAllLiftedCatalogItems.apply) {
           case Failure(_) => complete(StatusCodes.InternalServerError, ErrorResponseEntity(RequestFailed))
-          case Success(value) =>
-            value.result match {
-              case Right(value) => complete(ResultResponseEntity(value))
-              case Left(error) => complete(StatusCodes.InternalServerError, ErrorResponseEntity(error))
-            }
+          case Success(value) => completeWithValidated(value.result)
         }
       }
     },
     path("catalog_item" / "put_in_place") {
       handleWebSocketMessages {
-        Flow[Message]
-          .mapAsync(parallelism = 2) {
-            case t: TextMessage => t.toStrict(timeout.duration)
-            case b: BinaryMessage =>
-              b.dataStream.runWith(Sink.ignore)
-              Future.failed[TextMessage.Strict](IllegalStateException())
-          }
+        strictTextMessageFlow
           .mapConcat(t =>
             val json: JsValue = t.text.parseJson
             json.asJsObject.getFields("type") match {
@@ -106,10 +91,7 @@ private object CatalogItemRoutes extends SprayJsonSupport with DefaultJsonProtoc
             }
           )
           .mapAsync[EmptyResponse](parallelism = 2)(e => messageBrokerActor ? (CatalogItemPutInPlace(e, _)))
-          .mapConcat(_.result match {
-            case Left(value) => TextMessage(ErrorResponseEntity(value).toJson.compactPrint) :: Nil
-            case Right(value) => TextMessage(ResultResponseEntity(value).toJson.compactPrint) :: Nil
-          })
+          .map(toTextMessage)
       }
     },
     path("catalog_item") {
@@ -118,52 +100,28 @@ private object CatalogItemRoutes extends SprayJsonSupport with DefaultJsonProtoc
           route[CatalogItemShowEntity, ShowCatalogItem, CatalogItemResponse, CatalogItem](
             server,
             e => ShowCatalogItem(e.id, e.store, _),
-            _.result match {
-              case Right(value) => complete(ResultResponseEntity(value))
-              case Left(error) =>
-                error match {
-                  case CatalogItemNotFound => complete(StatusCodes.NotFound, ErrorResponseEntity(CatalogItemNotFound))
-                  case _ => complete(StatusCodes.InternalServerError, ErrorResponseEntity(error))
-                }
-            }
+            handleCatalogItemNotFound
           )
         },
         post {
           route[CatalogItemAdditionEntity, AddCatalogItem, CatalogItemResponse, CatalogItem](
             server,
             e => AddCatalogItem(e.itemCategoryId, e.store, e.price, _),
-            _.result match {
-              case Right(value) => complete(ResultResponseEntity(value))
-              case Left(error) => complete(StatusCodes.InternalServerError, ErrorResponseEntity(error))
-            }
+            r => completeWithValidated(r.result)
           )
         },
         put {
           route[CatalogItemUpdateEntity, UpdateCatalogItem, CatalogItemResponse, CatalogItem](
             server,
             e => UpdateCatalogItem(e.id, e.store, e.price, _),
-            _.result match {
-              case Right(value) => complete(ResultResponseEntity(value))
-              case Left(error) =>
-                error match {
-                  case CatalogItemNotFound => complete(StatusCodes.NotFound, ErrorResponseEntity(CatalogItemNotFound))
-                  case _ => complete(StatusCodes.InternalServerError, ErrorResponseEntity(error))
-                }
-            }
+            handleCatalogItemNotFound
           )
         },
         delete {
           route[CatalogItemRemovalEntity, RemoveCatalogItem, EmptyResponse, Unit](
             server,
             e => RemoveCatalogItem(e.id, e.store, _),
-            _.result match {
-              case Right(value) => complete(ResultResponseEntity(value))
-              case Left(error) =>
-                error match {
-                  case CatalogItemNotFound => complete(StatusCodes.NotFound, ErrorResponseEntity(CatalogItemNotFound))
-                  case _ => complete(StatusCodes.InternalServerError, ErrorResponseEntity(error))
-                }
-            }
+            handleCatalogItemNotFound
           )
         }
       )

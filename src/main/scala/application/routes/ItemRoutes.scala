@@ -34,6 +34,7 @@ import spray.json.DefaultJsonProtocol
 import spray.json.JsObject
 import spray.json.JsString
 import spray.json.JsValue
+import spray.json.JsonFormat
 import spray.json.JsonWriter
 import spray.json.enrichAny
 import spray.json.enrichString
@@ -42,7 +43,7 @@ import application.actors.command.{ItemServerCommand, MessageBrokerCommand}
 import application.actors.command.ItemServerCommand.*
 import application.routes.entities.Entity.{ErrorResponseEntity, ResultResponseEntity, given}
 import application.routes.entities.Response
-import application.routes.Routes.RequestFailed
+import application.routes.Routes.{completeWithValidated, route, strictTextMessageFlow, toTextMessage, RequestFailed}
 import application.routes.entities.ItemEntity.*
 import application.routes.entities.Response.{EmptyResponse, ItemResponse}
 import application.Serializers.given
@@ -55,20 +56,14 @@ private object ItemRoutes extends SprayJsonSupport with DefaultJsonProtocol with
 
   private given timeout: Timeout = 30.seconds
 
-  private def route[A: FromRequestUnmarshaller, B <: ItemServerCommand, C <: Response[D], D: JsonWriter](
-    server: ActorRef[ItemServerCommand],
-    request: A => ActorRef[C] => B,
-    responseHandler: C => Route
-  )(
-    using
-    ActorSystem[_]
-  ): Route =
-    entity(as[A]) { e =>
-      onComplete(server ? request(e)) {
-        case Failure(_) => complete(StatusCodes.InternalServerError, ErrorResponseEntity(RequestFailed))
-        case Success(value) => responseHandler(value)
+  private def handleItemNotFoundError[A: JsonFormat](response: Response[A]): Route = response.result match {
+    case Right(value) => complete(ResultResponseEntity(value))
+    case Left(error) =>
+      error match {
+        case ItemNotFound => complete(StatusCodes.NotFound, ErrorResponseEntity(ItemNotFound))
+        case _ => complete(StatusCodes.InternalServerError, ErrorResponseEntity(error))
       }
-    }
+  }
 
   def apply(
     server: ActorRef[ItemServerCommand],
@@ -81,23 +76,13 @@ private object ItemRoutes extends SprayJsonSupport with DefaultJsonProtocol with
       get {
         onComplete(server ? ShowAllReturnedItems.apply) {
           case Failure(_) => complete(StatusCodes.InternalServerError, ErrorResponseEntity(RequestFailed))
-          case Success(value) =>
-            value.result match {
-              case Right(value) => complete(ResultResponseEntity(value))
-              case Left(error) => complete(StatusCodes.InternalServerError, ErrorResponseEntity(error))
-            }
+          case Success(value) => completeWithValidated(value.result)
         }
       }
     },
     path("item" / "put_in_place") {
       handleWebSocketMessages {
-        Flow[Message]
-          .mapAsync(parallelism = 2) {
-            case t: TextMessage => t.toStrict(timeout.duration)
-            case b: BinaryMessage =>
-              b.dataStream.runWith(Sink.ignore)
-              Future.failed[TextMessage.Strict](IllegalStateException())
-          }
+        strictTextMessageFlow
           .mapConcat(t =>
             val json: JsValue = t.text.parseJson
             json.asJsObject.getFields("type") match {
@@ -106,10 +91,7 @@ private object ItemRoutes extends SprayJsonSupport with DefaultJsonProtocol with
             }
           )
           .mapAsync[EmptyResponse](parallelism = 2)(e => messageBrokerActor ? (ItemPutInPlace(e, _)))
-          .mapConcat(_.result match {
-            case Left(value) => TextMessage(ErrorResponseEntity(value).toJson.compactPrint) :: Nil
-            case Right(value) => TextMessage(ResultResponseEntity(value).toJson.compactPrint) :: Nil
-          })
+          .map(toTextMessage)
       }
     },
     path("item") {
@@ -118,14 +100,7 @@ private object ItemRoutes extends SprayJsonSupport with DefaultJsonProtocol with
           route[ItemShowEntity, ShowItem, ItemResponse, Item](
             server,
             e => ShowItem(e.id, e.kind, e.store, _),
-            _.result match {
-              case Right(value) => complete(ResultResponseEntity(value))
-              case Left(error) =>
-                error match {
-                  case ItemNotFound => complete(StatusCodes.NotFound, ErrorResponseEntity(ItemNotFound))
-                  case _ => complete(StatusCodes.InternalServerError, ErrorResponseEntity(error))
-                }
-            }
+            handleItemNotFoundError
           )
         },
         post {
@@ -146,14 +121,7 @@ private object ItemRoutes extends SprayJsonSupport with DefaultJsonProtocol with
           route[ItemRemovalEntity, RemoveItem, EmptyResponse, Unit](
             server,
             e => RemoveItem(e.id, e.kind, e.store, _),
-            _.result match {
-              case Right(value) => complete(ResultResponseEntity(value))
-              case Left(error) =>
-                error match {
-                  case ItemNotFound => complete(StatusCodes.NotFound, ErrorResponseEntity(ItemNotFound))
-                  case _ => complete(StatusCodes.InternalServerError, ErrorResponseEntity(error))
-                }
-            }
+            handleItemNotFoundError
           )
         }
       )
