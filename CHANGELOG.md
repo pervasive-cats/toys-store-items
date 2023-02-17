@@ -1,3 +1,12 @@
+# [1.0.0-beta.8](https://github.com/pervasive-cats/toys-store-items/compare/v1.0.0-beta.7...v1.0.0-beta.8) (2023-02-17)
+
+
+### Features
+
+* add a main class ([5e940e3](https://github.com/pervasive-cats/toys-store-items/commit/5e940e3ac2762e90538a1c2623d39b0568af4031))
+* add application layer implementation for item aggregate ([143c59e](https://github.com/pervasive-cats/toys-store-items/commit/143c59ec9efb0a7e98e73ce9d9a57fe63c58cbff))
+* add service for CatalogItem state handling, add application layer implementation ([02318cd](https://github.com/pervasive-cats/toys-store-items/commit/02318cda66b98a898b3a61959af2afe8a545d2ec))
+
 # [1.0.0-beta.7](https://github.com/pervasive-cats/toys-store-items/compare/v1.0.0-beta.6...v1.0.0-beta.7) (2023-02-12)
 
 
