@@ -41,7 +41,7 @@ object CatalogItemServerActor {
           case Success(value) => replyTo ! CatalogItemResponse(value)
         }(ctx.executionContext)
         Behaviors.same[CatalogItemServerCommand]
-      case CatalogItemServerCommand.ShowAllLiftedCatalogItems(replyTo) =>
+      case ShowAllLiftedCatalogItems(replyTo) =>
         Future(catalogItemRepository.findAllLifted()).onComplete {
           case Failure(_) =>
             replyTo ! LiftedCatalogItemSetResponse(
