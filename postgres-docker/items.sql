@@ -14,7 +14,8 @@ CREATE TABLE IF NOT EXISTS public.catalog_items
     amount numeric(6,2) NOT NULL,
     currency character varying(3) NOT NULL,
     count bigint NOT NULL DEFAULT 0,
-    CONSTRAINT catalog_items_pkey PRIMARY KEY (id, store)
+    CONSTRAINT catalog_items_pkey PRIMARY KEY (id, store),
+    CONSTRAINT catalog_items_category_fkey FOREIGN KEY (category) REFERENCES item_categories(id)
 );
 
 CREATE TYPE public.item_status AS ENUM
@@ -31,5 +32,6 @@ CREATE TABLE IF NOT EXISTS public.items
     customer character varying(100),
     store bigint NOT NULL,
     status item_status NOT NULL DEFAULT 'in_place',
-    CONSTRAINT items_pkey PRIMARY KEY (id)
+    CONSTRAINT items_pkey PRIMARY KEY (id, catalog_item_id, store),
+    CONSTRAINT items_catalog_item_id_store_fkey FOREIGN KEY (catalog_item_id, store) REFERENCES catalog_items(id, store)
 );
