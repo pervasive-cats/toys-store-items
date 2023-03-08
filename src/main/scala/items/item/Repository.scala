@@ -7,6 +7,8 @@
 package io.github.pervasivecats
 package items.item
 
+import javax.sql.DataSource
+
 import scala.util.Try
 
 import io.github.pervasivecats.Validated
@@ -195,5 +197,5 @@ object Repository {
       )
   }
 
-  def apply(config: Config): Repository = PostgresRepository(PostgresJdbcContext[SnakeCase](SnakeCase, config))
+  def apply(dataSource: DataSource): Repository = PostgresRepository(PostgresJdbcContext[SnakeCase](SnakeCase, dataSource))
 }

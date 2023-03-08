@@ -8,6 +8,7 @@ package io.github.pervasivecats
 package application.actors
 
 import java.util.concurrent.ForkJoinPool
+import javax.sql.DataSource
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
@@ -30,8 +31,8 @@ import items.catalogitem.entities.CatalogItemOps.updated
 
 object CatalogItemServerActor {
 
-  def apply(root: ActorRef[RootCommand], repositoryConfig: Config): Behavior[CatalogItemServerCommand] = Behaviors.setup { ctx =>
-    val catalogItemRepository: CatalogItemRepository = CatalogItemRepository(repositoryConfig)
+  def apply(root: ActorRef[RootCommand], dataSource: DataSource): Behavior[CatalogItemServerCommand] = Behaviors.setup { ctx =>
+    val catalogItemRepository: CatalogItemRepository = CatalogItemRepository(dataSource)
     given ExecutionContext = ExecutionContext.fromExecutor(ForkJoinPool.commonPool())
     root ! Startup(success = true)
     Behaviors.receiveMessage {

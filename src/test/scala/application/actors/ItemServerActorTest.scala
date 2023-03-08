@@ -7,6 +7,8 @@
 package io.github.pervasivecats
 package application.actors
 
+import javax.sql.DataSource
+
 import scala.concurrent.duration.DurationInt
 import scala.concurrent.duration.FiniteDuration
 
@@ -19,6 +21,7 @@ import com.dimafeng.testcontainers.scalatest.TestContainerForAll
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
 import com.typesafe.config.ConfigValueFactory
+import io.getquill.JdbcContextConfig
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.funspec.AnyFunSpec
 import org.scalatest.matchers.should.Matchers.*
@@ -65,7 +68,8 @@ class ItemServerActorTest extends AnyFunSpec with TestContainerForAll with Befor
   private var catalogItemId: Option[CatalogItemId] = None
 
   override def afterContainersStart(containers: Containers): Unit = {
-    val repositoryConfig: Config =
+    val dataSource: DataSource =
+      JdbcContextConfig(
       ConfigFactory
         .load()
         .getConfig("repository")
@@ -73,8 +77,9 @@ class ItemServerActorTest extends AnyFunSpec with TestContainerForAll with Befor
           "dataSource.portNumber",
           ConfigValueFactory.fromAnyRef(containers.container.getFirstMappedPort.intValue())
         )
-    itemServer = Some(testKit.spawn(ItemServerActor(rootActorProbe.ref, repositoryConfig)))
-    val repository: CatalogItemRepository = CatalogItemRepository(repositoryConfig)
+      ).dataSource
+    itemServer = Some(testKit.spawn(ItemServerActor(rootActorProbe.ref, dataSource)))
+    val repository: CatalogItemRepository = CatalogItemRepository(dataSource)
     catalogItemId = Some(repository.add(itemCategoryId, store, price).getOrElse(fail()).id)
   }
 

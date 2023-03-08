@@ -18,6 +18,7 @@ import com.dimafeng.testcontainers.PostgreSQLContainer
 import com.dimafeng.testcontainers.scalatest.TestContainerForAll
 import com.typesafe.config.ConfigFactory
 import com.typesafe.config.ConfigValueFactory
+import io.getquill.JdbcContextConfig
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.funspec.AnyFunSpec
 import org.scalatest.matchers.should.Matchers.*
@@ -57,6 +58,7 @@ class ItemCategoryServerActorTest extends AnyFunSpec with TestContainerForAll wi
       testKit.spawn(
         ItemCategoryServerActor(
           rootActorProbe.ref,
+          JdbcContextConfig(
           ConfigFactory
             .load()
             .getConfig("repository")
@@ -64,6 +66,7 @@ class ItemCategoryServerActorTest extends AnyFunSpec with TestContainerForAll wi
               "dataSource.portNumber",
               ConfigValueFactory.fromAnyRef(containers.container.getFirstMappedPort.intValue())
             )
+          ).dataSource
         )
       )
     )

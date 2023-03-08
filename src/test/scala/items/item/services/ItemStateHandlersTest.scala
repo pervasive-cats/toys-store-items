@@ -17,6 +17,7 @@ import com.dimafeng.testcontainers.scalatest.TestContainersForAll
 import com.typesafe.config.ConfigFactory
 import com.typesafe.config.ConfigValueFactory
 import eu.timepit.refined.auto.given
+import io.getquill.JdbcContextConfig
 import org.scalatest.EitherValues.given
 import org.scalatest.Failed
 import org.scalatest.funspec.AnyFunSpec
@@ -62,18 +63,22 @@ class ItemStateHandlersTest extends AnyFunSpec with TestContainerForAll {
   override def afterContainersStart(containers: Containers): Unit = {
     itemRepository = Some(
       ItemRepository(
+        JdbcContextConfig(
         ConfigFactory
           .load()
           .getConfig("repository")
           .withValue("dataSource.portNumber", ConfigValueFactory.fromAnyRef(containers.container.getFirstMappedPort.intValue()))
+        ).dataSource
       )
     )
     catalogItemRepository = Some(
       CatalogItemRepository(
+        JdbcContextConfig(
         ConfigFactory
           .load()
           .getConfig("repository")
           .withValue("dataSource.portNumber", ConfigValueFactory.fromAnyRef(containers.container.getFirstMappedPort.intValue()))
+        ).dataSource
       )
     )
     val itemCategoryId: ItemCategoryId = ItemCategoryId(614).getOrElse(fail())

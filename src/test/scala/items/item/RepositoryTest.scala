@@ -19,6 +19,7 @@ import com.dimafeng.testcontainers.scalatest.TestContainerForAll
 import com.typesafe.config.ConfigFactory
 import com.typesafe.config.ConfigValueFactory
 import eu.timepit.refined.auto.given
+import io.getquill.JdbcContextConfig
 import org.scalatest.EitherValues.given
 import org.scalatest.funspec.AnyFunSpec
 import org.scalatest.matchers.should.Matchers.*
@@ -61,18 +62,22 @@ class RepositoryTest extends AnyFunSpec with TestContainerForAll {
   override def afterContainersStart(containers: Containers): Unit = {
     repository = Some(
       Repository(
+        JdbcContextConfig(
         ConfigFactory
           .load()
           .getConfig("repository")
           .withValue("dataSource.portNumber", ConfigValueFactory.fromAnyRef(containers.container.getFirstMappedPort.intValue()))
+        ).dataSource
       )
     )
     catalogItemRepositoryOpt = Some(
       CatalogItemRepository(
+        JdbcContextConfig(
         ConfigFactory
           .load()
           .getConfig("repository")
           .withValue("dataSource.portNumber", ConfigValueFactory.fromAnyRef(containers.container.getFirstMappedPort.intValue()))
+        ).dataSource
       )
     )
     val category: ItemCategoryId = ItemCategoryId(614).getOrElse(fail())

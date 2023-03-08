@@ -9,6 +9,7 @@ package application.actors
 
 import java.nio.charset.StandardCharsets
 import java.util.concurrent.ForkJoinPool
+import javax.sql.DataSource
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
@@ -109,7 +110,7 @@ object MessageBrokerActor {
       (_: String) => {}
     )
 
-  def apply(root: ActorRef[RootCommand], messageBrokerConfig: Config, repositoryConfig: Config): Behavior[MessageBrokerCommand] =
+  def apply(root: ActorRef[RootCommand], messageBrokerConfig: Config, dataSource: DataSource): Behavior[MessageBrokerCommand] =
     Behaviors.setup[MessageBrokerCommand] { ctx =>
       Try {
         val factory: ConnectionFactory = ConnectionFactory()
@@ -181,8 +182,8 @@ object MessageBrokerActor {
         }
       }.map { (co, ch) =>
         root ! Startup(true)
-        given CatalogItemRepository = CatalogItemRepository(repositoryConfig)
-        given ItemRepository = ItemRepository(repositoryConfig)
+        given CatalogItemRepository = CatalogItemRepository(dataSource)
+        given ItemRepository = ItemRepository(dataSource)
         given ExecutionContext = ExecutionContext.fromExecutor(ForkJoinPool.commonPool())
         Behaviors
           .receiveMessage[MessageBrokerCommand] {

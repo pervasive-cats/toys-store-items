@@ -10,6 +10,7 @@ package application.actors
 import java.nio.charset.StandardCharsets
 import java.util.UUID
 import java.util.concurrent.*
+import javax.sql.DataSource
 
 import scala.concurrent.Await
 import scala.concurrent.duration.DurationInt
@@ -28,6 +29,7 @@ import com.dimafeng.testcontainers.scalatest.TestContainersForAll
 import com.rabbitmq.client.*
 import com.typesafe.config.*
 import eu.timepit.refined.auto.given
+import io.getquill.JdbcContextConfig
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.EitherValues.*
 import org.scalatest.funspec.AnyFunSpec
@@ -135,19 +137,21 @@ class MessageBrokerActorTest extends AnyFunSpec with TestContainersForAll with B
           "portNumber",
           ConfigValueFactory.fromAnyRef(containers.tail.container.getFirstMappedPort.intValue())
         )
-    val repositoryConfig: Config =
-      generalConfig
-        .getConfig("repository")
-        .withValue(
-          "dataSource.portNumber",
-          ConfigValueFactory.fromAnyRef(containers.head.container.getFirstMappedPort.intValue())
-        )
+    val dataSource: DataSource =
+      JdbcContextConfig(
+        generalConfig
+          .getConfig("repository")
+          .withValue(
+            "dataSource.portNumber",
+            ConfigValueFactory.fromAnyRef(containers.head.container.getFirstMappedPort.intValue())
+          )
+      ).dataSource
     messageBroker = Some(
       testKit.spawn(
         MessageBrokerActor(
           rootActorProbe.ref,
           messageBrokerConfig,
-          repositoryConfig
+          dataSource
         )
       )
     )
@@ -175,10 +179,10 @@ class MessageBrokerActorTest extends AnyFunSpec with TestContainersForAll with B
     channel.basicConsume("items_stores", true, forwardToQueue(storesQueue), (_: String) => {})
     channel.basicConsume("items_shopping", true, forwardToQueue(shoppingQueue), (_: String) => {})
     messageBrokerChannel = Some(channel)
-    val catalogItemRepository: CatalogItemRepository = CatalogItemRepository(repositoryConfig)
+    val catalogItemRepository: CatalogItemRepository = CatalogItemRepository(dataSource)
     val catalogItem: InPlaceCatalogItem = catalogItemRepository.add(itemCategoryId, store, price).getOrElse(fail())
     maybeCatalogItem = Some(catalogItem)
-    val itemRepository: ItemRepository = ItemRepository(repositoryConfig)
+    val itemRepository: ItemRepository = ItemRepository(dataSource)
     val item: InPlaceItem = InPlaceItem(ItemId(1).getOrElse(fail()), catalogItem)
     itemRepository.add(item).getOrElse(fail())
     maybeItem = Some(item)
