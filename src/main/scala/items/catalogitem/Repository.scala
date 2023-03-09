@@ -43,7 +43,7 @@ object Repository {
 
   case object CatalogItemNotFound extends ValidationError {
 
-    override val message: String = "The queried customer was not found"
+    override val message: String = "The queried catalog item was not found"
   }
 
   private class PostgresRepository(ctx: PostgresJdbcContext[SnakeCase]) extends Repository {

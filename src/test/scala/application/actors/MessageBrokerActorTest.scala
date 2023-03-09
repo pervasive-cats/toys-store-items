@@ -214,7 +214,10 @@ class MessageBrokerActorTest extends AnyFunSpec with TestContainersForAll with B
             .replyTo("stores")
             .correlationId(correlationId)
             .build(),
-          CatalogItemLiftedEvent(catalogItem.id, catalogItem.store).toJson.compactPrint.getBytes(StandardCharsets.UTF_8)
+          ResultResponseEntity(CatalogItemLiftedEvent(catalogItem.id, catalogItem.store))
+            .toJson
+            .compactPrint
+            .getBytes(StandardCharsets.UTF_8)
         )
         val firstMessage: Map[String, String] = storesQueue.poll(10, TimeUnit.SECONDS)
         firstMessage("exchange") shouldBe "items"
@@ -235,7 +238,10 @@ class MessageBrokerActorTest extends AnyFunSpec with TestContainersForAll with B
             .replyTo("stores")
             .correlationId(correlationId)
             .build(),
-          CatalogItemLiftedEvent(catalogItem.id, catalogItem.store).toJson.compactPrint.getBytes(StandardCharsets.UTF_8)
+          ResultResponseEntity(CatalogItemLiftedEvent(catalogItem.id, catalogItem.store))
+            .toJson
+            .compactPrint
+            .getBytes(StandardCharsets.UTF_8)
         )
         val secondMessage: Map[String, String] = storesQueue.poll(10, TimeUnit.SECONDS)
         secondMessage("exchange") shouldBe "items"
@@ -264,7 +270,10 @@ class MessageBrokerActorTest extends AnyFunSpec with TestContainersForAll with B
             .replyTo("stores")
             .correlationId(correlationId)
             .build(),
-          CatalogItemLiftedEvent(catalogItemId, catalogItem.store).toJson.compactPrint.getBytes(StandardCharsets.UTF_8)
+          ResultResponseEntity(CatalogItemLiftedEvent(catalogItemId, catalogItem.store))
+            .toJson
+            .compactPrint
+            .getBytes(StandardCharsets.UTF_8)
         )
         val message: Map[String, String] = storesQueue.poll(10, TimeUnit.SECONDS)
         message("exchange") shouldBe "items"
@@ -293,7 +302,7 @@ class MessageBrokerActorTest extends AnyFunSpec with TestContainersForAll with B
             .replyTo("stores")
             .correlationId(correlationId)
             .build(),
-          CatalogItemLiftedEvent(catalogItem.id, store).toJson.compactPrint.getBytes(StandardCharsets.UTF_8)
+          ResultResponseEntity(CatalogItemLiftedEvent(catalogItem.id, store)).toJson.compactPrint.getBytes(StandardCharsets.UTF_8)
         )
         val message: Map[String, String] = storesQueue.poll(10, TimeUnit.SECONDS)
         message("exchange") shouldBe "items"
@@ -353,7 +362,7 @@ class MessageBrokerActorTest extends AnyFunSpec with TestContainersForAll with B
           .replyTo("shopping")
           .correlationId(correlationId)
           .build(),
-        ItemAddedToCartEvent(item.kind.id, item.kind.store, item.id, customer)
+        ResultResponseEntity(ItemAddedToCartEvent(item.kind.id, item.kind.store, item.id, customer))
           .toJson
           .compactPrint
           .getBytes(StandardCharsets.UTF_8)
@@ -385,7 +394,7 @@ class MessageBrokerActorTest extends AnyFunSpec with TestContainersForAll with B
           .replyTo("shopping")
           .correlationId(correlationId)
           .build(),
-        ItemAddedToCartEvent(catalogItemId, item.kind.store, item.id, customer)
+        ResultResponseEntity(ItemAddedToCartEvent(catalogItemId, item.kind.store, item.id, customer))
           .toJson
           .compactPrint
           .getBytes(StandardCharsets.UTF_8)
@@ -417,7 +426,10 @@ class MessageBrokerActorTest extends AnyFunSpec with TestContainersForAll with B
           .replyTo("shopping")
           .correlationId(correlationId)
           .build(),
-        ItemAddedToCartEvent(item.kind.id, item.kind.store, itemId, customer).toJson.compactPrint.getBytes(StandardCharsets.UTF_8)
+        ResultResponseEntity(ItemAddedToCartEvent(item.kind.id, item.kind.store, itemId, customer))
+          .toJson
+          .compactPrint
+          .getBytes(StandardCharsets.UTF_8)
       )
       val message: Map[String, String] = shoppingQueue.poll(10, TimeUnit.SECONDS)
       message("exchange") shouldBe "items"
@@ -445,7 +457,7 @@ class MessageBrokerActorTest extends AnyFunSpec with TestContainersForAll with B
           .replyTo("stores")
           .correlationId(correlationId)
           .build(),
-        ItemReturnedEvent(item.kind.id, item.kind.store, item.id)
+        ResultResponseEntity(ItemReturnedEvent(item.kind.id, item.kind.store, item.id))
           .toJson
           .compactPrint
           .getBytes(StandardCharsets.UTF_8)
@@ -477,7 +489,7 @@ class MessageBrokerActorTest extends AnyFunSpec with TestContainersForAll with B
           .replyTo("stores")
           .correlationId(correlationId)
           .build(),
-        ItemReturnedEvent(catalogItemId, item.kind.store, item.id)
+        ResultResponseEntity(ItemReturnedEvent(catalogItemId, item.kind.store, item.id))
           .toJson
           .compactPrint
           .getBytes(StandardCharsets.UTF_8)
@@ -509,7 +521,10 @@ class MessageBrokerActorTest extends AnyFunSpec with TestContainersForAll with B
           .replyTo("stores")
           .correlationId(correlationId)
           .build(),
-        ItemReturnedEvent(item.kind.id, item.kind.store, itemId).toJson.compactPrint.getBytes(StandardCharsets.UTF_8)
+        ResultResponseEntity(ItemReturnedEvent(item.kind.id, item.kind.store, itemId))
+          .toJson
+          .compactPrint
+          .getBytes(StandardCharsets.UTF_8)
       )
       val message: Map[String, String] = storesQueue.poll(10, TimeUnit.SECONDS)
       message("exchange") shouldBe "items"

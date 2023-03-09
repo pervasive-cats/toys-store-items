@@ -48,12 +48,12 @@ object Repository {
 
   case object ItemAlreadyPresent extends ValidationError {
 
-    override val message: String = "The item was already registered"
+    override val message: String = "The item was already present"
   }
 
   case object ItemNotFound extends ValidationError {
 
-    override val message: String = "No item found for the username that was provided"
+    override val message: String = "No item found for the id that was provided"
   }
 
   private class PostgresRepository(ctx: PostgresJdbcContext[SnakeCase]) extends Repository {

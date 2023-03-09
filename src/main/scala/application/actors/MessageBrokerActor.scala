@@ -86,7 +86,7 @@ object MessageBrokerActor {
       true,
       (_: String, message: Delivery) => {
         val body: String = String(message.getBody, StandardCharsets.UTF_8)
-        val json: JsObject = body.parseJson.asJsObject
+        val json: JsObject = body.parseJson.convertTo[ResultResponseEntity[JsValue]].result.asJsObject
         events
           .toSeq
           .find((eventName, _) =>
