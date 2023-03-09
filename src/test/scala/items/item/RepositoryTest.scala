@@ -63,20 +63,20 @@ class RepositoryTest extends AnyFunSpec with TestContainerForAll {
     repository = Some(
       Repository(
         JdbcContextConfig(
-        ConfigFactory
-          .load()
-          .getConfig("repository")
-          .withValue("dataSource.portNumber", ConfigValueFactory.fromAnyRef(containers.container.getFirstMappedPort.intValue()))
+          ConfigFactory
+            .load()
+            .getConfig("repository")
+            .withValue("dataSource.portNumber", ConfigValueFactory.fromAnyRef(containers.container.getFirstMappedPort.intValue()))
         ).dataSource
       )
     )
     catalogItemRepositoryOpt = Some(
       CatalogItemRepository(
         JdbcContextConfig(
-        ConfigFactory
-          .load()
-          .getConfig("repository")
-          .withValue("dataSource.portNumber", ConfigValueFactory.fromAnyRef(containers.container.getFirstMappedPort.intValue()))
+          ConfigFactory
+            .load()
+            .getConfig("repository")
+            .withValue("dataSource.portNumber", ConfigValueFactory.fromAnyRef(containers.container.getFirstMappedPort.intValue()))
         ).dataSource
       )
     )

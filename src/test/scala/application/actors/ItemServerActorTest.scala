@@ -70,13 +70,13 @@ class ItemServerActorTest extends AnyFunSpec with TestContainerForAll with Befor
   override def afterContainersStart(containers: Containers): Unit = {
     val dataSource: DataSource =
       JdbcContextConfig(
-      ConfigFactory
-        .load()
-        .getConfig("repository")
-        .withValue(
-          "dataSource.portNumber",
-          ConfigValueFactory.fromAnyRef(containers.container.getFirstMappedPort.intValue())
-        )
+        ConfigFactory
+          .load()
+          .getConfig("repository")
+          .withValue(
+            "dataSource.portNumber",
+            ConfigValueFactory.fromAnyRef(containers.container.getFirstMappedPort.intValue())
+          )
       ).dataSource
     itemServer = Some(testKit.spawn(ItemServerActor(rootActorProbe.ref, dataSource)))
     val repository: CatalogItemRepository = CatalogItemRepository(dataSource)

@@ -60,13 +60,13 @@ class CatalogItemServerActorTest extends AnyFunSpec with TestContainerForAll wit
         CatalogItemServerActor(
           rootActorProbe.ref,
           JdbcContextConfig(
-          ConfigFactory
-            .load()
-            .getConfig("repository")
-            .withValue(
-              "dataSource.portNumber",
-              ConfigValueFactory.fromAnyRef(containers.container.getFirstMappedPort.intValue())
-            )
+            ConfigFactory
+              .load()
+              .getConfig("repository")
+              .withValue(
+                "dataSource.portNumber",
+                ConfigValueFactory.fromAnyRef(containers.container.getFirstMappedPort.intValue())
+              )
           ).dataSource
         )
       )

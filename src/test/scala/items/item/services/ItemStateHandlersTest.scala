@@ -64,20 +64,20 @@ class ItemStateHandlersTest extends AnyFunSpec with TestContainerForAll {
     itemRepository = Some(
       ItemRepository(
         JdbcContextConfig(
-        ConfigFactory
-          .load()
-          .getConfig("repository")
-          .withValue("dataSource.portNumber", ConfigValueFactory.fromAnyRef(containers.container.getFirstMappedPort.intValue()))
+          ConfigFactory
+            .load()
+            .getConfig("repository")
+            .withValue("dataSource.portNumber", ConfigValueFactory.fromAnyRef(containers.container.getFirstMappedPort.intValue()))
         ).dataSource
       )
     )
     catalogItemRepository = Some(
       CatalogItemRepository(
         JdbcContextConfig(
-        ConfigFactory
-          .load()
-          .getConfig("repository")
-          .withValue("dataSource.portNumber", ConfigValueFactory.fromAnyRef(containers.container.getFirstMappedPort.intValue()))
+          ConfigFactory
+            .load()
+            .getConfig("repository")
+            .withValue("dataSource.portNumber", ConfigValueFactory.fromAnyRef(containers.container.getFirstMappedPort.intValue()))
         ).dataSource
       )
     )
