@@ -1,3 +1,12 @@
+## [1.0.1](https://github.com/pervasive-cats/toys-store-items/compare/v1.0.0...v1.0.1) (2023-03-11)
+
+
+### Bug Fixes
+
+* fix deserialization of events in message broker changing its format ([766db82](https://github.com/pervasive-cats/toys-store-items/commit/766db8279c3ce772bac75f1d24c950b03f339f55))
+* remove code instrumentation when generating jar file ([2e3623a](https://github.com/pervasive-cats/toys-store-items/commit/2e3623ac0e42e70bd4884167e7cdcba2c4a353d8))
+* share connection pool between all database instances, close pool at system shutdown ([eb1157e](https://github.com/pervasive-cats/toys-store-items/commit/eb1157eb9309ccac75fd3e57362113d64cf3b220))
+
 # 1.0.0 (2023-02-17)
 
 
