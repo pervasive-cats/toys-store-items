@@ -40,7 +40,7 @@ import spray.json.enrichAny
 import spray.json.enrichString
 
 import application.actors.command.{MessageBrokerCommand, RootCommand}
-import application.actors.command.MessageBrokerCommand.{CatalogItemLifted, CatalogItemPutInPlace}
+import application.actors.command.MessageBrokerCommand.{CatalogItemLifted, CatalogItemPutInPlace, ItemPutInPlace}
 import application.actors.command.RootCommand.Startup
 import application.routes.entities.Response.EmptyResponse
 import application.Serializers.given
@@ -54,7 +54,11 @@ import items.catalogitem.entities.*
 import items.catalogitem.valueobjects.*
 import items.catalogitem.Repository.CatalogItemNotFound
 import items.item.Repository as ItemRepository
-import items.item.domainevents.{ItemAddedToCart as ItemAddedToCartEvent, ItemReturned as ItemReturnedEvent}
+import items.item.domainevents.{
+  ItemAddedToCart as ItemAddedToCartEvent,
+  ItemPutInPlace as ItemPutInPlaceEvent,
+  ItemReturned as ItemReturnedEvent
+}
 import items.item.entities.{InPlaceItem, Item}
 import items.item.valueobjects.{Customer, ItemId}
 import items.RepositoryOperationFailed
@@ -319,8 +323,6 @@ class MessageBrokerActorTest extends AnyFunSpec with TestContainersForAll with B
         val catalogItem: CatalogItem = maybeCatalogItem.getOrElse(fail())
         actor ! CatalogItemPutInPlace(CatalogItemPutInPlaceEvent(catalogItem.id, catalogItem.store), emptyResponseProbe.ref)
         emptyResponseProbe.expectMessage(10.seconds, EmptyResponse(Right[ValidationError, Unit](())))
-        actor ! CatalogItemPutInPlace(CatalogItemPutInPlaceEvent(catalogItem.id, catalogItem.store), emptyResponseProbe.ref)
-        emptyResponseProbe.expectMessage(10.seconds, EmptyResponse(Right[ValidationError, Unit](())))
       }
     }
 
@@ -334,7 +336,7 @@ class MessageBrokerActorTest extends AnyFunSpec with TestContainersForAll with B
       }
     }
 
-    describe("when is called with a non-existing store") {
+    describe("when receives a CatalogItem put in place event for a non-existing store") {
       it("should not be allowed") {
         val actor: ActorRef[MessageBrokerCommand] = messageBroker.getOrElse(fail())
         val catalogItem: CatalogItem = maybeCatalogItem.getOrElse(fail())
@@ -343,195 +345,224 @@ class MessageBrokerActorTest extends AnyFunSpec with TestContainersForAll with B
         emptyResponseProbe.expectMessage(10.seconds, EmptyResponse(Left[ValidationError, Unit](CatalogItemNotFound)))
       }
     }
-  }
 
-  describe("when receives an Item added to cart event for an existing item") {
-    it("should update the database with the new item state") {
-      val channel: Channel = messageBrokerChannel.getOrElse(fail())
-      val item: Item = maybeItem.getOrElse(fail())
-      channel.basicPublish(
-        "shopping",
-        "items",
-        true,
-        AMQP
-          .BasicProperties
-          .Builder()
-          .contentType("application/json")
-          .deliveryMode(2)
-          .priority(0)
-          .replyTo("shopping")
-          .correlationId(correlationId)
-          .build(),
-        ResultResponseEntity(ItemAddedToCartEvent(item.kind.id, item.kind.store, item.id, customer))
-          .toJson
-          .compactPrint
-          .getBytes(StandardCharsets.UTF_8)
-      )
-      val message: Map[String, String] = shoppingQueue.poll(10, TimeUnit.SECONDS)
-      message("exchange") shouldBe "items"
-      message("routingKey") shouldBe "shopping"
-      message("contentType") shouldBe "application/json"
-      message("correlationId") shouldBe correlationId
-      message("body").parseJson.convertTo[ResultResponseEntity[Unit]].result shouldBe ()
+    describe("when receives an Item put in place event for an existing item") {
+      it("should update the database with the new item state") {
+        val actor: ActorRef[MessageBrokerCommand] = messageBroker.getOrElse(fail())
+        val item: Item = maybeItem.getOrElse(fail())
+        actor ! ItemPutInPlace(ItemPutInPlaceEvent(item.kind.id, item.kind.store, item.id), emptyResponseProbe.ref)
+        emptyResponseProbe.expectMessage(10.seconds, EmptyResponse(Right[ValidationError, Unit](())))
+      }
     }
-  }
 
-  describe("when receives a Item added to cart event for a non-existing catalog item") {
-    it("should not be allowed") {
-      val channel: Channel = messageBrokerChannel.getOrElse(fail())
-      val item: Item = maybeItem.getOrElse(fail())
-      val catalogItemId: CatalogItemId = CatalogItemId(999).getOrElse(fail())
-      channel.basicPublish(
-        "shopping",
-        "items",
-        true,
-        AMQP
-          .BasicProperties
-          .Builder()
-          .contentType("application/json")
-          .deliveryMode(2)
-          .priority(0)
-          .replyTo("shopping")
-          .correlationId(correlationId)
-          .build(),
-        ResultResponseEntity(ItemAddedToCartEvent(catalogItemId, item.kind.store, item.id, customer))
-          .toJson
-          .compactPrint
-          .getBytes(StandardCharsets.UTF_8)
-      )
-      val message: Map[String, String] = shoppingQueue.poll(10, TimeUnit.SECONDS)
-      message("exchange") shouldBe "items"
-      message("routingKey") shouldBe "shopping"
-      message("contentType") shouldBe "application/json"
-      message("correlationId") shouldBe correlationId
-      message("body").parseJson.convertTo[ErrorResponseEntity].error shouldBe CatalogItemNotFound
+    describe("when receives an Item put in place event for a non-existing id") {
+      it("should not be allowed") {
+        val actor: ActorRef[MessageBrokerCommand] = messageBroker.getOrElse(fail())
+        val item: Item = maybeItem.getOrElse(fail())
+        val itemId: ItemId = ItemId(999).getOrElse(fail())
+        actor ! ItemPutInPlace(ItemPutInPlaceEvent(item.kind.id, item.kind.store, itemId), emptyResponseProbe.ref)
+        emptyResponseProbe.expectMessage(10.seconds, EmptyResponse(Left[ValidationError, Unit](RepositoryOperationFailed)))
+      }
     }
-  }
 
-  describe("when receives an Item added to cart event for a non-existing id") {
-    it("should not be allowed") {
-      val channel: Channel = messageBrokerChannel.getOrElse(fail())
-      val item: Item = maybeItem.getOrElse(fail())
-      val itemId: ItemId = ItemId(999).getOrElse(fail())
-      channel.basicPublish(
-        "shopping",
-        "items",
-        true,
-        AMQP
-          .BasicProperties
-          .Builder()
-          .contentType("application/json")
-          .deliveryMode(2)
-          .priority(0)
-          .replyTo("shopping")
-          .correlationId(correlationId)
-          .build(),
-        ResultResponseEntity(ItemAddedToCartEvent(item.kind.id, item.kind.store, itemId, customer))
-          .toJson
-          .compactPrint
-          .getBytes(StandardCharsets.UTF_8)
-      )
-      val message: Map[String, String] = shoppingQueue.poll(10, TimeUnit.SECONDS)
-      message("exchange") shouldBe "items"
-      message("routingKey") shouldBe "shopping"
-      message("contentType") shouldBe "application/json"
-      message("correlationId") shouldBe correlationId
-      message("body").parseJson.convertTo[ErrorResponseEntity].error shouldBe RepositoryOperationFailed
+    describe("when receives an Item put in place event for a non-existing catalog item") {
+      it("should not be allowed") {
+        val actor: ActorRef[MessageBrokerCommand] = messageBroker.getOrElse(fail())
+        val item: Item = maybeItem.getOrElse(fail())
+        val catalogItemId: CatalogItemId = CatalogItemId(999).getOrElse(fail())
+        actor ! ItemPutInPlace(ItemPutInPlaceEvent(catalogItemId, item.kind.store, item.id), emptyResponseProbe.ref)
+        emptyResponseProbe.expectMessage(10.seconds, EmptyResponse(Left[ValidationError, Unit](CatalogItemNotFound)))
+      }
     }
-  }
 
-  describe("when receives an Item returned event for an existing item") {
-    it("should update the database with the new item state") {
-      val channel: Channel = messageBrokerChannel.getOrElse(fail())
-      val item: Item = maybeItem.getOrElse(fail())
-      channel.basicPublish(
-        "stores",
-        "items",
-        true,
-        AMQP
-          .BasicProperties
-          .Builder()
-          .contentType("application/json")
-          .deliveryMode(2)
-          .priority(0)
-          .replyTo("stores")
-          .correlationId(correlationId)
-          .build(),
-        ResultResponseEntity(ItemReturnedEvent(item.kind.id, item.kind.store, item.id))
-          .toJson
-          .compactPrint
-          .getBytes(StandardCharsets.UTF_8)
-      )
-      val message: Map[String, String] = storesQueue.poll(10, TimeUnit.SECONDS)
-      message("exchange") shouldBe "items"
-      message("routingKey") shouldBe "stores"
-      message("contentType") shouldBe "application/json"
-      message("correlationId") shouldBe correlationId
-      message("body").parseJson.convertTo[ResultResponseEntity[Unit]].result shouldBe ()
+    describe("when receives an Item added to cart event for an existing item") {
+      it("should update the database with the new item state") {
+        val channel: Channel = messageBrokerChannel.getOrElse(fail())
+        val item: Item = maybeItem.getOrElse(fail())
+        channel.basicPublish(
+          "shopping",
+          "items",
+          true,
+          AMQP
+            .BasicProperties
+            .Builder()
+            .contentType("application/json")
+            .deliveryMode(2)
+            .priority(0)
+            .replyTo("shopping")
+            .correlationId(correlationId)
+            .build(),
+          ResultResponseEntity(ItemAddedToCartEvent(item.kind.id, item.kind.store, item.id, customer))
+            .toJson
+            .compactPrint
+            .getBytes(StandardCharsets.UTF_8)
+        )
+        val message: Map[String, String] = shoppingQueue.poll(10, TimeUnit.SECONDS)
+        message("exchange") shouldBe "items"
+        message("routingKey") shouldBe "shopping"
+        message("contentType") shouldBe "application/json"
+        message("correlationId") shouldBe correlationId
+        message("body").parseJson.convertTo[ResultResponseEntity[Unit]].result shouldBe ()
+      }
     }
-  }
 
-  describe("when receives a Item returned event for a non-existing catalog item") {
-    it("should not be allowed") {
-      val channel: Channel = messageBrokerChannel.getOrElse(fail())
-      val item: Item = maybeItem.getOrElse(fail())
-      val catalogItemId: CatalogItemId = CatalogItemId(999).getOrElse(fail())
-      channel.basicPublish(
-        "stores",
-        "items",
-        true,
-        AMQP
-          .BasicProperties
-          .Builder()
-          .contentType("application/json")
-          .deliveryMode(2)
-          .priority(0)
-          .replyTo("stores")
-          .correlationId(correlationId)
-          .build(),
-        ResultResponseEntity(ItemReturnedEvent(catalogItemId, item.kind.store, item.id))
-          .toJson
-          .compactPrint
-          .getBytes(StandardCharsets.UTF_8)
-      )
-      val message: Map[String, String] = storesQueue.poll(10, TimeUnit.SECONDS)
-      message("exchange") shouldBe "items"
-      message("routingKey") shouldBe "stores"
-      message("contentType") shouldBe "application/json"
-      message("correlationId") shouldBe correlationId
-      message("body").parseJson.convertTo[ErrorResponseEntity].error shouldBe CatalogItemNotFound
+    describe("when receives a Item added to cart event for a non-existing catalog item") {
+      it("should not be allowed") {
+        val channel: Channel = messageBrokerChannel.getOrElse(fail())
+        val item: Item = maybeItem.getOrElse(fail())
+        val catalogItemId: CatalogItemId = CatalogItemId(999).getOrElse(fail())
+        channel.basicPublish(
+          "shopping",
+          "items",
+          true,
+          AMQP
+            .BasicProperties
+            .Builder()
+            .contentType("application/json")
+            .deliveryMode(2)
+            .priority(0)
+            .replyTo("shopping")
+            .correlationId(correlationId)
+            .build(),
+          ResultResponseEntity(ItemAddedToCartEvent(catalogItemId, item.kind.store, item.id, customer))
+            .toJson
+            .compactPrint
+            .getBytes(StandardCharsets.UTF_8)
+        )
+        val message: Map[String, String] = shoppingQueue.poll(10, TimeUnit.SECONDS)
+        message("exchange") shouldBe "items"
+        message("routingKey") shouldBe "shopping"
+        message("contentType") shouldBe "application/json"
+        message("correlationId") shouldBe correlationId
+        message("body").parseJson.convertTo[ErrorResponseEntity].error shouldBe CatalogItemNotFound
+      }
     }
-  }
 
-  describe("when receives an Item returned event for a non-existing id") {
-    it("should not be allowed") {
-      val channel: Channel = messageBrokerChannel.getOrElse(fail())
-      val item: Item = maybeItem.getOrElse(fail())
-      val itemId: ItemId = ItemId(999).getOrElse(fail())
-      channel.basicPublish(
-        "stores",
-        "items",
-        true,
-        AMQP
-          .BasicProperties
-          .Builder()
-          .contentType("application/json")
-          .deliveryMode(2)
-          .priority(0)
-          .replyTo("stores")
-          .correlationId(correlationId)
-          .build(),
-        ResultResponseEntity(ItemReturnedEvent(item.kind.id, item.kind.store, itemId))
-          .toJson
-          .compactPrint
-          .getBytes(StandardCharsets.UTF_8)
-      )
-      val message: Map[String, String] = storesQueue.poll(10, TimeUnit.SECONDS)
-      message("exchange") shouldBe "items"
-      message("routingKey") shouldBe "stores"
-      message("contentType") shouldBe "application/json"
-      message("correlationId") shouldBe correlationId
-      message("body").parseJson.convertTo[ErrorResponseEntity].error shouldBe RepositoryOperationFailed
+    describe("when receives an Item added to cart event for a non-existing id") {
+      it("should not be allowed") {
+        val channel: Channel = messageBrokerChannel.getOrElse(fail())
+        val item: Item = maybeItem.getOrElse(fail())
+        val itemId: ItemId = ItemId(999).getOrElse(fail())
+        channel.basicPublish(
+          "shopping",
+          "items",
+          true,
+          AMQP
+            .BasicProperties
+            .Builder()
+            .contentType("application/json")
+            .deliveryMode(2)
+            .priority(0)
+            .replyTo("shopping")
+            .correlationId(correlationId)
+            .build(),
+          ResultResponseEntity(ItemAddedToCartEvent(item.kind.id, item.kind.store, itemId, customer))
+            .toJson
+            .compactPrint
+            .getBytes(StandardCharsets.UTF_8)
+        )
+        val message: Map[String, String] = shoppingQueue.poll(10, TimeUnit.SECONDS)
+        message("exchange") shouldBe "items"
+        message("routingKey") shouldBe "shopping"
+        message("contentType") shouldBe "application/json"
+        message("correlationId") shouldBe correlationId
+        message("body").parseJson.convertTo[ErrorResponseEntity].error shouldBe RepositoryOperationFailed
+      }
+    }
+
+    describe("when receives an Item returned event for an existing item") {
+      it("should update the database with the new item state") {
+        val channel: Channel = messageBrokerChannel.getOrElse(fail())
+        val item: Item = maybeItem.getOrElse(fail())
+        channel.basicPublish(
+          "stores",
+          "items",
+          true,
+          AMQP
+            .BasicProperties
+            .Builder()
+            .contentType("application/json")
+            .deliveryMode(2)
+            .priority(0)
+            .replyTo("stores")
+            .correlationId(correlationId)
+            .build(),
+          ResultResponseEntity(ItemReturnedEvent(item.kind.id, item.kind.store, item.id))
+            .toJson
+            .compactPrint
+            .getBytes(StandardCharsets.UTF_8)
+        )
+        val message: Map[String, String] = storesQueue.poll(10, TimeUnit.SECONDS)
+        message("exchange") shouldBe "items"
+        message("routingKey") shouldBe "stores"
+        message("contentType") shouldBe "application/json"
+        message("correlationId") shouldBe correlationId
+        message("body").parseJson.convertTo[ResultResponseEntity[Unit]].result shouldBe ()
+      }
+    }
+
+    describe("when receives a Item returned event for a non-existing catalog item") {
+      it("should not be allowed") {
+        val channel: Channel = messageBrokerChannel.getOrElse(fail())
+        val item: Item = maybeItem.getOrElse(fail())
+        val catalogItemId: CatalogItemId = CatalogItemId(999).getOrElse(fail())
+        channel.basicPublish(
+          "stores",
+          "items",
+          true,
+          AMQP
+            .BasicProperties
+            .Builder()
+            .contentType("application/json")
+            .deliveryMode(2)
+            .priority(0)
+            .replyTo("stores")
+            .correlationId(correlationId)
+            .build(),
+          ResultResponseEntity(ItemReturnedEvent(catalogItemId, item.kind.store, item.id))
+            .toJson
+            .compactPrint
+            .getBytes(StandardCharsets.UTF_8)
+        )
+        val message: Map[String, String] = storesQueue.poll(10, TimeUnit.SECONDS)
+        message("exchange") shouldBe "items"
+        message("routingKey") shouldBe "stores"
+        message("contentType") shouldBe "application/json"
+        message("correlationId") shouldBe correlationId
+        message("body").parseJson.convertTo[ErrorResponseEntity].error shouldBe CatalogItemNotFound
+      }
+    }
+
+    describe("when receives an Item returned event for a non-existing id") {
+      it("should not be allowed") {
+        val channel: Channel = messageBrokerChannel.getOrElse(fail())
+        val item: Item = maybeItem.getOrElse(fail())
+        val itemId: ItemId = ItemId(999).getOrElse(fail())
+        channel.basicPublish(
+          "stores",
+          "items",
+          true,
+          AMQP
+            .BasicProperties
+            .Builder()
+            .contentType("application/json")
+            .deliveryMode(2)
+            .priority(0)
+            .replyTo("stores")
+            .correlationId(correlationId)
+            .build(),
+          ResultResponseEntity(ItemReturnedEvent(item.kind.id, item.kind.store, itemId))
+            .toJson
+            .compactPrint
+            .getBytes(StandardCharsets.UTF_8)
+        )
+        val message: Map[String, String] = storesQueue.poll(10, TimeUnit.SECONDS)
+        message("exchange") shouldBe "items"
+        message("routingKey") shouldBe "stores"
+        message("contentType") shouldBe "application/json"
+        message("correlationId") shouldBe correlationId
+        message("body").parseJson.convertTo[ErrorResponseEntity].error shouldBe RepositoryOperationFailed
+      }
     }
   }
 }
