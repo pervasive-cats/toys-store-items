@@ -10,7 +10,7 @@ object Dependencies {
 
   lazy val enumeratum: ModuleID = "com.beachape" %% "enumeratum" % "1.7.2"
 
-  lazy val postgresql: ModuleID = "org.postgresql" % "postgresql" % "42.5.4"
+  lazy val postgresql: ModuleID = "org.postgresql" % "postgresql" % "42.6.0"
 
   lazy val quill: ModuleID = "io.getquill" %% "quill-jdbc" % "4.6.0.1"
 
