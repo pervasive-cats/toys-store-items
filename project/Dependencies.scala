@@ -28,7 +28,7 @@ object Dependencies {
 
   lazy val akkaTestKit: ModuleID = "com.typesafe.akka" %% "akka-actor-testkit-typed" % "2.7.0" % Test
 
-  lazy val rabbitMQ: ModuleID = "com.rabbitmq" % "amqp-client" % "5.16.0"
+  lazy val rabbitMQ: ModuleID = "com.rabbitmq" % "amqp-client" % "5.17.0"
 
   lazy val akkaStreamTestkit: ModuleID = "com.typesafe.akka" %% "akka-stream-testkit" % "2.7.0" % Test
 
