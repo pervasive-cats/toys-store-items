@@ -1,3 +1,10 @@
+## [1.0.2](https://github.com/pervasive-cats/toys-store-items/compare/v1.0.1...v1.0.2) (2023-04-16)
+
+
+### Bug Fixes
+
+* change executor choice for fixing out-of-order execution ([214a592](https://github.com/pervasive-cats/toys-store-items/commit/214a592e76153e52d25ee0717f66c7bf471f9f1b))
+
 ## [1.0.1](https://github.com/pervasive-cats/toys-store-items/compare/v1.0.0...v1.0.1) (2023-03-11)
 
 
