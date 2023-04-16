@@ -8,12 +8,15 @@ package io.github.pervasivecats
 package application.actors
 
 import java.nio.charset.StandardCharsets
-import java.util.concurrent.{Executors, ForkJoinPool}
+import java.util.concurrent.Executors
+import java.util.concurrent.ForkJoinPool
 import javax.sql.DataSource
+
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 import scala.jdk.CollectionConverters.MapHasAsJava
 import scala.util.*
+
 import akka.actor.typed.*
 import akka.actor.typed.scaladsl.ActorContext
 import akka.actor.typed.scaladsl.Behaviors
@@ -26,6 +29,7 @@ import spray.json.JsValue
 import spray.json.JsonFormat
 import spray.json.enrichAny
 import spray.json.enrichString
+
 import application.actors.command.{MessageBrokerCommand, RootCommand}
 import application.actors.command.RootCommand.Startup
 import application.Serializers.given
@@ -35,7 +39,10 @@ import application.routes.entities.Entity.{ErrorResponseEntity, ResultResponseEn
 import application.routes.entities.Response.EmptyResponse
 import application.RequestProcessingFailed
 import items.catalogitem.{CatalogItemStateHandlers, Repository as CatalogItemRepository}
-import items.catalogitem.domainevents.{CatalogItemLifted as CatalogItemLiftedEvent, CatalogItemPutInPlace as CatalogItemPutInPlaceEvent}
+import items.catalogitem.domainevents.{
+  CatalogItemLifted as CatalogItemLiftedEvent,
+  CatalogItemPutInPlace as CatalogItemPutInPlaceEvent
+}
 import items.item.Repository as ItemRepository
 import items.item.domainevents.{ItemAddedToCart as ItemAddedToCartEvent, ItemReturned as ItemReturnedEvent}
 import items.item.services.ItemStateHandlers
